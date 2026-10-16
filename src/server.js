@@ -39,7 +39,7 @@ tool('learning_plan', '汇总保存的复盘，按反复出现的知识主题给
 tool('review_history', '按时间范围读取保存的题目分析，用于每周总结。默认不返回源码。queued/pending=已保存等待处理，running=后台生成中，failed=报告失败但源码保留，complete=报告完成。时间范围为起点包含、终点不包含。', {
   since:z.string().datetime({offset:true}).optional(),until:z.string().datetime({offset:true}).optional(),limit:z.number().int().min(1).max(100).default(30),includeSource:z.boolean().default(false)
 }, reviewHistory);
-tool('problem_timeline','读取单题的保存、提交和判题时间线及最终归档状态。默认不返回过程源码。',{url:z.string().url(),includeSource:z.boolean().default(false)},async({url,includeSource})=>includeSource?timeline(url):problemSummary(url));
+tool('problem_timeline','读取单题保存、提交和判题记录及最终归档状态。默认合并全部内容相同的记录，保留重复次数和原始编号；rawAttemptCount为实际事件数，mergedAttemptCount为合并后条数。默认不返回过程源码。',{url:z.string().url(),includeSource:z.boolean().default(false),mergeDuplicates:z.boolean().default(true)},async({url,includeSource,mergeDuplicates})=>includeSource?timeline(url,{mergeDuplicates}):problemSummary(url,{mergeDuplicates}));
 tool('coach_status', '检查服务配置与编译器是否可用。', {}, async () => ({ course: COURSE, codeDirectory: CODE_ROOT, compiler: await compilerCheck('int main(){return 0;}'), privacy: '题面、源码和诊断由 Codex 分析。作业源码、修改历史、报告和最终归档均保存在本地；没有 GitHub 上传功能。', execution: '仅编译检查，不执行代码或提交作业。' }));
 server.registerPrompt('review_homework', { description: '按课程要求审阅 C++ 作业，输出改进方向与补学计划。', argsSchema: { focus: z.string().optional() } }, ({focus}) => ({messages:[{role:'user',content:{type:'text',text:`${REVIEW_GUIDE}\n本次侧重：${focus || '正确性、优化与补学知识点'}。请先获取用户代码与题面，再调用 analyze_cpp。`}}]}));
 await server.connect(new StdioServerTransport());

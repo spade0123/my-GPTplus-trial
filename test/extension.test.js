@@ -113,5 +113,8 @@ test('page UI previews sections and submits runtime separately',async()=>{
   assert.equal(ui.getElementById('report').querySelectorAll('.math-inline .katex').length,2);
   assert.equal(ui.getElementById('report').querySelectorAll('.math-block .katex-display').length,2);
   assert.match(ui.getElementById('report').textContent,/不会执行/);
+  await messageHandler({type:'problem_status',attempts:[{number:1,numbers:[1,3],occurrenceCount:2,kind:'draft',codeHash:'a'.repeat(64),note:''}],finalizations:[]});
+  assert.match(ui.getElementById('attempts').textContent,/#1、3/);
+  assert.match(ui.getElementById('attempts').textContent,/相同内容已合并 2 次/);
   assert.match(ui.getElementById('state').textContent,/保存/);dom.window.close();
 });

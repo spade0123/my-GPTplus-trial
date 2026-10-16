@@ -3,6 +3,7 @@ import path from 'node:path';
 import {createHash,randomUUID} from 'node:crypto';
 import {createTwoFilesPatch} from 'diff';
 import {Capture,Runtime,dataDir,acquireLock,writeRecord,readReview,saveCapture} from './browser-review.js';
+import {attemptContentKey,resultFingerprint,groupIdenticalAttempts} from './attempt-groups.js';
 
 export const problemId=url=>createHash('sha256').update(new URL(url).origin+new URL(url).pathname).digest('hex');
 const manifestPath=id=>path.join(dataDir(),'problems',`${id}.json`);
@@ -35,15 +36,20 @@ export async function saveAttempt(input,{kind='draft',note='',eventId=randomUUID
   const startedAt=new Date().toISOString(),capture=Capture.parse(input),snapshot=await saveCapture(capture);
   const result=await updateProblem(capture.url,problem=>{
     const existing=problem.attempts.find(a=>a.id===eventId);
-    if(existing){if(existing.kind!==kind||existing.codeHash!==snapshot.codeHash)throw new Error('保存事件已用于其他版本。');return {attempt:existing,finalization:problem.finalizations.find(f=>f.id===eventId)};}
+    if(existing){if(existing.kind!==kind||existing.snapshotId!==snapshot.id||(existing.note||'')!==note||(existing.title&&existing.title!==capture.title)||existing.submissionId!==submissionId)throw new Error('保存事件已用于其他版本或内容。');return {attempt:existing,finalization:problem.finalizations.find(f=>f.id===eventId)};}
     if(kind==='ac') {
       const submitted=problem.attempts.find(a=>a.kind==='submission'&&a.submissionId===submissionId);
       if(!submitted||submitted.codeHash!==snapshot.codeHash||verdict?.source!=='judge-dom'||verdict.status!=='AC'||!verdict.text||!Number.isFinite(Date.parse(verdict.observedAt)))throw new Error('没有与当前代码匹配的提交和评测 AC 证据，不会自动归档。');
       const prior=problem.finalizations.find(f=>f.submissionId===submissionId);
       if(prior)return {attempt:problem.attempts.find(a=>a.id===prior.id),finalization:prior};
     }
-    const attempt={id:eventId,number:problem.attempts.length+1,snapshotId:snapshot.id,codeHash:snapshot.codeHash,savedAt:new Date().toISOString(),kind,note,submissionId,verdict};
-    if(kind==='ac')attempt.resultRuntimeFile=problem.attempts.find(a=>a.kind==='submission'&&a.submissionId===submissionId)?.resultRuntimeFile;
+    const attempt={id:eventId,number:problem.attempts.length+1,snapshotId:snapshot.id,codeHash:snapshot.codeHash,savedAt:new Date().toISOString(),title:capture.title,kind,note,submissionId,verdict};
+    if(kind==='ac') {
+      const submitted=problem.attempts.find(a=>a.kind==='submission'&&a.submissionId===submissionId);
+      attempt.resultRuntimeFile=submitted?.resultRuntimeFile;
+      attempt.resultFingerprint=submitted?.resultFingerprint;
+    }
+    attempt.contentKey=attemptContentKey(attempt);
     problem.title=capture.title;problem.attempts.push(attempt);
     let finalization;
     if(kind==='ac') {finalization={id:eventId,submissionId,eventNumber:attempt.number,snapshotId:snapshot.id,createdAt:attempt.savedAt,status:'queued',verdict};problem.finalizations.push(finalization);}
@@ -58,18 +64,42 @@ export async function recordVerdict(url,submissionId,verdict,runtime={}) {
     if(!event)throw new Error('找不到对应的提交快照。');
     const file=`run-snapshots/submission-${submissionId}.json`;
     await writeRecord(path.join(dataDir(),file),{submissionId,codeHash:event.codeHash,capturedAt:new Date().toISOString(),...Runtime.parse(runtime),verdict});
-    Object.assign(event,{verdict,resultRuntimeFile:file});return event;
+    Object.assign(event,{verdict,resultRuntimeFile:file,resultFingerprint:resultFingerprint(runtime)});
+    if(!event.title)event.title=(await readReview(event.snapshotId)).title;
+    event.contentKey=attemptContentKey(event);return event;
   });
 }
-export async function timeline(url,{throughNumber=Infinity}={}) {
+const legacyKeys=new Map();
+async function keyedAttempts(problem) {
+  const records=new Map();
+  return Promise.all(problem.attempts.map(async event=>{
+    if(event.contentKey)return event;
+    const cacheId=`${dataDir()}:${problem.id}:${event.id}`,signature=JSON.stringify(event),cached=legacyKeys.get(cacheId);
+    if(cached?.signature===signature)return {...event,contentKey:cached.key};
+    if(!records.has(event.snapshotId))records.set(event.snapshotId,readReview(event.snapshotId));
+    const record=await records.get(event.snapshotId);
+    const copy={...event,title:event.title||record.title};
+    if(/^run-snapshots\/submission-[-a-f0-9]{36}\.json$/i.test(event.resultRuntimeFile||'')) {
+      try{copy.resultFingerprint=resultFingerprint(JSON.parse(await fs.readFile(path.join(dataDir(),event.resultRuntimeFile),'utf8')));}
+      catch {copy.resultFingerprint=event.resultRuntimeFile;} // Missing evidence must not merge with a different result.
+    }
+    const key=attemptContentKey(copy);
+    if(legacyKeys.size>2000)legacyKeys.clear();
+    legacyKeys.set(cacheId,{signature,key});
+    return {...copy,contentKey:key};
+  }));
+}
+export async function timeline(url,{throughNumber=Infinity,mergeDuplicates=true}={}) {
   const problem=await getProblem(url),attempts=[];
-  for(const event of problem.attempts.filter(a=>a.number<=throughNumber)) {
+  const events=await keyedAttempts(problem);
+  for(const event of events.filter(a=>a.number<=throughNumber)) {
     const record=await readReview(event.snapshotId);let runtime={};
     if(/^run-snapshots\/[a-f0-9]{64}\.json$/.test(record.runtimeFile||''))try{runtime=JSON.parse(await fs.readFile(path.join(dataDir(),record.runtimeFile),'utf8'));}catch{}
     if(/^run-snapshots\/submission-[-a-f0-9]{36}\.json$/i.test(event.resultRuntimeFile||''))try{runtime=JSON.parse(await fs.readFile(path.join(dataDir(),event.resultRuntimeFile),'utf8'));}catch{}
     attempts.push({...event,record,runtime});
   }
-  return {...problem,attempts};
+  const groups=groupIdenticalAttempts(attempts);
+  return {...problem,attempts:mergeDuplicates?groups:attempts,rawAttemptCount:attempts.length,mergedAttemptCount:groups.length};
 }
 export function codeDiff(before,after,beforeName='previous.cpp',afterName='current.cpp') {
   return createTwoFilesPatch(beforeName,afterName,before.replace(/\r\n/g,'\n')+'\n',after.replace(/\r\n/g,'\n')+'\n','','',{context:3});
@@ -86,7 +116,8 @@ export async function debugContext(url,snapshotId) {
   }
   return context;
 }
-export async function problemSummary(url) {
+export async function problemSummary(url,{mergeDuplicates=true}={}) {
   const p=await getProblem(url);
-  return {id:p.id,url:p.url,title:p.title,attempts:p.attempts.map(({record,runtime,...a})=>a),finalizations:p.finalizations.map(({workerPid,localDirectory,...f})=>f)};
+  const events=await keyedAttempts(p),groups=groupIdenticalAttempts(events);
+  return {id:p.id,url:p.url,title:p.title,attempts:(mergeDuplicates?groups:events).map(({record,runtime,...a})=>a),rawAttemptCount:events.length,mergedAttemptCount:groups.length,finalizations:p.finalizations.map(({workerPid,localDirectory,...f})=>f)};
 }

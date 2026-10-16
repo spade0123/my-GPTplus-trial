@@ -46,7 +46,10 @@
     const kinds={draft:'过程保存',submission:'提交评测',ac:'通过 AC',legacy:'旧版保存'};
     $('attempts').replaceChildren();
     for(const a of problem.attempts.slice(-30).reverse()) {
-      const row=document.createElement('div');row.textContent=`#${a.number} ${kinds[a.kind]||a.kind} · ${a.codeHash?.slice(0,8)||''}${a.verdict?' · '+a.verdict.status:''}${a.note?' · '+a.note:''}`;$('attempts').append(row);
+      const numbers=a.numbers||[a.number];
+      const label=numbers.length>6?`${numbers.slice(0,3).join('、')}…${numbers.at(-1)}`:numbers.join('、');
+      const repeat=a.occurrenceCount>1?` · 相同内容已合并 ${a.occurrenceCount} 次`:'';
+      const row=document.createElement('div');row.textContent=`#${label} ${kinds[a.kind]||a.kind} · ${a.codeHash?.slice(0,8)||''}${a.verdict?' · '+a.verdict.status:''}${a.note?' · '+a.note:''}${repeat}`;$('attempts').append(row);
     }
     if(!problem.attempts.length)$('attempts').textContent='暂无记录';
     const labels={queued:'AC 已记录，等待生成最终 README',waiting_reports:'AC 已记录，等待后台报告',building:'正在后台整理修改与 debug 总结',complete:'本机归档已完成',failed:'最终归档失败，过程保存不受影响'};
