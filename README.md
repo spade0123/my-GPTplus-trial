@@ -53,10 +53,10 @@ npm ci --ignore-scripts
 
 ### 安装步骤
 
-1. 打开 [MCP GitHub 仓库](https://github.com/tanliuhongyy-afk/my-GPTplus-trial)，点击 **Code → Download ZIP** 并解压；也可以用 Git 克隆：
+1. 打开 [MCP GitHub 仓库](https://github.com/spade0123/my-GPTplus-trial)，点击 **Code → Download ZIP** 并解压；也可以用 Git 克隆：
 
    ```powershell
-   git clone https://github.com/tanliuhongyy-afk/my-GPTplus-trial.git
+   git clone https://github.com/spade0123/my-GPTplus-trial.git
    cd my-GPTplus-trial
    ```
 
