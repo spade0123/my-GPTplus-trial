@@ -40,6 +40,52 @@ npm ci --ignore-scripts
 
 在 Chrome 地址栏打开 `chrome://extensions`，开启开发者模式，加载本项目的 `extension` 目录，然后刷新北大 IDE 页面。扩展是本地源码版本，尚未发布到 Chrome 商店。
 
+## 让其他人安装
+
+任何人都可以从公开仓库取得 MCP 和扩展。**每位使用者都需要在自己的 Windows 电脑上完成安装，并使用自己的 Codex 登录和额度。**仓库只发布工具程序和说明，不包含你的题目、代码、调试记录、报告、账号信息或本机连接配置。
+
+### 使用者需要准备
+
+- Windows、Google Chrome，以及能够登录北大编程平台的账号。
+- Node.js 22 或更新版本（包含 npm）。
+- 支持 GNU 参数的 `g++`，例如 w64devkit，并确保 `node`、`npm`、`g++` 和 `codex` 可以在 PowerShell 中找到。
+- 已安装并登录 Codex CLI 的 Codex。分析调用该使用者自己的 Codex 会话和额度。
+
+### 安装步骤
+
+1. 打开 [MCP GitHub 仓库](https://github.com/tanliuhongyy-afk/my-GPTplus-trial)，点击 **Code → Download ZIP** 并解压；也可以用 Git 克隆：
+
+   ```powershell
+   git clone https://github.com/tanliuhongyy-afk/my-GPTplus-trial.git
+   cd my-GPTplus-trial
+   ```
+
+   如果下载了 ZIP，请在 PowerShell 进入解压后包含 `package.json` 的项目根目录。
+
+2. 在该目录打开 PowerShell，按顺序运行：
+
+   ```powershell
+   npm ci --ignore-scripts
+   ./install-codex.ps1
+   ./install-browser.ps1
+   ```
+
+   如果 Windows 阻止脚本运行，请从 PowerShell 当前用户的执行策略设置中允许本地脚本，再重试；不要从陌生网页复制执行策略命令。安装脚本会把 MCP 注册到本机 Codex，为当前 Windows 用户登记 Chrome 本机连接，并编译连接程序。
+
+3. 在 Chrome 地址栏打开 `chrome://extensions`，开启右上角的**开发者模式**，选择**加载已解压的扩展程序**，选中刚下载或克隆的项目里的 `extension` 文件夹。不要选项目根目录。
+
+4. 刷新北大编程平台的题目 IDE 页面。确认右下角出现“保存并后台分析”面板后，登录平台并选择自己的 C++ 作业代码；首次分析前检查题面各栏和代码，再保存。
+
+5. 在 Codex 中开始新聊天（或重启 Codex），即可使用已注册的 MCP 工具。以后更新版本时，在扩展管理页重新加载扩展，再刷新 IDE；需要时在项目目录更新仓库并重新运行安装脚本。
+
+### 每位使用者的数据与分享方式
+
+每个人的题面、源码快照、提交和运行记录、分析报告及 AC 归档都写在自己电脑上的安装目录中。分析时，当前题面和代码会发送给该使用者自己的 Codex 模型；这会使用其账号额度。其他人无法通过这个 GitHub 仓库看到这些本地记录，仓库也不会自动接收作业代码。
+
+如果要分享改进后的 MCP 程序，请只提交程序源文件和文档。不要提交 `data/`、`archives/`、`reports/`、个人作业文件、生成的 `native/paths.json`、`native/node-path.txt`、`launcher.exe` 或个人 Codex 配置。个人数据目录已由 `.gitignore` 排除，但提交前仍应检查变更列表。
+
+目前扩展通过 Chrome 的“加载已解压的扩展程序”安装，需要每位使用者自行开启开发者模式；项目尚未发布到 Chrome 网上应用店。当前安装脚本只支持 Windows + Google Chrome，macOS、Linux、其他浏览器和 Chrome 商店一键安装暂未提供。
+
 更新代码后，在扩展管理页面点击“重新加载”，再刷新 IDE 即可。若本机 Node/Codex/编译器路径改变，重新运行浏览器安装脚本。Codex 中的新 MCP 工具可能需要新建聊天或重启应用才能出现。
 
 ## 题面与运行信息
@@ -110,3 +156,4 @@ npm start
 目前只处理单文件 C++ 作业。网页改版、尚未适配的编辑器、未被保存的中间修改及页面关闭后的判题结果均不能保证捕获。真实网站结构已经核对，但尚未替用户提交一次真实作业来验证完整 AC 流程。
 
 参考：[MCP TypeScript SDK](https://ts.sdk.modelcontextprotocol.io/server)、[Codex MCP 配置](https://learn.chatgpt.com/docs/extend/mcp?surface=cli)。
+
