@@ -21,9 +21,22 @@
         "https://programming.pku.edu.cn/probset/*/*/ide.do*"
       ],
       "js": [
+        "vendor/katex/katex.min.js",
+        "report-renderer.js",
         "content.js"
       ],
       "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "vendor/katex/katex.min.css",
+        "vendor/katex/fonts/*"
+      ],
+      "matches": [
+        "https://programming.pku.edu.cn/*"
+      ]
     }
   ],
   "action": {
@@ -31,3 +44,4 @@
   },
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA2VvQNbdY4wArHzoE6RWGftYHvyBIddDvklzQRp6AIAjQ8zUUftBPVgDMKgRkF1+ohtClhOL1bnNxPFly5iLCNP/Mq9SKPKVSUzA3vMyCruQTCzRkn2S4XP4efXmo0D7HDnjVqY9zs0LwkQ7LcfXWTq355sXCMRhaqtWb6zthaH7yz3AbRgalVV9h0VtfcasgEDE982RfOoKDt+IVdRRZGzUjz/YbBMvuXuS0lkjxvAhmj+mCPewofEu/hP/YsYVbyb+LWjZ9tATSxelFWscC9fo74rV/JAgHLaVcZ5WvhpdlOPIoBcYBBAIRlPVEX7HUPoEPaY9tU9KxhRy23QiPqwIDAQAB"
 }
+

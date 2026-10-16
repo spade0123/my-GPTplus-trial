@@ -4,6 +4,8 @@
 /reports/
 /submissions/
 /node_modules/
+/.pnpm-store/
+/.pnpm-dlx/
 /.codex/
 /.env
 /.env.*
@@ -15,3 +17,4 @@
 *.log
 *.tmp
 *.lock
+

@@ -5,7 +5,7 @@ import {JSDOM} from 'jsdom';
 import {extractPage} from '../extension/extract.js';
 const url='https://programming.pku.edu.cn/probset/d0ef3e0f7fa5481d896f9a07254c8ecd/f6b942b2dcd74656880a088f85f56c3f/ide.do';
 function page(html) {
-  const dom=new JSDOM(html,{url,runScripts:'outside-only'});
+  const dom=new JSDOM(`<!doctype html>${html}`,{url,runScripts:'outside-only'});
   Object.defineProperty(dom.window.HTMLElement.prototype,'innerText',{get(){return this.textContent;}});
   return dom;
 }
@@ -79,7 +79,9 @@ test('page UI previews sections and submits runtime separately',async()=>{
   const dom=page('<title>题目</title><p>页面题目。</p>');let messageHandler;const sent=[];let ui;
   const attach=dom.window.HTMLElement.prototype.attachShadow;
   dom.window.HTMLElement.prototype.attachShadow=function(opts){ui=attach.call(this,{...opts,mode:'open'});return ui;};
-  dom.window.chrome={runtime:{connect:()=>({onDisconnect:{addListener(){}},onMessage:{addListener(fn){messageHandler=fn;}},postMessage:m=>sent.push(m)})},storage:{local:{get:async()=>({}),set:async()=>{}}}};
+  dom.window.chrome={runtime:{getURL:path=>`chrome-extension://test/${path}`,connect:()=>({onDisconnect:{addListener(){}},onMessage:{addListener(fn){messageHandler=fn;}},postMessage:m=>sent.push(m)})},storage:{local:{get:async()=>({}),set:async()=>{}}}};
+  dom.window.eval(await fs.readFile(new URL('../extension/vendor/katex/katex.min.js',import.meta.url),'utf8'));
+  dom.window.eval(await fs.readFile(new URL('../extension/report-renderer.js',import.meta.url),'utf8'));
   dom.window.eval(await fs.readFile(new URL('../extension/content.js',import.meta.url),'utf8'));
   ui.getElementById('launch').click();assert.ok(sent.some(m=>m.type==='extract'));
   const problem={description:'输入两个整数，输出它们的和。',input:'输入范围为零到一百。',output:'一个整数',sampleInput:'1 2',sampleOutput:'3'};
@@ -104,7 +106,12 @@ test('page UI previews sections and submits runtime separately',async()=>{
   await messageHandler({type:'saved',requestType:'save',id:'b'.repeat(64),title:'另一版本',createdAt:'2026-10-16T00:01:00Z',status:'queued'});
   const firstRow=[...ui.getElementById('jobs').children].find(row=>row.textContent.includes('aaaaaaa'));
   firstRow.querySelector('button').click();
-  await messageHandler({type:'review_status',...first,status:'complete',analysis:'模型报告 <script>不会执行</script>'});
+  await messageHandler({type:'review_status',...first,status:'complete',analysis:'## 复杂度\n设输入规模为 $n$，时间复杂度是 \\(O(n \\log n)\\)。\n\n$$\nT(n)=O(n^2)\n$$\n\n\\[S(n)=O(n)\\]\n\n<script>不会执行</script>'});
   assert.equal(ui.getElementById('report').querySelector('script'),null);
+  assert.equal(ui.getElementById('report').querySelector('h3').textContent,'复杂度');
+  assert.equal(ui.getElementById('report').querySelectorAll('.math-inline .katex').length,2);
+  assert.equal(ui.getElementById('report').querySelectorAll('.math-block .katex-display').length,2);
+  assert.match(ui.getElementById('report').textContent,/不会执行/);
   assert.match(ui.getElementById('state').textContent,/保存/);dom.window.close();
 });
+
