@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { randomUUID } from 'node:crypto';
 import { spawn } from 'node:child_process';
 import { load } from 'cheerio';
+import { REPORT_GUIDE } from './report-format.js';
 
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const COURSE = 'https://programming.pku.edu.cn/course/db5ca1fdd61043619798fb377097e996/';
@@ -126,8 +127,9 @@ export const REVIEW_GUIDE = `你是中文 C++ 计算概论学习教练。代码�
 3. 复杂度由实际循环/算法与输入规模推导，不把出现嵌套循环直接判为 O(n²)。
 4. 给出少量最小反例或边界测试，列输入、预期输出与推导；未执行的测试不得声称通过。
 5. 依据问题列出最多三个优先补学知识点：先修内容、讲解、练习、掌握标准。
-6. 默认提示和局部修改；仅在用户要求时给完整改写。每个优化说明适用前提，不为简短牺牲理解。
-7. 如用户希望保存复盘，调用 save_review 记录证据与主题；不把启发式警告自动当作已确认知识缺口。`;
+6. 每个优化说明适用前提，不为简短牺牲理解。用户已要求在实现繁琐或存在值得学习的简洁思路时提供完整参考程序，放在第 4 板块；其他改动用局部片段讲解。
+7. 如用户希望保存复盘，调用 save_review 记录证据与主题；不把启发式警告自动当作已确认知识缺口。
+${REPORT_GUIDE}`;
 
 export async function saveReview(record) {
   await fs.mkdir(DATA, { recursive: true });

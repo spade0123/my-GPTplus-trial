@@ -81,6 +81,7 @@ test('page UI previews sections and submits runtime separately',async()=>{
   dom.window.HTMLElement.prototype.attachShadow=function(opts){ui=attach.call(this,{...opts,mode:'open'});return ui;};
   dom.window.chrome={runtime:{getURL:path=>`chrome-extension://test/${path}`,connect:()=>({onDisconnect:{addListener(){}},onMessage:{addListener(fn){messageHandler=fn;}},postMessage:m=>sent.push(m)})},storage:{local:{get:async()=>({}),set:async()=>{}}}};
   dom.window.eval(await fs.readFile(new URL('../extension/vendor/katex/katex.min.js',import.meta.url),'utf8'));
+  dom.window.eval(await fs.readFile(new URL('../extension/vendor/marked/marked.umd.js',import.meta.url),'utf8'));
   dom.window.eval(await fs.readFile(new URL('../extension/report-renderer.js',import.meta.url),'utf8'));
   dom.window.eval(await fs.readFile(new URL('../extension/content.js',import.meta.url),'utf8'));
   ui.getElementById('launch').click();assert.ok(sent.some(m=>m.type==='extract'));
@@ -108,10 +109,9 @@ test('page UI previews sections and submits runtime separately',async()=>{
   firstRow.querySelector('button').click();
   await messageHandler({type:'review_status',...first,status:'complete',analysis:'## 复杂度\n设输入规模为 $n$，时间复杂度是 \\(O(n \\log n)\\)。\n\n$$\nT(n)=O(n^2)\n$$\n\n\\[S(n)=O(n)\\]\n\n<script>不会执行</script>'});
   assert.equal(ui.getElementById('report').querySelector('script'),null);
-  assert.equal(ui.getElementById('report').querySelector('h3').textContent,'复杂度');
+  assert.equal(ui.getElementById('report').querySelector('h2').textContent,'复杂度');
   assert.equal(ui.getElementById('report').querySelectorAll('.math-inline .katex').length,2);
   assert.equal(ui.getElementById('report').querySelectorAll('.math-block .katex-display').length,2);
   assert.match(ui.getElementById('report').textContent,/不会执行/);
   assert.match(ui.getElementById('state').textContent,/保存/);dom.window.close();
 });
-

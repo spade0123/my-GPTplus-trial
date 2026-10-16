@@ -6,13 +6,23 @@
     :host{all:initial}*{box-sizing:border-box}button,select,textarea{font:inherit}button{cursor:pointer;border:1px solid #cad5e3;border-radius:7px;padding:8px 12px;background:white;color:#17324e}button:disabled{opacity:.55;cursor:wait}.primary{background:#135d85;color:white;border-color:#135d85}#launch{position:fixed;right:22px;bottom:22px;z-index:2147483647;box-shadow:0 4px 18px #0003;font:14px system-ui}
     #panel{position:fixed;right:20px;top:6vh;width:min(620px,92vw);height:84vh;z-index:2147483647;background:#f8fafc;color:#172f44;border:1px solid #c4d2df;border-radius:12px;box-shadow:0 12px 48px #0004;font:14px/1.6 system-ui;overflow:auto;padding:18px}#panel[hidden]{display:none}header{display:flex;justify-content:space-between;align-items:center}h2{font-size:19px;margin:0}label{display:block;margin:12px 0 5px}textarea{width:100%;resize:vertical;border:1px solid #b6c7d7;border-radius:6px;padding:9px;background:white;color:#102a43}#code{font-family:Consolas,monospace}#state{white-space:pre-wrap;color:#405d75;margin:12px 0}.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.hint{font-size:12px;color:#526b80}#report{white-space:pre-wrap;overflow-wrap:anywhere;font:14px/1.75 system-ui;background:white;padding:14px;border-radius:8px}select{max-width:100%;padding:6px}
     </style><style>
-    #report{overflow-wrap:anywhere;font:14px/1.8 system-ui;background:white;padding:22px 24px;border:1px solid #e1eaf1;border-radius:10px;color:#23384b}
+    #report{white-space:normal;overflow-wrap:anywhere;font:14px/1.8 system-ui;background:white;padding:22px 24px;border:1px solid #e1eaf1;border-radius:10px;color:#23384b}
+    #report h1{font-size:21px;line-height:1.4;color:#154f73;margin:.3em 0 1em}
     #report h2,#report h3,#report h4,#report h5{color:#154f73;line-height:1.4;margin:1.45em 0 .55em}
     #report h2{font-size:18px;border-bottom:1px solid #d9e5ee;padding-bottom:7px}
     #report h3{font-size:16px}#report p{margin:.65em 0}
+    #report h4,#report h5,#report h6{font-size:14px}#report li>p{margin:.25em 0}
     #report ul,#report ol{padding-left:1.6em;margin:.5em 0 1em}#report li{padding-left:.2em;margin:.3em 0}
+    #report strong{font-weight:650;color:#173c58}#report a{color:#116894;text-decoration:underline;text-underline-offset:3px}
+    #report :not(pre)>code{padding:.12em .35em;border-radius:4px;background:#edf3f8;color:#305775;font:12.5px/1.6 Consolas,monospace}
+    #report hr{border:0;border-top:1px solid #d9e5ee;margin:1.4em 0}
+    #report .table-scroll{overflow-x:auto;margin:1em 0;border:1px solid #dbe5ed;border-radius:8px}
+    #report table{width:100%;border-collapse:collapse;font-size:13px;line-height:1.65}
+    #report th,#report td{padding:9px 11px;border-bottom:1px solid #e5edf3;vertical-align:top;min-width:80px}
+    #report th{background:#edf4f9;color:#234f70;font-weight:650;text-align:left}#report tbody tr:nth-child(even){background:#f8fafc}
+    #report tr:last-child td{border-bottom:0}#report .report-image{color:#607b90;font-size:12px}
     #report blockquote{margin:.8em 0;padding:.35em .9em;border-left:3px solid #82b6d2;background:#f2f8fb;color:#405d75}
-    #report .report-code{position:relative;margin:1em 0;padding:14px 16px;overflow:auto;border-radius:8px;background:#f2f5f8;color:#16324a;font:13px/1.65 Consolas,monospace;white-space:pre-wrap}
+    #report .report-code{position:relative;margin:1em 0;padding:14px 16px;overflow:auto;border-radius:8px;background:#f2f5f8;color:#16324a;font:13px/1.65 Consolas,monospace;white-space:pre;tab-size:4}
     #report .report-code[data-language]::before{content:attr(data-language);display:block;margin:-3px 0 8px;color:#6a8194;font:11px/1.2 system-ui;text-transform:uppercase}
     #report .math-inline{padding:0 .12em;color:#123e5c}
     #report .math-block{margin:1em -4px;padding:14px 10px;overflow-x:auto;text-align:center;border-radius:8px;background:#f5f9fc;color:#123e5c}
@@ -21,7 +31,7 @@
     <div id="state">正在读取题目和编辑器…</div><details id="preview" open><summary>核对题目各部分和自己的代码</summary><div class="hint">首次先核对。报告由本机 Codex 登录会话生成，会使用 Codex 额度。</div><label>题目名称</label><textarea id="title" rows="1"></textarea><label>题目描述</label><textarea id="description" rows="6"></textarea><label>关于输入</label><textarea id="input" rows="4"></textarea><label>关于输出</label><textarea id="output" rows="4"></textarea><label>例子输入</label><textarea id="sampleInput" rows="4" spellcheck="false"></textarea><label>例子输出</label><textarea id="sampleOutput" rows="4" spellcheck="false"></textarea><label>代码来源</label><select id="source"></select><textarea id="code" rows="12" spellcheck="false"></textarea><label>语言标准</label><select id="standard"><option>c++17</option><option>c++11</option><option>c++14</option><option>c++20</option></select></details>
     <details id="runtimePreview"><summary>运行界面（单独保存）</summary><p class="hint">读取页面已有的运行信息；没有运行结果时保持空白。</p><label>运行输入</label><textarea id="runInput" rows="3" spellcheck="false"></textarea><label>执行输出</label><textarea id="runOutput" rows="3" spellcheck="false"></textarea><label>提示信息</label><textarea id="runHints" rows="3" spellcheck="false"></textarea><label>错误信息</label><textarea id="runError" rows="3" spellcheck="false"></textarea><label>运行状态</label><textarea id="runStatus" rows="1"></textarea><label>运行界面文本</label><textarea id="runText" rows="5" spellcheck="false"></textarea></details>
     <label>本次修改 / debug 备注（选填）</label><textarea id="note" rows="2" placeholder="例如：空字符串时越界，增加了长度检查"></textarea>
-    <p><label class="hint"><input id="quick" type="checkbox">记住此页面类型的代码来源，下次点击直接保存（题面仍可展开核对）</label></p><div class="row"><button id="run" class="primary" disabled>保存过程版本</button><button id="refresh">重新读取</button><button id="download" hidden>下载报告</button></div><p class="hint">过程版本保存在本机；报告后台生成，每周日 20:00 汇总。</p><details><summary>本题修改与提交记录（本地）</summary><div id="attempts">暂无记录</div></details><details open><summary>最终归档（仅保存在本机）</summary><div id="archiveState" class="hint">检测到本次提交 AC 后，在本机单独生成最终代码、README 和 debug 总结。归档期间仍可保存和修改代码。</div><div id="archives"></div></details><details open><summary>后台报告</summary><div id="jobs">暂无保存记录</div></details><div id="reportStatus" class="hint"></div><article id="report" hidden></article></section>`;
+    <p><label class="hint"><input id="quick" type="checkbox">记住此页面类型的代码来源，下次点击直接保存（题面仍可展开核对）</label></p><div class="row"><button id="run" class="primary" disabled>保存过程版本</button><button id="refresh">重新读取</button><button id="download" hidden>下载报告</button></div><p class="hint">过程版本保存在本机；报告后台生成；定期总结按 Codex 中设置的计划运行。</p><details><summary>本题修改与提交记录（本地）</summary><div id="attempts">暂无记录</div></details><details open><summary>最终归档（仅保存在本机）</summary><div id="archiveState" class="hint">检测到本次提交 AC 后，在本机单独生成最终代码、README 和 debug 总结。归档期间仍可保存和修改代码。</div><div id="archives"></div></details><details open><summary>后台报告</summary><div id="jobs">暂无保存记录</div></details><div id="reportStatus" class="hint"></div><article id="report" hidden></article></section>`;
   const katexStyle=document.createElement('link');
   katexStyle.rel='stylesheet';
   katexStyle.href=chrome.runtime.getURL('vendor/katex/katex.min.css');
@@ -136,4 +146,3 @@
   setInterval(()=>{if(port){for(const job of jobs.values())if(['queued','pending','running'].includes(job.status))port.postMessage({type:'review',id:job.id});port.postMessage({type:'problem'});}},5000);
   connect();
 })();
-

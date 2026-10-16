@@ -1,0 +1,24 @@
+{
+  "type":"object",
+  "properties":{
+    "sections":{
+      "type":"object",
+      "description":"固定六个板块的 Markdown 正文，不重复板块标题；板块内部小标题从三级标题开始。没有适用问题时明确说明，不省略字段。",
+      "properties":{
+        "redundancy":{"type":"string","description":"1. 冗余部分、行号、正确性或边界问题、局部简化及证据；结合真实修改/debug记录。"},
+        "input":{"type":"string","description":"2. 与题目输入契合的读取方式、换行空白EOF等注意事项和小例子。"},
+        "language":{"type":"string","description":"3. 原始手写实现与可替代的标准函数/语言特性对照，含行号、等价写法及适用边界。"},
+        "reference":{"type":"string","description":"4. 有实质简化或优美解法时给完整可编译参考程序及思路；否则说明无需额外参考。"},
+        "library":{"type":"string","description":"5. 按实际头文件分类的函数拓展表；C++关键字单独归类；最多三项优先补学练习和掌握标准。"},
+        "complexity":{"type":"string","description":"6. 明确规模变量后推导原解/参考解时间和空间，说明优化前提、收益代价和未执行的验证建议。"}
+      },
+      "required":["redundancy","input","language","reference","library","complexity"],
+      "additionalProperties":false
+    },
+    "topics":{"type":"array","items":{"type":"string","enum":["bounds","integers","initialization","io","complexity","floating","stl","testing"]}},
+    "evidence":{"type":"string","description":"供周报使用的具体问题证据；含行号和确定程度。"},
+    "next_step":{"type":"string","description":"下一步练习与可检查的掌握标准。"}
+  },
+  "required":["sections","topics","evidence","next_step"],
+  "additionalProperties":false
+}
