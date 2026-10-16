@@ -1,0 +1,23 @@
+{
+  "name": "pku-cpp-coach-mcp",
+  "version": "1.4.0",
+  "private": true,
+  "type": "module",
+  "description": "个人计算概论 C++ 作业诊断与学习助手",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.32.1",
+    "cheerio": "1.1.2",
+    "diff": "^9.0.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "jsdom": "^26.1.0"
+  }
+}

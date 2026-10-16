@@ -1,0 +1,11 @@
+{
+  "type":"object",
+  "properties":{
+    "markdown":{"type":"string","description":"完整中文报告：题意与假设、带行号的问题和依据、优化前提与复杂度、未运行的反例建议、最多三项补学内容和练习；明确区分事实和风险。"},
+    "topics":{"type":"array","items":{"type":"string","enum":["bounds","integers","initialization","io","complexity","floating","stl","testing"]}},
+    "evidence":{"type":"string","description":"供周报使用的具体问题证据；含行号和确定程度。"},
+    "next_step":{"type":"string","description":"下一步练习与可检查的掌握标准。"}
+  },
+  "required":["markdown","topics","evidence","next_step"],
+  "additionalProperties":false
+}
