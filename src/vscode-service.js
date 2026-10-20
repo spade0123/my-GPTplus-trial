@@ -12,9 +12,12 @@ import {runSample,latestSample,saveSampleRequest,finishSample} from './sample-ru
 import {readSubmission,createSubmission,updateSubmission} from './oj-submissions.js';
 const sha=value=>createHash('sha256').update(value).digest('hex');
 const normalize=code=>code.replace(/\r\n/g,'\n').trim();
-const Source=z.object({uri:z.string().max(3000).refine(s=>/^(?:file|untitled):/.test(s)),name:z.string().max(500),code:z.string().min(5).max(100000),version:z.number().int().nonnegative(),selectedCode:z.string().max(8000).default(''),diagnostics:z.string().max(12000).default('')}).strict();
+// VS Code can supply file, untitled, WSL/SSH, and other virtual document URIs.
+// This value is only hashed as a local context key; it is never opened as a path or URL.
+const DocumentUri=z.string().max(3000).refine(s=>/^[a-z][a-z0-9+.-]*:/i.test(s)&&!/[\u0000-\u001f\u007f]/.test(s),'当前 C++ 文档地址无效；请从 VS Code 打开一个 C++ 文件。');
+const Source=z.object({uri:DocumentUri,name:z.string().max(500),code:z.string().min(5).max(100000),version:z.number().int().nonnegative(),selectedCode:z.string().max(8000).default(''),diagnostics:z.string().max(12000).default('')}).strict();
 const uuid=value=>{const h=sha(value).slice(0,32);return `${h.slice(0,8)}-${h.slice(8,12)}-${h.slice(12,16)}-${h.slice(16,20)}-${h.slice(20)}`;};
-const validUri=uri=>Source.shape.uri.parse(uri);
+const validUri=uri=>DocumentUri.parse(uri);
 const contextPath=uri=>path.join(dataDir(),'vscode-context',sha(validUri(uri))+'.json');
 const topicKey=url=>{const parsed=gridUrl(url,{kind:'problem'});if(!parsed)throw new Error('题目地址无效。');return parsed.key;};
 async function readContext(uri){try{return JSON.parse(await fs.readFile(contextPath(uri),'utf8'));}catch(e){if(e.code!=='ENOENT')throw e;return {uri};}}
@@ -95,7 +98,7 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
   }
   return {async handle(message){
     const type=message.type;
-    if(type==='status')return {ready:true,dataDirectory:dataDir(),version:'0.1.1',platform:'programminggrid-vscode'};
+    if(type==='status')return {ready:true,dataDirectory:dataDir(),version:'0.1.2',platform:'programminggrid-vscode'};
     if(type==='problem_display')return currentProblem();
     if(type==='sample_history'){
       const source=Source.parse(message.source),context=await resolveContext(source.uri,message.problemUrl);
