@@ -48,6 +48,7 @@ function activate(context){
   async function showRecords(){const client=await backend(),status=await client.request({type:'status'});await vscode.env.openExternal(vscode.Uri.file(status.dataDirectory));}
   async function html(webview){
     let template=await fs.readFile(path.join(context.extensionPath,'media/assist-window.html'),'utf8');
+    template=template.replace('<title>C++ 学习教练</title>','<title>北大编程网格 · C++ 学习教练</title>').replace('<span class="eyebrow">C++ 学习教练 · 右侧浮窗</span>','<span class="eyebrow">北大编程网格 · C++ 学习教练</span>');
     const nonce=randomUUID().replace(/-/g,''),uri=file=>webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri,file)).toString();
     template=template.replace(/href="([^"]+)"/g,(all,file)=>file.startsWith('vendor/')||file==='sidepanel.css'?`href="${uri('media/'+file)}"`:all);
     template=template.replace(/<script([^>]*?)src="([^"]+)"([^>]*)>/g,(_all,before,file,after)=>`<script nonce="${nonce}"${before}src="${uri('media/'+file)}"${after}>`);
@@ -105,7 +106,7 @@ function activate(context){
     if(state&&new URL(state.problemUrl).host+new URL(state.problemUrl).pathname!==new URL(selected.binding.problemUrl).host+new URL(selected.binding.problemUrl).pathname){state.panel.dispose();state=null;}
     if(state){state.mode=mode;state.panel.reveal(state.panel.viewColumn);await state.panel.webview.postMessage({type:'resume_context',mode});}
     else{
-    const panel=vscode.window.createWebviewPanel('gridCoach','C++ 提示与交流 · '+source.name,vscode.ViewColumn.Beside,{enableScripts:true,retainContextWhenHidden:true,localResourceRoots:[context.extensionUri]});
+    const panel=vscode.window.createWebviewPanel('gridCoach','编程网格 · 提示与交流 · '+source.name,vscode.ViewColumn.Beside,{enableScripts:true,retainContextWhenHidden:true,localResourceRoots:[context.extensionUri]});
     state={panel,uri:source.uri,problemUrl:selected.binding.problemUrl,mode,sourceColumn:lastSource?.viewColumn||vscode.ViewColumn.One,uiSession:randomUUID(),startedAt:Date.now(),uiRevision:0};panels.set(source.uri,state);
     context.subscriptions.push(panel.onDidDispose(()=>panels.delete(source.uri)),panel.webview.onDidReceiveMessage(message=>{void panelMessage(state,message);}));
     panel.webview.html=await html(panel.webview);
@@ -118,7 +119,7 @@ function activate(context){
     vscode.window.setStatusBarMessage(result.workerError?'源码已保存；后台启动失败，请查看 编程网格 输出。':source.name+' 已保存，后台继续分析。',3500);
   }
   const safe=fn=>async()=>{try{return await fn();}catch(e){output.appendLine(e.message);void vscode.window.showErrorMessage(e.message);}};
-  for(const [label,command,fn,priority]of [['快捷保存','quickSave',quickSave,1003],['提示','hint',()=>open('hint'),1002],['交流','discussion',()=>open('discussion'),1001]]){
+  for(const [label,command,fn,priority]of [['网格·保存','quickSave',quickSave,1003],['网格·提示','hint',()=>open('hint'),1002],['网格·交流','discussion',()=>open('discussion'),1001]]){
     context.subscriptions.push(vscode.commands.registerCommand('gridCoach.'+command,safe(fn)));
     const button=vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right,priority);button.text=label;button.tooltip='编程网格 C++ 教练：'+label;button.command='gridCoach.'+command;button.name='编程网格 '+label;buttons.push(button);context.subscriptions.push(button);
   }

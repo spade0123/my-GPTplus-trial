@@ -64,17 +64,21 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
     const submission=web.submission;
     if(submission&&(!submission.problemMatches||!sameProblem(submission.problemUrl,binding.problemUrl)))throw new Error('提交详情属于另一题，本次未保存。');
     const codeHash=sha(normalize(source.code)),matching=Boolean(submission?.submittedCode&&!submission.sourceTruncated&&sha(normalize(submission.submittedCode))===codeHash);
-    const runtime={input:'',output:'',hints:warning,error:source.diagnostics?'VS Code 当前静态诊断（不是运行输出）：\n'+source.diagnostics:'',status:'unknown',text:''};
+    const site=web.runtime||{},read=(field,max=20000)=>typeof site[field]==='string'?site[field].slice(0,max):'';
+    const siteInput=read('input'),siteStatus=read('status',1000),siteText=read('text'),siteOutput=read('output'),siteHints=read('hints'),siteError=read('error');
+    const siteEvidence=[siteStatus&&`网页运行区显示状态（不能确认对应当前 VS Code 代码）：${siteStatus}`,siteText,siteOutput&&`网页执行输出（不能确认对应当前 VS Code 代码）：\n${siteOutput}`].filter(Boolean).join('\n\n');
+    const runtime={input:siteInput,output:'',hints:[warning,siteHints&&`网页提示信息（代码关联未确认）：\n${siteHints}`].filter(Boolean).join('\n').slice(0,20000),error:[source.diagnostics&&'VS Code 当前静态诊断（不是运行输出）：\n'+source.diagnostics,siteError&&`网页错误信息（代码关联未确认）：\n${siteError}`].filter(Boolean).join('\n').slice(0,20000),status:siteStatus?`网页显示：${siteStatus}（代码关联未确认）`.slice(0,1000):'unknown',text:siteEvidence.slice(0,20000)};
     let judgeEvidence={status:'unknown',source:'none',codeHash,runtimeAssociation:'uncertain'};
     if(submission){
       const verdict=submission.verdict||{};
-      runtime.hints=[runtime.hints,verdict.text].filter(Boolean).join('\n');runtime.error=[runtime.error,submission.runtime?.error].filter(Boolean).join('\n').slice(0,20000);
-      runtime.status=matching?verdict.status||'unknown':'unknown';runtime.text=`编程网格提交 ${submission.submissionId||'网页当前结果'}：${verdict.text||'未知状态'}。${matching?'已核对提交源码，与本次 VS Code 完整代码相同。':'尚未与本次 VS Code 代码匹配，不能把该状态当成当前代码的结果。'}`;
+      runtime.hints=[runtime.hints,verdict.text].filter(Boolean).join('\n').slice(0,20000);runtime.error=[runtime.error,submission.runtime?.error].filter(Boolean).join('\n').slice(0,20000);
+      if(matching)runtime.status=verdict.status||'unknown';
+      runtime.text=[runtime.text,`编程网格提交 ${submission.submissionId||'网页当前结果'}：${verdict.text||'未知状态'}。${matching?'已核对提交源码，与本次 VS Code 完整代码相同；网页运行区内容仍可能属于另一次运行。':'尚未与本次 VS Code 代码匹配，不能把该状态当成当前代码的结果。'}`].filter(Boolean).join('\n\n').slice(0,20000);
       if(matching&&['AC','WA','CE','RE','TLE','MLE','PE','OLE'].includes(verdict.status))judgeEvidence={status:verdict.status,source:'matching-submission',codeHash,runtimeAssociation:'matching-judgment'};
     }
     const u=gridUrl(binding.problemUrl,{kind:'problem'}),url='https://'+u.key+'ide.do';
     const sample=await latestSample(url,source.code);
-    if(sample?.result){const r=sample.result;runtime.input=r.input;runtime.output=r.actual.slice(0,20000);runtime.error=[runtime.error,r.compiler,r.stderr].filter(Boolean).join('\n').slice(0,20000);runtime.text+='\n本机样例测试：'+r.status+'；只表示本机样例结果，不代表网站 AC。';}
+    if(sample?.result){const r=sample.result;runtime.input=r.input;runtime.output=r.actual.slice(0,20000);runtime.error=[runtime.error,r.compiler,r.stderr].filter(Boolean).join('\n').slice(0,20000);runtime.text=[siteInput&&`网页当前输入框（不能确认已用于网页运行）：\n${siteInput}`,runtime.text,'本机样例测试：'+r.status+'；runtime.input/output 为本机样例输入与实际输出，不代表网站 AC。'].filter(Boolean).join('\n\n').slice(0,20000);if(!matching)runtime.status=`本机样例：${r.status}`.slice(0,1000);}
     const result=Capture.parse({url,title:page.title,problem:page.problem,code:source.code,standard:context.standard||'c++17',runtime});
     return {capture:result,browserUrl:binding.problemUrl,missingSections:page.missingSections||[],judgment:judgeEvidence,submission,matching,warning};
   }
@@ -91,7 +95,7 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
   }
   return {async handle(message){
     const type=message.type;
-    if(type==='status')return {ready:true,dataDirectory:dataDir(),version:'0.1.0',platform:'programminggrid-vscode'};
+    if(type==='status')return {ready:true,dataDirectory:dataDir(),version:'0.1.1',platform:'programminggrid-vscode'};
     if(type==='problem_display')return currentProblem();
     if(type==='sample_history'){
       const source=Source.parse(message.source),context=await resolveContext(source.uri,message.problemUrl);

@@ -12,7 +12,7 @@ class ProblemView{
     webview.html='<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'+
       `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}'; style-src ${webview.cspSource} 'unsafe-inline'; font-src ${webview.cspSource}; img-src data:; connect-src 'none';">`+
       `<link rel="stylesheet" href="${uri('media/vendor/katex/katex.min.css')}"><link rel="stylesheet" href="${uri('problem-view.css')}"></head><body>`+
-      '<header><span class="eyebrow">编程网格 · 题面</span><h1 id="title">等待浏览器打开题目</h1><p id="state" role="status">Chrome 打开编程网格具体题目的 IDE 后，这里会自动显示。</p><button id="openProblem" hidden>在浏览器查看原题</button></header><main id="sections"></main><footer>题面自动显示；快捷保存、提示和交流由右下角三个按钮操作。</footer>'+
+      '<header><span class="eyebrow">编程网格 · 题面</span><h1 id="title">等待浏览器打开题目</h1><p id="state" role="status">Chrome 打开编程网格具体题目的 IDE 后，这里会自动显示。</p><button id="openProblem" hidden>在浏览器查看原题</button></header><main id="sections"></main><footer>题面自动显示；网格·保存、网格·提示和网格·交流由右下角三个按钮操作。</footer>'+
       scripts.map(file=>`<script nonce="${nonce}" src="${uri(file)}"></script>`).join('')+'</body></html>';
     this.context.subscriptions.push(view.onDidDispose(()=>{if(this.view===view)this.view=null;}),webview.onDidReceiveMessage(async message=>{
       if(message.type==='ready')return webview.postMessage(this.latest);

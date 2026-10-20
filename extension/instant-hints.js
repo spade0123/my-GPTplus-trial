@@ -49,7 +49,8 @@
     else parts.push('### 先核对输入与边界\n\n本地规则没有发现明显线索，这不代表程序正确。请对照当前题目逐项核对输入顺序、空白与多组输入，以及最小规模、重复值和找不到答案时的分支。');
     if(problem.input)parts.push(`### 本题输入核对\n\n按下面的输入说明核对当前读取方式：\n\n${fence(problem.input.slice(0,900))}`);
     const runtime=capture.runtime||{};
-    if(runtime.error||runtime.text||runtime.status)parts.push(`### 运行界面的线索\n\n页面现有结果可能属于旧版本，先确认它与当前代码相对应，再据此修改。\n\n${fence((runtime.error||runtime.text||runtime.status).slice(0,1200))}`);
+    const runtimeClues=[runtime.error,runtime.text,runtime.status&&runtime.status!=='unknown'?`状态：${runtime.status}`:''].filter(Boolean).join('\n\n');
+    if(runtimeClues)parts.push(`### 运行界面的线索\n\n网页现有结果可能属于旧版本，先确认它与当前代码相对应；本机样例与网页评测的来源也要分开看。\n\n${fence(runtimeClues.slice(0,1600))}`);
     if(problem.sampleInput&&problem.sampleOutput)parts.push(`### 验证方法\n\n先手算样例，再在平台自行测试；这里没有代你运行。\n\n样例输入：\n\n${fence(problem.sampleInput.slice(0,700))}\n\n题目要求的样例输出：\n\n${fence(problem.sampleOutput.slice(0,700))}`);
     if(compiler?.status==='passed')parts.push('本地语法检查通过；算法正确性和平台 AC 仍需验证。');
     return {markdown:parts.join('\n\n'),accepted:false,findings:items.length};

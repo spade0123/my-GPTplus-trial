@@ -22,7 +22,7 @@ async function page(tab,code){
     const [j]=await chrome.scripting.executeScript({target:{tabId:tab.id},world:'MAIN',func:readCurrentJudgment,args:[code]});
     if(j?.result?.status&&j.result.status!=='unknown')submission={problemMatches:true,problemUrl:expected.url,submittedCode:code,sourceTruncated:false,submissionId:null,verdict:{status:j.result.status,text:'网页当前可见评测与源码相符'},runtime:{error:''}};
   }
-  return {problem:{problemMatches:true,problemUrl:expected.url,title:value.title,problem:value.problem,missingSections:value.missingSections},submission};
+  return {problem:{problemMatches:true,problemUrl:expected.url,title:value.title,problem:value.problem,missingSections:value.missingSections},runtime:value.runtime,submission};
 }
 async function handle(request){
   const tabs=(await chrome.tabs.query({url:patterns})).filter(t=>info(t.url));
