@@ -10,6 +10,7 @@ import {openJudgeUrl,sameProblem} from './openjudge-url.js';
 import {readProblemDisplay} from './problem-display.js';
 import {runSample,latestSample,saveSampleRequest,finishSample} from './sample-runner.js';
 import {readSubmission,createSubmission,updateSubmission} from './oj-submissions.js';
+import {readProblemLibrary,libraryProblem} from './problem-library.js';
 const sha=value=>createHash('sha256').update(value).digest('hex');
 const normalize=code=>code.replace(/\r\n/g,'\n').trim();
 const Source=z.object({uri:z.string().max(3000).refine(s=>/^(?:file|untitled):/.test(s)),name:z.string().max(500),code:z.string().min(5).max(100000),version:z.number().int().nonnegative(),selectedCode:z.string().max(8000).default(''),diagnostics:z.string().max(12000).default('')}).strict();
@@ -89,10 +90,28 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
     if(verdict.status==='AC')await saveAttempt(capture,{kind:'ac',eventId:uuid('ac:'+id),submissionId:id,verdict,origin:'openjudge'});
     return saved;
   }
+  async function acceptSubmission(job,value){
+    let updated=await updateSubmission(job,{...value,status:value.error?'uncertain':'submitted'});const s=value.submission;
+    if(s?.problemMatches&&sameProblem(s.problemUrl,job.capture.url)&&s.submittedCode&&!s.sourceTruncated&&normalize(s.submittedCode)===normalize(job.capture.code)){
+      const result={...job.capture,runtime:{...job.capture.runtime,status:s.verdict.status,text:'OpenJudge 提交 '+s.submissionId+'：'+s.verdict.text,error:s.runtime?.error||''}};
+      try{await importVerdict({capture:result,submission:s,matching:true,judgment:{status:s.verdict.status,codeHash:sha(normalize(job.capture.code))}});await launchReport();}catch(e){updated.workerError=e.message;}
+      if(s.verdict.status==='AC'&&!updated.submitPageClosed&&Number.isInteger(updated.receipt?.submissionTabId)){
+        try{const closed=await browser('close_submission_tab',{problemUrl:job.browserUrl||job.capture.url,tabId:updated.receipt.submissionTabId,jobId:job.id,code:job.capture.code,verdict:'AC'},6000);updated=await updateSubmission(updated,{submitPageClosed:Boolean(closed.closed),closeReason:closed.reason||'',closeError:''});}
+        catch(e){updated=await updateSubmission(updated,{closeError:e.message});}
+      }
+    }
+    return updated;
+  }
   return {async handle(message){
     const type=message.type;
-    if(type==='status')return {ready:true,dataDirectory:dataDir(),version:'2.1.0',platform:'openjudge-vscode'};
+    if(type==='status')return {ready:true,dataDirectory:dataDir(),version:'2.2.0',platform:'openjudge-vscode'};
     if(type==='problem_display')return currentProblem();
+    if(type==='library_list')return {type:'problem_library',...await readProblemLibrary()};
+    if(type==='library_open'){
+      const item=await libraryProblem(message.key),display=await currentProblem();
+      const opened=await browser('navigate_problem',{problemUrl:item.url,tabId:display.connected?display.tabId:undefined},10000);
+      return {type:'library_opened',key:item.key,...opened};
+    }
     if(type==='sample_history'){
       const source=Source.parse(message.source),context=await resolveContext(source.uri,message.problemUrl);
       const u=context.binding?.problemUrl;if(!u)return {type:'sample_result'};
@@ -105,11 +124,7 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
     }
     if(type==='oj_refresh'){
       const job=await readSubmission(message.id),value=await browser('refresh_submission',{problemUrl:job.browserUrl||job.capture.url,receipt:job.receipt||{},code:job.capture.code},24000);
-      if(value.error)throw new Error(value.error);const updated=await updateSubmission(job,{...value,status:'submitted'}),s=value.submission;
-      if(s?.submittedCode?.replace(/\r\n/g,'\n').trim()===job.capture.code.replace(/\r\n/g,'\n').trim()&&!s.sourceTruncated){
-        const result={...job.capture,runtime:{...job.capture.runtime,status:s.verdict.status,text:'OpenJudge 提交 '+s.submissionId+'：'+s.verdict.text,error:s.runtime?.error||''}};
-        try{await importVerdict({capture:result,submission:s,matching:true,judgment:{status:s.verdict.status,codeHash:sha(normalize(job.capture.code))}});await launchReport();}catch(e){updated.workerError=e.message;}
-      }
+      if(value.error)throw new Error(value.error);const updated=await acceptSubmission(job,value),s=value.submission;
       return {type:'oj_result',id:job.id,...updated,submission:s,capture:undefined};
     }
     if(type==='context_get')return resolveContext(validUri(message.uri),message.problemUrl);
@@ -141,7 +156,7 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
       await saveAttempt(selected.capture,{eventId:message.actionId,origin:'oj_submit_request',note:'主动提交到 OJ；记录 '+job.id});
       try{
         const value=await browser('submit',{jobId:job.id,problemUrl:job.browserUrl,code:job.capture.code,language:job.language},30000);
-        job=await updateSubmission(job,{...value,status:value.error?'uncertain':'submitted'});
+        job=await acceptSubmission(job,value);
       }catch(error){job=await updateSubmission(job,{status:'uncertain',error:error.message,message:'未确认是否提交成功，请先刷新/查看记录，不会自动重试。'});}
       let workerError;try{await launchReport();}catch(e){workerError=e.message;}return {type:'oj_result',...job,capture:undefined,workerError};
     }

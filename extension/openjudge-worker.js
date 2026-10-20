@@ -1,8 +1,10 @@
 import {readOpenJudgePage} from './openjudge-extract.js';
 import {inspectSubmitForm,officialJudgeRequest} from './openjudge-submit.js';
+import {navigateProblemTab,closeAcceptedSubmitTab} from './openjudge-tabs.js';
 const patterns=['http://bailian.openjudge.cn/*','https://bailian.openjudge.cn/*','http://noi.openjudge.cn/*','https://noi.openjudge.cn/*'];
 let port,bridgeReady=false,noticeSequence=0,noticeTimer;
 const sentSubmissions=new Map();
+const latestSubmissionByTab=new Map();
 function info(value){try{const u=new URL(value);if(!['http:','https:'].includes(u.protocol)||!['bailian.openjudge.cn','noi.openjudge.cn'].includes(u.hostname)||u.port||u.username||u.password||u.search||u.hash)return null;const m=u.pathname.match(/^\/([\w-]+)\/(\d+\/(?:submit\/)?|solution\/\d+\/|status\/)$/);if(!m)return null;return {url:u.href,host:u.hostname,group:m[1],kind:m[2].startsWith('solution/')?'solution':m[2]==='status/'?'status':m[2].endsWith('submit/')?'submit':'problem',key:u.hostname+u.pathname};}catch{return null;}}
 async function read(tab,target,expected){
   const before=await chrome.tabs.get(tab.id);if(before.url!==tab.url)throw new Error('读取时标签页已切换题目，请重试。');
@@ -13,6 +15,11 @@ async function read(tab,target,expected){
 export async function handleBrowserRequest(request){
   const tabs=(await chrome.tabs.query({url:patterns})).filter(t=>info(t.url));
   if(request.action==='tabs')return tabs.map(t=>({id:t.id,windowId:t.windowId,url:t.url,title:t.title,kind:info(t.url).kind,active:t.active}));
+  if(request.action==='navigate_problem')return navigateProblemTab(chrome,request.params||{},tabs);
+  if(request.action==='close_submission_tab'){
+    const params=request.params||{},result=await closeAcceptedSubmitTab(chrome,params,latestSubmissionByTab.get(params.tabId));
+    if(result.returnToTabId!==undefined)await publishCurrentProblem(result.returnToTabId);return result;
+  }
   if(['prepare_submit','submit','refresh_submission'].includes(request.action)){
     const params=request.params||{},expected=info(params.problemUrl);if(expected?.kind!=='problem')throw new Error('题号无效。');
     let tab=tabs.find(t=>t.url===expected.url+'submit/');
@@ -28,7 +35,9 @@ export async function handleBrowserRequest(request){
     if(!tab)throw new Error('请保持当前题集的 Chrome 标签打开。');
     const execute=async()=>{
       const [r]=await chrome.scripting.executeScript({target:{tabId:tab.id},world:'ISOLATED',func:officialJudgeRequest,args:[expected.url,request.action==='submit'?'submit':'refresh',{...params,existingSolutionUrls:tabs.filter(t=>info(t.url)?.kind==='solution').map(t=>t.url)}]});
-      const value=r?.result;if(!value)throw new Error('未确认 OJ 返回结果；请先查看提交记录，不会自动重试。');if(value.error)return value;
+      const value=r?.result;if(!value)throw new Error('未确认 OJ 返回结果；请先查看提交记录，不会自动重试。');
+      if(request.action==='submit')value.receipt={...value.receipt,submissionTabId:tab.id};
+      if(value.error)return value;
       let submission=null;
       if(value.receipt?.solutionUrl){try{submission=await read(tab,value.receipt.solutionUrl,expected.url);}catch(e){value.message='已提交，评测详情尚未核对：'+e.message;}}
       if(!submission&&request.action==='refresh_submission'){
@@ -40,7 +49,7 @@ export async function handleBrowserRequest(request){
     };
     if(request.action==='submit'){
       if(!/^[a-f0-9]{64}$/.test(params.jobId||''))throw new Error('提交事件编号无效。');
-      if(!sentSubmissions.has(params.jobId))sentSubmissions.set(params.jobId,execute());
+      if(!sentSubmissions.has(params.jobId)){latestSubmissionByTab.set(tab.id,params.jobId);sentSubmissions.set(params.jobId,execute());}
       return sentSubmissions.get(params.jobId);
     }
     return execute();

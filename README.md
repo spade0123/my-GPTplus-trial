@@ -1,6 +1,6 @@
 # OpenJudge + VS Code C++ 学习教练
 
-Chrome 打开 **百练 / NOI OpenJudge**，VS Code 写 C++，通过右下角状态栏的 **快捷保存、提示、交流** 三个按钮记录和复盘。
+Chrome 打开 **百练 / NOI OpenJudge**，VS Code 写 C++，通过右下角状态栏的 **测试运行、提示、交流** 三个按钮记录和复盘。
 
 这是独立适配版：[openjudge-vscode 分支](https://github.com/spade0123/my-GPTplus-trial/tree/openjudge-vscode)。[原北大编程网格版本](https://github.com/spade0123/my-GPTplus-trial/tree/mcp)继续保留，不需要替换或卸载。
 
@@ -8,7 +8,7 @@ Chrome 打开 **百练 / NOI OpenJudge**，VS Code 写 C++，通过右下角状�
 
 | 按钮 | 行为 |
 | --- | --- |
-| 快捷保存 | 保存当前编辑器的完整代码，包括尚未写入源文件的修改；记录题面与可核对的评测，加入后台分析队列，不打开详情。 |
+| 测试运行 | 先保存当前完整代码（含未写入源文件的修改）、题面与评测，再用题目样例在临时副本上编译运行。独立结果页对照预期/实际输出；报告在后台继续。 |
 | 提示 | 结合本轮代码、题意及可见评测给解题方向和局部改法；恢复上次提示，可主动重新生成；完整解答需另点按钮。 |
 | 交流 | 打开提示面板里的对话区。每轮问题与当时完整源码、选中片段和评测证据一同保存，供后续报告参考。 |
 
@@ -30,7 +30,7 @@ Chrome 打开 **百练 / NOI OpenJudge**，VS Code 写 C++，通过右下角状�
 2. 在本分支根目录执行 `npm ci --ignore-scripts`。
 3. 运行 `.\install-openjudge.ps1`。可显式传入 `-NodePath`、`-CodexPath`、`-CompilerPath`，使用实际可执行文件的绝对路径；Codex 不应是 PowerShell 包装脚本。脚本只注册 `edu.openjudge.cpp_coach`，不会替换旧版 `edu.pku.cpp_coach`。
 4. Chrome 打开 `chrome://extensions`，启用开发者模式，加载本分支的 **extension** 文件夹。在 OpenJudge 页点击“OpenJudge · VS Code 连接”图标；角标 `ON` 表示就绪。
-5. VS Code 扩展菜单选择“从 VSIX 安装”，安装 [dist/openjudge-cpp-coach-0.2.1.vsix](dist/openjudge-cpp-coach-0.2.1.vsix)。安装包只含 VS Code 界面，需与本机程序和 Chrome 连接配套。
+5. VS Code 扩展菜单选择“从 VSIX 安装”，安装 [dist/openjudge-cpp-coach-0.3.0.vsix](dist/openjudge-cpp-coach-0.3.0.vsix)。安装包只含 VS Code 界面，需与本机程序和 Chrome 连接配套。
 6. 打开可信工作区中的 C++ 文件。Chrome 打开具体题目后，左侧自动显示题面，三个按钮跟随该题；升级后在 Chrome 扩展卡片刷新一次，在 VS Code 重新加载窗口。
 
 完整说明见 [VS Code 适配与限制](vscode-extension/README.md)。源码构建安装包：
@@ -88,7 +88,7 @@ Chrome 打开对应提交详情后，可在教练中“选择提交详情标签�
 
 已核对公开题目的实际 `dt/dd` 结构，并只读核对百练 1004 已登录提交页的语言单选项、`sourceEncode=base64` 和官方 `/api/solution/submitv2/` 地址。源码按 UTF-8 Base64 编码，不调用网站提交脚本。真实评测结果仍需通过用户主动提交核对；开发测试未发送个人作业。
 
-已通过 137 个测试，并在隔离 Chrome/VS Code 配置中用虚构题目验证原生连接、三按钮、未保存源码、提示/交流/解答、语法渲染、磁盘草稿、匹配 AC 与收起。检查网页 DOM/存储零修改、源码文件保持原样。测试不使用个人作业，不消耗真实模型额度。
+已通过 145 个测试，并在隔离 Chrome/VS Code 配置中用虚构题目验证原生连接、三按钮、未保存源码、提示/交流/解答、语法渲染、磁盘草稿、匹配 AC 与收起。检查网页 DOM/存储零修改、源码文件保持原样。测试不使用个人作业，不消耗真实模型额度。
 
 运行 `npm test`；原生连接测试需先运行安装脚本。技术资料：[Webview](https://code.visualstudio.com/api/extension-guides/webview)、[状态栏](https://code.visualstudio.com/api/ux-guidelines/status-bar)、[终端读取边界](https://code.visualstudio.com/api/references/vscode-api#TerminalShellExecution)。
 
@@ -101,3 +101,19 @@ Chrome 打开对应提交详情后，可在教练中“选择提交详情标签�
 - 正常使用不碰网站 localStorage、sessionStorage、IndexedDB，也不改网站函数。只有明确提交所需的代码框/编译器字段被赋值，不执行网站的自定义提交脚本。
 - 运行与提交记录分别存放 `data/sample-runs/`、`data/oj-submissions/`，一并纳入本机学习报告。样例执行与提交网络耗时独立于模型响应速度。
 - 真实登录页需通过表单核对；接口或字段无法识别时会停止并说明，不尝试其他写入地址，不自动重试不确定的提交。开发只用自拟代码和模拟服务验证，不替用户发送测试作业。
+
+## 状态栏测试运行（0.2.2）
+
+右下角保留三个按钮：测试运行、提示、交流。测试运行先保存代码，再测试题目样例；即使缺少样例、编译失败或运行超时，已经确认保存的代码仍保留。结果显示在插件自己的面板，不覆盖源文件、不调用网站测试按钮。
+
+提示面板中的运行样例、提交到 OJ、给出解答等按钮保持原样。原快捷保存命令保留为兼容入口，状态栏不再显示该按钮。
+
+## VS Code 内置题库与提交体验（0.3.0）
+
+- 左侧“经典题库与题面”内置百练 237 题、NOI 100 题；支持搜索题号/题名/知识点、按平台和难度筛选，以及上一题/下一题。前后切换遵循当前筛选结果的题单顺序。
+- 打开方式：左侧 OpenJudge 图标，或命令面板运行“OpenJudge：打开经典题库（337 题）”。选择题目即可打开；不需要复制网址。Chrome 连接扩展须已连接。
+- 切题只导航 Chrome 中的题目标签并读取原文；已有提交表单不会被题库导航覆盖，VS Code 源码和未保存修改保持原样，不触发保存或模型调用。不同题目仍按站点、题集和题号独立保存。
+- 提示中的交流入口放在最上方；点击“提交到 OJ”立即把本次提交状态移到面板顶部并滚动到该处，其他提示按钮保留。
+- 从 VS Code 提交后，只有题号、完整源码匹配且真实评测为 AC，才在本机保存结果后关闭本次对应的官方提交页。题目页保留；若提交页已改写代码、已有更新提交或换成其他页面，则保留它。重复刷新不会重复提交。
+- 题库为 2026-10-20 核对的快照，NOI 已排除 1.x。百练通过率按目录人数比，NOI 非 1.x 按统计页 AC/总提交次数；90% 及以上均排除。难度为学习用估计。
+- 升级需刷新 Chrome 中“OpenJudge · VS Code 连接”，再重新加载 VS Code 窗口。浏览器权限没有增加，不清缓存、不改站点函数或 VS Code 设置。

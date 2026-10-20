@@ -1,12 +1,13 @@
 const vscode=require('vscode'),fs=require('node:fs/promises'),path=require('node:path'),{randomUUID}=require('node:crypto'),{execFile}=require('node:child_process'),{promisify}=require('node:util');
 const {RpcClient}=require('./rpc-client.cjs');
 const {ProblemView}=require('./problem-view.cjs');
+const {sampleHtml}=require('./sample-view.cjs');
 const isCpp=document=>document?.languageId==='cpp'&&!document.isClosed;
 const escape=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function activate(context){
-  let rpc,opening,lastSource;const panels=new Map(),buttons=[];
+  let rpc,opening,lastSource;const panels=new Map(),buttons=[],samplePanels=new Set();
   const output=vscode.window.createOutputChannel('OpenJudge 学习教练');context.subscriptions.push(output);
-  const statementView=new ProblemView(context);
+  const statementView=new ProblemView(context,async key=>(await backend()).request({type:'library_open',key}));
   async function backend(){
     if(rpc&&!rpc.closed)return rpc;
     if(opening)return opening;
@@ -127,20 +128,36 @@ function activate(context){
     const result=await (await backend()).request({type:'quick_save',source,problemUrl:selected.binding.problemUrl,actionId:randomUUID(),requestedAt:new Date().toISOString()});
     vscode.window.setStatusBarMessage(result.workerError?'源码已保存；后台启动失败，请查看 OpenJudge 输出。':source.name+' 已保存，后台继续分析。',3500);
   }
+  async function testRun(){
+    const source=sourceFor(),selected=await ensureBinding(source);if(!selected)return;
+    const panel=vscode.window.createWebviewPanel('openjudgeCoach.sampleRun','样例测试 · '+source.name,vscode.ViewColumn.Beside,{enableScripts:false});samplePanels.add(panel);let disposed=false;
+    context.subscriptions.push(panel.onDidDispose(()=>{disposed=true;samplePanels.delete(panel);}));
+    const show=value=>{if(!disposed)panel.webview.html=sampleHtml(value);};show();
+    let saved;
+    try{
+      const client=await backend(),problemUrl=selected.binding.problemUrl;
+      saved=await client.request({type:'quick_save',source,problemUrl,actionId:randomUUID(),requestedAt:new Date().toISOString()});
+      panel.title='样例测试 · '+saved.title;show({saved:true,title:saved.title,message:'代码已保存，正在编译并运行题目样例…',workerError:saved.workerError});
+      const result=await client.request({type:'run_sample',source,problemUrl,actionId:randomUUID(),requestedAt:new Date().toISOString()});
+      show({...result,saved:true});return result;
+    }catch(error){show({saved:Boolean(saved),title:saved?.title,error:error.message});output.appendLine(error.message);return {error:error.message,saved:Boolean(saved)};}
+  }
   const safe=fn=>async()=>{try{return await fn();}catch(e){output.appendLine(e.message);void vscode.window.showErrorMessage(e.message);}};
-  for(const [label,command,fn,priority]of [['快捷保存','quickSave',quickSave,1003],['提示','hint',()=>open('hint'),1002],['交流','discussion',()=>open('discussion'),1001]]){
+  context.subscriptions.push(vscode.commands.registerCommand('openjudgeCoach.quickSave',safe(quickSave)));
+  for(const [label,command,fn,priority]of [['测试运行','testRun',testRun,1003],['提示','hint',()=>open('hint'),1002],['交流','discussion',()=>open('discussion'),1001]]){
     context.subscriptions.push(vscode.commands.registerCommand('openjudgeCoach.'+command,safe(fn)));
     const button=vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right,priority);button.text=label;button.tooltip='OpenJudge C++ 教练：'+label;button.command='openjudgeCoach.'+command;button.name='OpenJudge '+label;buttons.push(button);context.subscriptions.push(button);
   }
   context.subscriptions.push(vscode.commands.registerCommand('openjudgeCoach.bindProblem',safe(()=>bind(sourceFor()))),vscode.commands.registerCommand('openjudgeCoach.bindSubmission',safe(()=>bind(sourceFor(),true))),vscode.commands.registerCommand('openjudgeCoach.showRecords',safe(showRecords)));
+  context.subscriptions.push(vscode.commands.registerCommand('openjudgeCoach.openLibrary',safe(()=>statementView.openLibrary())));
   context.subscriptions.push(vscode.commands.registerCommand('openjudgeCoach.configureBackend',safe(async()=>{
     const chosen=await vscode.window.showOpenDialog({canSelectFolders:true,canSelectFiles:false,canSelectMany:false,openLabel:'选择 OpenJudge 新版目录'});if(!chosen)return;
     await fs.access(path.join(chosen[0].fsPath,'src/vscode-host.js'));await fs.mkdir(context.globalStorageUri.fsPath,{recursive:true});await fs.writeFile(path.join(context.globalStorageUri.fsPath,'backend.json'),JSON.stringify({backendPath:chosen[0].fsPath}));rpc?.dispose();rpc=null;await backend();
   })));
-  const update=editor=>{if(isCpp(editor?.document))lastSource=editor;for(const button of buttons)if(isCpp(editor?.document)||!editor&&[...panels.values()].some(s=>s.panel.active))button.show();else button.hide();};
+  const update=editor=>{if(isCpp(editor?.document))lastSource=editor;for(const button of buttons)if(isCpp(editor?.document)||!editor&&([...panels.values()].some(s=>s.panel.active)||[...samplePanels].some(p=>p.active)))button.show();else button.hide();};
   context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(update));update(vscode.window.activeTextEditor);
-  context.subscriptions.push({dispose(){rpc?.dispose();for(const state of panels.values())state.panel.dispose();}});
+  context.subscriptions.push({dispose(){rpc?.dispose();for(const state of panels.values())state.panel.dispose();for(const panel of samplePanels)panel.dispose();}});
   void backend().then(client=>client.request({type:'problem_display'})).then(value=>statementView.accept(value)).catch(e=>output.appendLine(e.message));
-  return {backend,sourceFor,panels,statementView};
+  return {backend,sourceFor,panels,statementView,samplePanels};
 }
 module.exports={activate};

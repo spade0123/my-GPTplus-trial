@@ -1,9 +1,9 @@
 {
   "name": "openjudge-cpp-coach",
   "displayName": "OpenJudge C++ 学习教练",
-  "description": "Chrome 读取百练/NOI 题面与评测，VS Code 读取当前 C++，三个按钮保存、提示和交流。",
+  "description": "内置 337 道经典题，支持上一题/下一题；测试运行、提示、交流三个按钮，源码和记录保存在本机。",
   "publisher": "local-coach",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "license": "UNLICENSED",
   "engines": {
     "vscode": "^1.96.0"
@@ -33,12 +33,16 @@
       "activitybar": [{"id":"openjudgeCoachProblems","title":"OpenJudge 题目","icon":"problem-icon.svg"}]
     },
     "views": {
-      "openjudgeCoachProblems": [{"type":"webview","id":"openjudgeCoach.problemStatement","name":"当前题目信息"}]
+      "openjudgeCoachProblems": [{"type":"webview","id":"openjudgeCoach.problemStatement","name":"经典题库与题面"}]
     },
     "commands": [
       {
-        "command": "openjudgeCoach.quickSave",
-        "title": "OpenJudge：快捷保存"
+        "command": "openjudgeCoach.openLibrary",
+        "title": "OpenJudge：打开经典题库（337 题）"
+      },
+      {
+        "command": "openjudgeCoach.testRun",
+        "title": "OpenJudge：测试运行（保存代码并运行样例）"
       },
       {
         "command": "openjudgeCoach.hint",
