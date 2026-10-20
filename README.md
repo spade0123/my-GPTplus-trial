@@ -8,7 +8,7 @@ Chrome 打开 **百练 / NOI OpenJudge**，VS Code 写 C++，通过右下角状�
 
 | 按钮 | 行为 |
 | --- | --- |
-| 测试运行 | 先保存当前完整代码（含未写入源文件的修改）、题面与评测，再用题目样例在临时副本上编译运行。独立结果页对照预期/实际输出；报告在后台继续。 |
+| 测试运行 | 先保存当前完整代码（含未写入源文件的修改）、题面与评测，再用题目样例在临时副本上编译运行。独立结果页对照预期/实际输出，带“收起”和“提交到 OJ”；报告在后台继续。 |
 | 提示 | 结合本轮代码、题意及可见评测给解题方向和局部改法；恢复上次提示，可主动重新生成；完整解答需另点按钮。 |
 | 交流 | 打开提示面板里的对话区。每轮问题与当时完整源码、选中片段和评测证据一同保存，供后续报告参考。 |
 
@@ -30,7 +30,7 @@ Chrome 打开 **百练 / NOI OpenJudge**，VS Code 写 C++，通过右下角状�
 2. 在本分支根目录执行 `npm ci --ignore-scripts`。
 3. 运行 `.\install-openjudge.ps1`。可显式传入 `-NodePath`、`-CodexPath`、`-CompilerPath`，使用实际可执行文件的绝对路径；Codex 不应是 PowerShell 包装脚本。脚本只注册 `edu.openjudge.cpp_coach`，不会替换旧版 `edu.pku.cpp_coach`。
 4. Chrome 打开 `chrome://extensions`，启用开发者模式，加载本分支的 **extension** 文件夹。在 OpenJudge 页点击“OpenJudge · VS Code 连接”图标；角标 `ON` 表示就绪。
-5. VS Code 扩展菜单选择“从 VSIX 安装”，安装 [dist/openjudge-cpp-coach-0.3.0.vsix](dist/openjudge-cpp-coach-0.3.0.vsix)。安装包只含 VS Code 界面，需与本机程序和 Chrome 连接配套。
+5. VS Code 扩展菜单选择“从 VSIX 安装”，安装 [dist/openjudge-cpp-coach-0.3.1.vsix](dist/openjudge-cpp-coach-0.3.1.vsix)。安装包只含 VS Code 界面，需与本机程序和 Chrome 连接配套。
 6. 打开可信工作区中的 C++ 文件。Chrome 打开具体题目后，左侧自动显示题面，三个按钮跟随该题；升级后在 Chrome 扩展卡片刷新一次，在 VS Code 重新加载窗口。
 
 完整说明见 [VS Code 适配与限制](vscode-extension/README.md)。源码构建安装包：
@@ -88,7 +88,7 @@ Chrome 打开对应提交详情后，可在教练中“选择提交详情标签�
 
 已核对公开题目的实际 `dt/dd` 结构，并只读核对百练 1004 已登录提交页的语言单选项、`sourceEncode=base64` 和官方 `/api/solution/submitv2/` 地址。源码按 UTF-8 Base64 编码，不调用网站提交脚本。真实评测结果仍需通过用户主动提交核对；开发测试未发送个人作业。
 
-已通过 145 个测试，并在隔离 Chrome/VS Code 配置中用虚构题目验证原生连接、三按钮、未保存源码、提示/交流/解答、语法渲染、磁盘草稿、匹配 AC 与收起。检查网页 DOM/存储零修改、源码文件保持原样。测试不使用个人作业，不消耗真实模型额度。
+已通过 149 个测试，并在隔离 Chrome/VS Code 配置中用虚构题目验证原生连接、三按钮、未保存源码、提示/交流/解答、语法渲染、磁盘草稿、匹配 AC 与收起。独立测试窗口另验证收起、提交点击时最新代码及状态置顶。检查网页 DOM/存储零修改、源码文件保持原样。测试不使用个人作业，不消耗真实模型额度。
 
 运行 `npm test`；原生连接测试需先运行安装脚本。技术资料：[Webview](https://code.visualstudio.com/api/extension-guides/webview)、[状态栏](https://code.visualstudio.com/api/ux-guidelines/status-bar)、[终端读取边界](https://code.visualstudio.com/api/references/vscode-api#TerminalShellExecution)。
 
@@ -117,3 +117,10 @@ Chrome 打开对应提交详情后，可在教练中“选择提交详情标签�
 - 从 VS Code 提交后，只有题号、完整源码匹配且真实评测为 AC，才在本机保存结果后关闭本次对应的官方提交页。题目页保留；若提交页已改写代码、已有更新提交或换成其他页面，则保留它。重复刷新不会重复提交。
 - 题库为 2026-10-20 核对的快照，NOI 已排除 1.x。百练通过率按目录人数比，NOI 非 1.x 按统计页 AC/总提交次数；90% 及以上均排除。难度为学习用估计。
 - 升级需刷新 Chrome 中“OpenJudge · VS Code 连接”，再重新加载 VS Code 窗口。浏览器权限没有增加，不清缓存、不改站点函数或 VS Code 设置。
+
+## 独立测试窗口（0.3.1）
+
+- 点右下角“测试运行”，先保存本轮代码，再显示样例输入、预期输出、实际输出及编译信息。窗口右上角新增“收起”和“提交到 OJ”。“收起”回到源码，已保存的代码和测试记录保留；测试未完成时收起也不会取消保存和测试。
+- 在测试窗口点“提交到 OJ”，复用提示窗口的官方提交流程：首次核对 C++ 编译器，再点一次发送。提交读取点击时的最新完整代码，包括未写入文件的修改；不会拿旧样例测试的源码替代新代码。提交状态立即置顶，支持刷新本次结果；刷新不会重复发送。
+- 真实 AC 仍须题号和完整源码匹配；先保存本机记录，再关闭这次对应的 Chrome 提交页，保留题目页。提示中的交流入口保持在上方，其他按钮保持原有功能。
+- 从 0.3.0 升级本版只需安装新版 VSIX 后重新加载 VS Code 窗口，Chrome 连接无需刷新。本次未增加网站权限或更改网站脚本、存储、源码与 VS Code 设置。

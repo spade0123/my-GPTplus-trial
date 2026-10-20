@@ -76,7 +76,7 @@ function activate(context){
     return template;
   }
   async function panelMessage(state,message){
-    const reply=value=>state.panel.webview.postMessage(value);
+    const reply=value=>state.disposed?Promise.resolve(false):state.panel.webview.postMessage(value);
     try{
       if(message.type==='draft'&&state.closing)return;
       if(message.type==='collapse')state.closing=true;
@@ -118,7 +118,7 @@ function activate(context){
     else{
     const panel=vscode.window.createWebviewPanel('openjudgeCoach','C++ 提示与交流 · '+source.name,vscode.ViewColumn.Beside,{enableScripts:true,retainContextWhenHidden:true,localResourceRoots:[context.extensionUri]});
     state={panel,uri:source.uri,problemUrl:selected.binding.problemUrl,mode,sourceColumn:lastSource?.viewColumn||vscode.ViewColumn.One,uiSession:randomUUID(),startedAt:Date.now(),uiRevision:0};panels.set(source.uri,state);
-    context.subscriptions.push(panel.onDidDispose(()=>panels.delete(source.uri)),panel.webview.onDidReceiveMessage(message=>{void panelMessage(state,message);}));
+    context.subscriptions.push(panel.onDidDispose(()=>{state.disposed=true;panels.delete(source.uri);}),panel.webview.onDidReceiveMessage(message=>{void panelMessage(state,message);}));
     panel.webview.html=await html(panel.webview);
     }
     if(saving){const saved=await saving;if(saved.error)throw saved.error;vscode.window.setStatusBarMessage(saved.result.warning?'当前代码已保存；网页评测未更新，请查看连接。':saved.result.workerError?'当前代码已保存；后台启动失败，请查看 OpenJudge 输出。':'当前代码已自动保存，后台继续分析；上次对话保留。',3500);}
@@ -130,9 +130,21 @@ function activate(context){
   }
   async function testRun(){
     const source=sourceFor(),selected=await ensureBinding(source);if(!selected)return;
-    const panel=vscode.window.createWebviewPanel('openjudgeCoach.sampleRun','样例测试 · '+source.name,vscode.ViewColumn.Beside,{enableScripts:false});samplePanels.add(panel);let disposed=false;
-    context.subscriptions.push(panel.onDidDispose(()=>{disposed=true;samplePanels.delete(panel);}));
-    const show=value=>{if(!disposed)panel.webview.html=sampleHtml(value);};show();
+    const sourceColumn=lastSource?.viewColumn||vscode.ViewColumn.One;
+    const panel=vscode.window.createWebviewPanel('openjudgeCoach.sampleRun','样例测试 · '+source.name,vscode.ViewColumn.Beside,{enableScripts:true,retainContextWhenHidden:true,localResourceRoots:[context.extensionUri]});samplePanels.add(panel);let disposed=false,ready=false,latest={};
+    const state={panel,uri:source.uri,problemUrl:selected.binding.problemUrl,sourceColumn};
+    const show=value=>{latest=value;if(!disposed&&ready)void panel.webview.postMessage({type:'sample_view',...value});};
+    context.subscriptions.push(panel.onDidDispose(()=>{disposed=true;state.disposed=true;samplePanels.delete(panel);}),panel.webview.onDidReceiveMessage(async message=>{
+      if(disposed)return;
+      if(message.type==='sample_ready'){ready=true;show(latest);return;}
+      if(message.type==='sample_collapse'){
+        panel.dispose();const doc=vscode.workspace.textDocuments.find(d=>d.uri.toString()===source.uri);
+        if(doc&&!doc.isClosed)await vscode.window.showTextDocument(doc,{viewColumn:sourceColumn,preserveFocus:false});return;
+      }
+      if(['oj_prepare','oj_submit','oj_refresh'].includes(message.type))await panelMessage(state,message);
+    }));
+    const uri=file=>panel.webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri,file)).toString();
+    panel.webview.html=sampleHtml({}, {nonce:randomUUID().replace(/-/g,''),cspSource:panel.webview.cspSource,uri});
     let saved;
     try{
       const client=await backend(),problemUrl=selected.binding.problemUrl;

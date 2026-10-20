@@ -3,7 +3,7 @@
   "displayName": "OpenJudge C++ 学习教练",
   "description": "内置 337 道经典题，支持上一题/下一题；测试运行、提示、交流三个按钮，源码和记录保存在本机。",
   "publisher": "local-coach",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "license": "UNLICENSED",
   "engines": {
     "vscode": "^1.96.0"
