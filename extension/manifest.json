@@ -1,25 +1,22 @@
 {
   "manifest_version": 3,
-  "name": "OpenJudge · VS Code 连接",
-  "version": "2.1.0",
-  "description": "只读同步原文题面到 VS Code；主动点击才运行样例或向 OJ 提交，不访问网站存储。",
+  "name": "编程网格 · VS Code 连接",
+  "version": "0.1.0",
+  "description": "同步编程网格题面；点击按钮才发送当前 VS Code 代码到网站评测。",
   "minimum_chrome_version": "116",
   "permissions": [
     "scripting",
     "nativeMessaging"
   ],
   "host_permissions": [
-    "http://bailian.openjudge.cn/*",
-    "https://bailian.openjudge.cn/*",
-    "http://noi.openjudge.cn/*",
-    "https://noi.openjudge.cn/*"
+    "https://programming.pku.edu.cn/*"
   ],
   "background": {
-    "service_worker": "openjudge-worker.js",
+    "service_worker": "grid-worker.js",
     "type": "module"
   },
   "action": {
-    "default_title": "连接 OpenJudge 与 VS Code"
+    "default_title": "连接编程网格与 VS Code"
   },
-  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxXghzqIGHewk9jNIJOVaAmmUpS4MVtxtB32FOwckxhlTT0gqB6j5M2pd3mkgaEhi4aMTrKnZH70UQgsPsHQ6EmLgtndUVcd8cx0zlh41KV5V6tztFTIkp/inp+TrrZYja8jmqP5qL/07+RoRpbCyGttrhj0KZPij/noU1TBuLl3G4Xd00hCjHr0UOMUnHMVGsP4Pw4D5R7ZW1vvcsF2N6BzzNHF9ZHvzbO0ulLikQ4qKlW1bPBvtR8ZUIF7cCgFXvKWvYU+gSTYPemi2ohhiM+LCvq+3B/ZdGrTtoRM0Tbw1jaO6eJBL9+FyHrun8WpistRyodJRLzANX4zuutDl9QIDAQAB"
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA+vzcFMim5VlTAWb6DTilVEt1d82kPr3MKzaGA2pEp1KsnvMggnthXUNupG4I7+MD5sfuA9IJKZqFELYq/4IQPtPbN9L1LO4Y8CzPVwIFDdWPNKmER2X7UUrbVXyKJfNph67bZtj8EcqIEqR3mrQxNptAAzPPxJIAXU/RhD2BpE5LnKjBrBQQOzOjR0KvhQ9lYuHh7dmpqqJAw1URd+KjkRTjOOf633VI3d9VTFqs9ymmhlPxVEE4C78MTw69226Gx1A5DthFPRMPw9V/bSpyGi8rrgSPJriqIIIcgsOKWGuvOsTiDRidI50fZiZiyyLMxVUabuHI/blHaYASJSVr9wIDAQAB"
 }

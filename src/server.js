@@ -9,7 +9,7 @@ import {DISCUSSION_GUIDE} from './discussion-context.js';
 import {saveCodeQuestion,saveCodeReply,codeHelpHistory} from './code-help.js';
 import { COURSE, CODE_ROOT, TOPICS, REVIEW_GUIDE, fetchPage, readCode, inspectCode, compilerCheck, saveReview, learningPlan } from './core.js';
 
-const server = new McpServer({ name: 'openjudge-vscode-coach', version: '2.1.0' }, { instructions: REVIEW_GUIDE });
+const server = new McpServer({ name: 'programminggrid-vscode-coach', version: '0.1.0' }, { instructions: REVIEW_GUIDE });
 function tool(name, description, schema, handler, readOnly = true, openWorld = false) {
   server.registerTool(name, { description, inputSchema: schema, annotations: { readOnlyHint: readOnly, destructiveHint: false, idempotentHint: readOnly, openWorldHint: openWorld } }, async args => {
     try { return { content: [{ type: 'text', text: JSON.stringify(await handler(args), null, 2) }] }; }

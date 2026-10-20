@@ -5,8 +5,8 @@ import {randomUUID} from 'node:crypto';
 import {z} from 'zod';
 import {Problem,writeRecord,processAlive} from './browser-review.js';
 import {mailboxDir} from './browser-mailbox.js';
-import {openJudgeUrl,sameProblem} from './openjudge-url.js';
-const Url=z.string().max(1000).refine(value=>Boolean(openJudgeUrl(value,{kind:'problem'})));
+import {gridUrl,sameProblem} from './grid-url.js';
+const Url=z.string().max(1000).refine(value=>Boolean(gridUrl(value,{kind:'problem'})));
 const Notice=z.object({type:z.literal('problem_notice'),sequence:z.number().int().positive(),tabId:z.number().int(),url:Url,status:z.enum(['loading','ready','error']),error:z.string().max(1000).optional(),page:z.object({problemMatches:z.literal(true),problemUrl:Url,title:z.string().min(1).max(300),problem:Problem,missingSections:z.array(z.string().max(30)).max(5).default([])}).optional()});
 export const problemDisplayFile=()=>path.join(mailboxDir(),'problem-display.json');
 export function normalizeProblemNotice(input){

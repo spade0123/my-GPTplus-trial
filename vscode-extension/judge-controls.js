@@ -12,7 +12,7 @@
   $('runSample').onclick=()=>{$('runSample').disabled=true;$('samplePanel').hidden=false;$('sampleState').textContent='正在保存本次代码并编译，随后运行题目样例…';send('run_sample');};
   $('submitOJ').onclick=()=>{
     if(busy)return;busy=true;$('submitOJ').disabled=true;$('ojPanel').hidden=false;
-    if(!prepared){$('ojState').textContent='正在读取本题官方提交表单与 C++ 编译器选项…';send('oj_prepare');}
+    if(!prepared){$('ojState').textContent='正在读取本题提交入口与 C++ 编译器选项…';send('oj_prepare');}
     else{$('ojState').textContent='正在保存本次完整代码并提交；此操作只发送一次…';refreshes=0;clearTimeout(timer);send('oj_submit',{language:$('ojLanguage').value});}
   };
   const refresh=()=>{if(!jobId)return;$('refreshOJ').disabled=true;send('oj_refresh',{id:jobId});};$('refreshOJ').onclick=refresh;
@@ -20,7 +20,7 @@
     if(value.type==='sample_result'){sample(value);$('runSample').disabled=false;return;}
     if(value.type==='oj_prepared'){
       $('ojLanguage').replaceChildren();for(const item of value.languages.filter(o=>/c\+\+|g\+\+/i.test(o.label))){const option=document.createElement('option');option.value=item.value;option.textContent=item.label;option.selected=item.selected;$('ojLanguage').append(option);}
-      prepared=true;busy=false;$('submitOJ').disabled=false;$('ojLanguageRow').hidden=false;$('ojState').textContent='已核对提交页面。选择编译器，再点“提交到 OJ”发送当前代码。';return;
+      prepared=true;busy=false;$('submitOJ').disabled=false;$('ojLanguageRow').hidden=false;$('ojState').textContent='已核对 IDE 提交入口。选择编译器，再点“提交到编程网格”发送当前代码。';return;
     }
     if(value.type==='oj_result'){
       busy=false;jobId=value.id;$('submitOJ').disabled=false;$('refreshOJ').disabled=false;$('ojPanel').hidden=false;const s=value.submission;

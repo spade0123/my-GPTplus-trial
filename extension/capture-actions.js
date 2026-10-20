@@ -15,7 +15,7 @@ export function readCurrentJudgment(code){
   const saved=window.__pkuCoachSubmissionObserver?.lastJudgment;
   if(saved?.url===url&&normalize(saved.code)===expected&&saved.verdict?.status)return {status:saved.verdict.status,source:'matching-submission',runtimeAssociation:'uncertain'};
   const solution=window.solution;
-  const problemId=location.pathname.split('/')[3];
+  const problemId=location.pathname.match(/^\/(?:course\/)?probset\/[a-f0-9]{32}\/([a-f0-9]{32})\/ide\.do$/i)?.[1];
   if(solution&&String(solution.problemId)===problemId&&normalize(solution.sourceCode)===expected){
     const statuses={Passed:'AC',WrongAnswer:'WA',CompileError:'CE',RuntimeError:'RE',TimeOut:'TLE',OutOfMemory:'MLE',OutputExceeded:'OLE',EmptyOutput:'WA'};
     if(statuses[solution.result])return {status:statuses[solution.result],source:'site-solution',runtimeAssociation:'uncertain'};

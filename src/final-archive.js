@@ -52,7 +52,7 @@ export async function makeBundle(problem,finalization,{model=runModel,archiveRoo
     if(a.record.evidence)debug.push(a.record.evidence,'');
   }
   files['DEBUG.md']=debug.join('\n');
-  files['README.md']=[`# ${problem.title}`,'',`题目来源：[OpenJudge / 原课程题目](${problem.url})。`,'','完成依据：页面评测区域显示 AC，且关联的提交源码哈希与最终代码一致；不是学习教练独立重跑在线评测。','',`最终代码：[solution.cpp](solution.cpp)；修改和 debug 总结：[DEBUG.md](DEBUG.md)。过程源码和运行快照独立保存在本地。`,'',report.markdown,'','## 保存与提交记录','',...table,'','## 本地构建','',`语言标准：${last.record.standard||'c++17'}。`,'','```sh',`g++ -std=${last.record.standard||'c++17'} -Wall -Wextra solution.cpp -o solution`,'```',''].join('\n');
+  files['README.md']=[`# ${problem.title}`,'',`题目来源：[编程网格](${problem.url})。`,'','完成依据：页面评测区域显示 AC，且关联的提交源码哈希与最终代码一致；不是学习教练独立重跑在线评测。','',`最终代码：[solution.cpp](solution.cpp)；修改和 debug 总结：[DEBUG.md](DEBUG.md)。过程源码和运行快照独立保存在本地。`,'',report.markdown,'','## 保存与提交记录','',...table,'','## 本地构建','',`语言标准：${last.record.standard||'c++17'}。`,'','```sh',`g++ -std=${last.record.standard||'c++17'} -Wall -Wextra solution.cpp -o solution`,'```',''].join('\n');
   const entries=Object.entries(files).sort(([a],[b])=>a.localeCompare(b)).map(([name,content])=>({path:name,sha256:sha(content)}));
   const marker={schemaVersion:1,archiveId:finalization.id,problemUuid,sourceUrl:problem.url,finalCodeHash:last.codeHash,bundleHash:sha(JSON.stringify(entries)),files:entries};
   files['.pku-coach.json']=JSON.stringify(marker,null,2)+'\n';

@@ -15,7 +15,6 @@
   const state=()=>({question:document.getElementById('question').value,chatOpen:document.getElementById('chatPanel').open});
   document.getElementById('closeCoach').onclick=()=>api.postMessage({type:'collapse',ui:state()});
   document.getElementById('bindProblem').onclick=()=>api.postMessage({type:'bind_problem'});
-  document.getElementById('bindSubmission').onclick=()=>api.postMessage({type:'bind_submission'});
   document.getElementById('showRecords').onclick=()=>api.postMessage({type:'show_records'});
   let timer;
   document.getElementById('question').addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(()=>api.postMessage({type:'draft',ui:state()}),150);});

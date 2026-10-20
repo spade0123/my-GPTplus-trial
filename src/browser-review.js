@@ -15,7 +15,7 @@ export function formatProblem(problem) {
   return Object.entries(labels).map(([key,label])=>problem[key]?`${label}\n${problem[key]}`:'').filter(Boolean).join('\n\n');
 }
 export const Capture = z.object({
-  url: z.string().url().max(1000).refine(s => { try { const u=new URL(s);return Boolean(openJudgeUrl(s,{kind:'problem'}))||u.origin==='https://programming.pku.edu.cn' && !u.username && !u.password && /^\/probset\/[a-f0-9]{32}\/[a-f0-9]{32}\/ide\.do$/.test(u.pathname) && !u.search && !u.hash; } catch {return false;} }, '只支持北大 IDE 或百练/NOI OpenJudge 的具体题目页面'),
+  url: z.string().url().max(1000).refine(s => { try { const u=new URL(s);return Boolean(openJudgeUrl(s,{kind:'problem'}))||u.origin==='https://programming.pku.edu.cn' && !u.username && !u.password && /^\/(?:course\/)?probset\/[a-f0-9]{32}\/[a-f0-9]{32}\/ide\.do$/.test(u.pathname) && !u.search && !u.hash; } catch {return false;} }, '只支持北大 IDE 或百练/NOI OpenJudge 的具体题目页面'),
   title: z.string().trim().min(1).max(300), statement: z.string().trim().max(100000).optional(), problem:Problem.optional(),runtime:Runtime,
   code: z.string().trim().min(5).max(100000), standard:z.enum(['c++11','c++14','c++17','c++20']).default('c++17')
 }).strict().superRefine((data,ctx)=>{

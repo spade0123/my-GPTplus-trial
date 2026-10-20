@@ -6,7 +6,7 @@ import {dataDir,writeRecord,acquireLock,Capture,reviewSummary} from './browser-r
 import {saveAttempt,recordVerdict,getProblem} from './problem-history.js';
 import {queueHint,queueDiscussion,readHint,hintSummary,assistHistory} from './hint-review.js';
 import {browserRequest} from './browser-mailbox.js';
-import {openJudgeUrl,sameProblem} from './openjudge-url.js';
+import {gridUrl,sameProblem} from './grid-url.js';
 import {readProblemDisplay} from './problem-display.js';
 import {runSample,latestSample,saveSampleRequest,finishSample} from './sample-runner.js';
 import {readSubmission,createSubmission,updateSubmission} from './oj-submissions.js';
@@ -16,7 +16,7 @@ const Source=z.object({uri:z.string().max(3000).refine(s=>/^(?:file|untitled):/.
 const uuid=value=>{const h=sha(value).slice(0,32);return `${h.slice(0,8)}-${h.slice(8,12)}-${h.slice(12,16)}-${h.slice(16,20)}-${h.slice(20)}`;};
 const validUri=uri=>Source.shape.uri.parse(uri);
 const contextPath=uri=>path.join(dataDir(),'vscode-context',sha(validUri(uri))+'.json');
-const topicKey=url=>{const parsed=openJudgeUrl(url,{kind:'problem'});if(!parsed)throw new Error('题目地址无效。');return parsed.key;};
+const topicKey=url=>{const parsed=gridUrl(url,{kind:'problem'});if(!parsed)throw new Error('题目地址无效。');return parsed.key;};
 async function readContext(uri){try{return JSON.parse(await fs.readFile(contextPath(uri),'utf8'));}catch(e){if(e.code!=='ENOENT')throw e;return {uri};}}
 async function getContext(uri,problemUrl){
   const record=await readContext(uri);
@@ -52,9 +52,9 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
   }
   async function capture(source,{allowCached=false,problemUrl}={}){
     const context=await resolveContext(source.uri,problemUrl),binding=context.binding;
-    if(!binding)throw new Error('请先将当前 C++ 文件关联到一个 Chrome 中的 OpenJudge 题目页。');
+    if(!binding)throw new Error('请先将当前 C++ 文件关联到 Chrome 中的编程网格 IDE 页。');
     let web,warning='';
-    try{web=await browser('capture',binding,allowCached?1200:6000);}catch(e){
+    try{web=await browser('capture',{...binding,code:source.code},allowCached?1200:6000);}catch(e){
       if(!allowCached||!context.problem||e.code==='PROBLEM_CHANGED'||/关联|另一题|切换|不属于|核对/.test(e.message))throw e;
       warning='本轮未读到最新网页评测：'+e.message;web={problem:context.problem,submission:null};
     }
@@ -69,10 +69,10 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
     if(submission){
       const verdict=submission.verdict||{};
       runtime.hints=[runtime.hints,verdict.text].filter(Boolean).join('\n');runtime.error=[runtime.error,submission.runtime?.error].filter(Boolean).join('\n').slice(0,20000);
-      runtime.status=matching?verdict.status||'unknown':'unknown';runtime.text=`OpenJudge 提交 ${submission.submissionId||'未知编号'}：${verdict.text||'未知状态'}。${matching?'已核对提交源码，与本次 VS Code 完整代码相同。':'尚未与本次 VS Code 代码匹配，不能把该状态当成当前代码的结果。'}`;
+      runtime.status=matching?verdict.status||'unknown':'unknown';runtime.text=`编程网格提交 ${submission.submissionId||'网页当前结果'}：${verdict.text||'未知状态'}。${matching?'已核对提交源码，与本次 VS Code 完整代码相同。':'尚未与本次 VS Code 代码匹配，不能把该状态当成当前代码的结果。'}`;
       if(matching&&['AC','WA','CE','RE','TLE','MLE','PE','OLE'].includes(verdict.status))judgeEvidence={status:verdict.status,source:'matching-submission',codeHash,runtimeAssociation:'matching-judgment'};
     }
-    const u=openJudgeUrl(binding.problemUrl,{kind:'problem'}),url='http://'+u.key;
+    const u=gridUrl(binding.problemUrl,{kind:'problem'}),url='https://'+u.key+'ide.do';
     const sample=await latestSample(url,source.code);
     if(sample?.result){const r=sample.result;runtime.input=r.input;runtime.output=r.actual.slice(0,20000);runtime.error=[runtime.error,r.compiler,r.stderr].filter(Boolean).join('\n').slice(0,20000);runtime.text+='\n本机样例测试：'+r.status+'；只表示本机样例结果，不代表网站 AC。';}
     const result=Capture.parse({url,title:page.title,problem:page.problem,code:source.code,standard:context.standard||'c++17',runtime});
@@ -83,20 +83,20 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
     const {capture}=selected,id=uuid(capture.url+':'+s.submissionId+':'+selected.judgment.codeHash),eventId=uuid('submission:'+id);
     const problem=await getProblem(capture.url);
     if(problem.attempts.some(a=>a.submissionId===id&&a.verdict?.status===s.verdict.status))return;
-    const saved=await saveAttempt(capture,{kind:'submission',submissionId:id,eventId,origin:'openjudge',note:`只读核对 OpenJudge 提交 ${s.submissionId}：${s.url}`});
-    const verdict={source:'judge-dom',status:s.verdict.status,text:s.verdict.text,observedAt:s.observedAt||new Date().toISOString(),sourceUrl:s.url,platform:'openjudge'};
+    const saved=await saveAttempt(capture,{kind:'submission',submissionId:id,eventId,origin:'programminggrid',note:`核对编程网格提交 ${s.submissionId}：${s.url}`});
+    const verdict={source:'judge-dom',status:s.verdict.status,text:s.verdict.text,observedAt:s.observedAt||new Date().toISOString(),sourceUrl:s.url,platform:'programminggrid'};
     await recordVerdict(capture.url,id,verdict,capture.runtime);
-    if(verdict.status==='AC')await saveAttempt(capture,{kind:'ac',eventId:uuid('ac:'+id),submissionId:id,verdict,origin:'openjudge'});
+    if(verdict.status==='AC')await saveAttempt(capture,{kind:'ac',eventId:uuid('ac:'+id),submissionId:id,verdict,origin:'programminggrid'});
     return saved;
   }
   return {async handle(message){
     const type=message.type;
-    if(type==='status')return {ready:true,dataDirectory:dataDir(),version:'2.1.0',platform:'openjudge-vscode'};
+    if(type==='status')return {ready:true,dataDirectory:dataDir(),version:'0.1.0',platform:'programminggrid-vscode'};
     if(type==='problem_display')return currentProblem();
     if(type==='sample_history'){
       const source=Source.parse(message.source),context=await resolveContext(source.uri,message.problemUrl);
       const u=context.binding?.problemUrl;if(!u)return {type:'sample_result'};
-      const prior=await latestSample('http://'+openJudgeUrl(u,{kind:'problem'}).key,source.code);return {type:'sample_result',result:prior?.result,codeHash:prior?.codeHash};
+      const prior=await latestSample('https://'+gridUrl(u,{kind:'problem'}).key+'ide.do',source.code);return {type:'sample_result',result:prior?.result,codeHash:prior?.codeHash};
     }
     if(type==='browser_tabs')return {tabs:await browser('tabs')};
     if(type==='oj_prepare'){
@@ -107,7 +107,7 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
       const job=await readSubmission(message.id),value=await browser('refresh_submission',{problemUrl:job.browserUrl||job.capture.url,receipt:job.receipt||{},code:job.capture.code},24000);
       if(value.error)throw new Error(value.error);const updated=await updateSubmission(job,{...value,status:'submitted'}),s=value.submission;
       if(s?.submittedCode?.replace(/\r\n/g,'\n').trim()===job.capture.code.replace(/\r\n/g,'\n').trim()&&!s.sourceTruncated){
-        const result={...job.capture,runtime:{...job.capture.runtime,status:s.verdict.status,text:'OpenJudge 提交 '+s.submissionId+'：'+s.verdict.text,error:s.runtime?.error||''}};
+        const result={...job.capture,runtime:{...job.capture.runtime,status:s.verdict.status,text:'编程网格提交 '+s.submissionId+'：'+s.verdict.text,error:s.runtime?.error||''}};
         try{await importVerdict({capture:result,submission:s,matching:true,judgment:{status:s.verdict.status,codeHash:sha(normalize(job.capture.code))}});await launchReport();}catch(e){updated.workerError=e.message;}
       }
       return {type:'oj_result',id:job.id,...updated,submission:s,capture:undefined};
@@ -115,7 +115,7 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
     if(type==='context_get')return resolveContext(validUri(message.uri),message.problemUrl);
     if(type==='context_bind'){
       const uri=validUri(message.uri),b=message.binding;
-      if(!b||!openJudgeUrl(b.problemUrl,{kind:'problem'})||!Number.isInteger(b.tabId)||b.submissionTabId!==undefined&&!Number.isInteger(b.submissionTabId))throw new Error('请选择有效的 OpenJudge 题目标签。');
+      if(!b||!gridUrl(b.problemUrl,{kind:'problem'})||!Number.isInteger(b.tabId))throw new Error('请选择有效的编程网格 IDE 标签。');
       const binding={problemUrl:b.problemUrl,tabId:b.tabId,...(b.submissionTabId===undefined?{}:{submissionTabId:b.submissionTabId})};
       const web=await browser('capture',binding);if(!web.problem?.problemMatches||!sameProblem(web.problem.problemUrl,binding.problemUrl))throw new Error('所选网页与题目不对应。');
       return patchContext(uri,{binding,problem:web.problem});
@@ -138,10 +138,14 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
       let job=await createSubmission(selected.capture,message.actionId,message.language);
       if(job.status!=='prepared')return {type:'oj_result',...job,capture:undefined,message:job.message||'本次提交已处理，不会自动重复发送。'};
       job=await updateSubmission(job,{status:'sending',browserUrl:selected.browserUrl});
-      await saveAttempt(selected.capture,{eventId:message.actionId,origin:'oj_submit_request',note:'主动提交到 OJ；记录 '+job.id});
+      await saveAttempt(selected.capture,{eventId:message.actionId,origin:'oj_submit_request',note:'主动提交到编程网格；记录 '+job.id});
       try{
         const value=await browser('submit',{jobId:job.id,problemUrl:job.browserUrl,code:job.capture.code,language:job.language},30000);
         job=await updateSubmission(job,{...value,status:value.error?'uncertain':'submitted'});
+        const s=value.submission;
+        if(s?.submittedCode?.replace(/\r\n/g,'\n').trim()===job.capture.code.replace(/\r\n/g,'\n').trim()&&s.verdict?.status&&!['pending','unknown'].includes(s.verdict.status)){
+          try{await importVerdict({capture:job.capture,submission:s,matching:true,judgment:{status:s.verdict.status,codeHash:sha(normalize(job.capture.code))}});}catch(e){job.workerError=e.message;}
+        }
       }catch(error){job=await updateSubmission(job,{status:'uncertain',error:error.message,message:'未确认是否提交成功，请先刷新/查看记录，不会自动重试。'});}
       let workerError;try{await launchReport();}catch(e){workerError=e.message;}return {type:'oj_result',...job,capture:undefined,workerError};
     }

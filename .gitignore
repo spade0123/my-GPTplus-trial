@@ -18,6 +18,7 @@
 *.tmp
 *.lock
 /native/edu.openjudge.cpp_coach.json
+/native/edu.pku.grid_vscode_coach.json
 /vscode-extension/media/
 *.vsix
 !/dist/*.vsix
