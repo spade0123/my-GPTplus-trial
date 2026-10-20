@@ -4,12 +4,12 @@ import { z } from 'zod';
 import fs from 'node:fs/promises';
 import { reviewHistory,readReview } from './browser-review.js';
 import {timeline,problemSummary} from './problem-history.js';
-import {HINT_GUIDE} from './hint-format.js';
+import {COACH_GUIDE,HINT_GUIDE} from './hint-format.js';
 import {DISCUSSION_GUIDE} from './discussion-context.js';
 import {saveCodeQuestion,saveCodeReply,codeHelpHistory} from './code-help.js';
 import { COURSE, CODE_ROOT, TOPICS, REVIEW_GUIDE, fetchPage, readCode, inspectCode, compilerCheck, saveReview, learningPlan } from './core.js';
 
-const server = new McpServer({ name: 'programminggrid-vscode-coach', version: '0.1.0' }, { instructions: REVIEW_GUIDE });
+const server = new McpServer({ name: 'programminggrid-vscode-coach', version: '0.1.0' }, { instructions: COACH_GUIDE });
 function tool(name, description, schema, handler, readOnly = true, openWorld = false) {
   server.registerTool(name, { description, inputSchema: schema, annotations: { readOnlyHint: readOnly, destructiveHint: false, idempotentHint: readOnly, openWorldHint: openWorld } }, async args => {
     try { return { content: [{ type: 'text', text: JSON.stringify(await handler(args), null, 2) }] }; }
@@ -56,7 +56,8 @@ async function prepareCodeHelp(mode,args){
   const evidence={capture:{code,statement:args.statement??snapshot?.statement??'',title:snapshot?.title||'',url:snapshot?.url||''},question:args.question||'请结合这份已有代码和题意给出下一步方向。',source:args.snapshot_id?'explicit-saved-snapshot':args.file?'explicit-local-file':'provided-code',snapshotId:args.snapshot_id||null,codeVersionNote:args.snapshot_id?'用户明确选择的历史快照，不声称等于网站当前内容。':'用户本轮明确提供的源码，不读取或修改网站。'};
   const saved=await saveCodeQuestion(mode,evidence);
   const guide=mode==='hint'?HINT_GUIDE:DISCUSSION_GUIDE;
-  return {requestId:saved.id,...evidence,guide:`${guide}\n本次在 Codex 内直接用中文回复，不输出 JSON。按实际代码位置解释“这一处为何有问题、沿原代码怎样改、如何验证”；不要操作网页。未提供题面时明确算法正确性判断的限制。\n本轮问题和完整源码已保存到本机，记录 ID：${saved.id}。生成答复后，用 save_code_help_reply 把这段实际回复保存到该 ID，然后发给用户；若保存失败如实说明，不假报已存。`};
+  const replyRule=mode==='hint'?'只分析题目结构与核心概念，给一个下一步方向；有合适的新函数或工具才推荐。不要逐行改代码或给完整解法。':'按实际代码位置解释“这一处为何有问题、沿原代码怎样改、如何验证”。';
+  return {requestId:saved.id,...evidence,guide:`${guide}\n本次在 Codex 内直接用中文回复，不输出 JSON。${replyRule}不要操作网页。未提供题面时明确算法判断的限制。\n本轮问题和完整源码已保存到本机，记录 ID：${saved.id}。生成答复后，用 save_code_help_reply 把这段实际回复保存到该 ID，然后发给用户；若保存失败如实说明，不假报已存。`};
 }
 async function codePrompt(mode,args){
   const {guide,...evidence}=await prepareCodeHelp(mode,args);
