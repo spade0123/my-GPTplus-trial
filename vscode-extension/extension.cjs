@@ -1,6 +1,7 @@
 const vscode=require('vscode'),fs=require('node:fs/promises'),path=require('node:path'),{randomUUID}=require('node:crypto'),{execFile}=require('node:child_process'),{promisify}=require('node:util');
 const {RpcClient}=require('./rpc-client.cjs');
 const {ProblemView}=require('./problem-view.cjs');
+const {planDateOrganization,applyDateOrganization}=require('./date-organizer.cjs');
 const isCpp=document=>document?.languageId==='cpp'&&!document.isClosed;
 const escape=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function activate(context){
@@ -46,6 +47,26 @@ function activate(context){
   }
   async function ensureBinding(source){const client=await backend();let saved=await client.request({type:'context_get',uri:source.uri});if(!saved.binding){if(!await bind(source))return null;saved=await client.request({type:'context_get',uri:source.uri});}return saved;}
   async function showRecords(){const client=await backend(),status=await client.request({type:'status'});await vscode.env.openExternal(vscode.Uri.file(status.dataDirectory));}
+  async function organizeProjectByDate(){
+    const folders=vscode.workspace.workspaceFolders||[];
+    if(!folders.length)throw new Error('请先在 VS Code 打开一个项目文件夹。');
+    const activeUri=vscode.window.activeTextEditor?.document.uri;
+    let folder=folders.length===1?folders[0]:activeUri?vscode.workspace.getWorkspaceFolder(activeUri):undefined;
+    if(!folder){
+      const choice=await vscode.window.showQuickPick(folders.map(item=>({label:item.name,description:item.uri.toString(),folder:item})),{placeHolder:'选择要整理的项目文件夹'});
+      if(!choice)return;
+      folder=choice.folder;
+    }
+    const moves=await planDateOrganization(vscode,folder.uri,{extensions:new Set(['.c','.cc','.cpp','.cxx']),dateField:'mtime'});
+    if(!moves.length){void vscode.window.showInformationMessage('项目根目录没有需要整理的 C/C++ 源码文件。');return;}
+    const moveSources=new Set(moves.map(move=>move.source.toString()));
+    if(vscode.workspace.textDocuments.some(document=>document.isDirty&&moveSources.has(document.uri.toString())))throw new Error('要整理的源码有未保存的改动，请先保存文件，再点击“按日期整理”。');
+    const preview=moves.slice(0,8).map(move=>`${path.basename(move.source.path)} → 按日期整理/${move.day}/`).join('\n');
+    const choice=await vscode.window.showWarningMessage(`将按最后修改日期整理 ${moves.length} 个 C/C++ 源码文件`,{modal:true,detail:`项目：${folder.name}\n${preview}${moves.length>8?'\n……':''}\n文件路径会变化，依赖旧路径的编译任务可能需要更新。`},'开始整理');
+    if(choice!=='开始整理')return;
+    await applyDateOrganization(vscode,moves);
+    void vscode.window.showInformationMessage(`已整理 ${moves.length} 个源码文件到“按日期整理”文件夹。`);
+  }
   async function html(webview){
     let template=await fs.readFile(path.join(context.extensionPath,'media/assist-window.html'),'utf8');
     template=template.replace('<title>C++ 学习教练</title>','<title>北大编程网格 · C++ 学习教练</title>').replace('<span class="eyebrow">C++ 学习教练 · 右侧浮窗</span>','<span class="eyebrow">北大编程网格 · C++ 学习教练</span>');
@@ -123,7 +144,11 @@ function activate(context){
     context.subscriptions.push(vscode.commands.registerCommand('gridCoach.'+command,safe(fn)));
     const button=vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right,priority);button.text=label;button.tooltip='编程网格 C++ 教练：'+label;button.command='gridCoach.'+command;button.name='编程网格 '+label;buttons.push(button);context.subscriptions.push(button);
   }
-  context.subscriptions.push(vscode.commands.registerCommand('gridCoach.bindProblem',safe(()=>bind(sourceFor()))),vscode.commands.registerCommand('gridCoach.showRecords',safe(showRecords)));
+  context.subscriptions.push(vscode.commands.registerCommand('gridCoach.bindProblem',safe(()=>bind(sourceFor()))),vscode.commands.registerCommand('gridCoach.showRecords',safe(showRecords)),vscode.commands.registerCommand('gridCoach.organizeProjectByDate',safe(organizeProjectByDate)));
+  const organizeButton=vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right,1000);
+  organizeButton.text='$(calendar) 按日期整理';organizeButton.tooltip='将项目根目录的 C/C++ 源码按最后修改日期整理';organizeButton.command='gridCoach.organizeProjectByDate';organizeButton.name='编程网格 按日期整理';
+  const showOrganizeButton=()=>vscode.workspace.workspaceFolders?.length?organizeButton.show():organizeButton.hide();
+  context.subscriptions.push(organizeButton,vscode.workspace.onDidChangeWorkspaceFolders(showOrganizeButton));showOrganizeButton();
   context.subscriptions.push(vscode.commands.registerCommand('gridCoach.configureBackend',safe(async()=>{
     const chosen=await vscode.window.showOpenDialog({canSelectFolders:true,canSelectFiles:false,canSelectMany:false,openLabel:'选择 编程网格 新版目录'});if(!chosen)return;
     await fs.access(path.join(chosen[0].fsPath,'src/vscode-host.js'));await fs.mkdir(context.globalStorageUri.fsPath,{recursive:true});await fs.writeFile(path.join(context.globalStorageUri.fsPath,'backend.json'),JSON.stringify({backendPath:chosen[0].fsPath}));rpc?.dispose();rpc=null;await backend();
