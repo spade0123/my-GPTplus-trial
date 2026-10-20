@@ -116,7 +116,7 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
   }
   return {async handle(message){
     const type=message.type;
-    if(type==='status')return {ready:true,dataDirectory:dataDir(),version:'0.2.0',platform:'programminggrid-vscode'};
+    if(type==='status')return {ready:true,dataDirectory:dataDir(),version:'0.2.2',platform:'programminggrid-vscode'};
     if(type==='problem_display')return currentProblem();
     if(type==='sample_history'){
       const source=Source.parse(message.source),context=await resolveContext(source.uri,message.problemUrl);
@@ -130,7 +130,8 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
     }
     if(type==='oj_refresh'){
       const job=await readSubmission(message.id),value=await browser('refresh_submission',{problemUrl:job.browserUrl||job.capture.url,receipt:job.receipt||{},code:job.capture.code},24000);
-      if(value.error)throw new Error(value.error);const updated=await updateSubmission(job,{...value,status:'submitted'}),s=value.submission;
+      if(value.error)return {type:'oj_result',...await updateSubmission(job,{...value,status:'rejected'}),capture:undefined};
+      const updated=await updateSubmission(job,{...value,status:'submitted'}),s=value.submission;
       if(s?.submittedCode?.replace(/\r\n/g,'\n').trim()===job.capture.code.replace(/\r\n/g,'\n').trim()&&!s.sourceTruncated){
         const result=officialResultCapture(job.capture,s);
         try{await importVerdict({capture:result,submission:s,matching:true,judgment:{status:s.verdict.status,codeHash:sha(normalize(job.capture.code))}});await launchReport();}catch(e){updated.workerError=e.message;}
@@ -139,10 +140,11 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
     }
     if(type==='grid_test_refresh'){
       const job=await readGridTestRun(message.id);
-      if(job.status==='complete'||job.status==='uncertain')return {type:'grid_test_result',...job,capture:undefined};
+      if(['complete','uncertain','rejected'].includes(job.status))return {type:'grid_test_result',...job,capture:undefined};
       if(job.status==='result_received')return {type:'grid_test_result',...await finishGridTest(job,job),capture:undefined};
       if(!job.receipt?.solutionId)throw new Error('网站尚未返回本次测试编号，请稍后再刷新。');
       const value=await browser('refresh_test',{problemUrl:job.browserUrl,receipt:job.receipt,code:job.capture.code,input:job.input},24000);
+      if(value.error)return {type:'grid_test_result',...await updateGridTestRun(job,{...value,status:'rejected'}),capture:undefined};
       return {type:'grid_test_result',...await finishGridTest(job,value),capture:undefined};
     }
     if(type==='context_get')return resolveContext(validUri(message.uri),message.problemUrl);
@@ -174,7 +176,7 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
       job=await updateGridTestRun(job,{status:'sending'});
       try{
         const value=await browser('test',{jobId:job.id,problemUrl:job.browserUrl,code:job.capture.code,language:'C++',input:job.input},30000);
-        job=await finishGridTest(job,value);
+        job=value.error?await updateGridTestRun(job,{...value,status:'rejected'}):await finishGridTest(job,value);
       }catch(error){job=await updateGridTestRun(job,{status:'uncertain',error:error.message,message:'网站测试是否已执行尚未确认；请先在编程网格查看记录，不会自动重复发送。'});}
       return {type:'grid_test_result',...job,capture:undefined};
     }
@@ -186,7 +188,7 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
       await saveAttempt(selected.capture,{eventId:message.actionId,origin:'oj_submit_request',note:'主动提交到编程网格；记录 '+job.id});
       try{
         const value=await browser('submit',{jobId:job.id,problemUrl:job.browserUrl,code:job.capture.code,language:job.language},30000);
-        job=await updateSubmission(job,{...value,status:value.error?'uncertain':'submitted'});
+        job=await updateSubmission(job,{...value,status:value.error?'rejected':'submitted'});
         const s=value.submission;
         if(s?.submittedCode?.replace(/\r\n/g,'\n').trim()===job.capture.code.replace(/\r\n/g,'\n').trim()&&s.verdict?.status&&!['pending','unknown'].includes(s.verdict.status)){
           try{await importVerdict({capture:officialResultCapture(job.capture,s),submission:s,matching:true,judgment:{status:s.verdict.status,codeHash:sha(normalize(job.capture.code))}});}catch(e){job.workerError=e.message;}

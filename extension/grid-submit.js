@@ -9,13 +9,14 @@ export async function gridJudgeRequest(problemUrl,mode,params={}){
   const read=async(url,options={})=>{
     const response=await fetch(url,{credentials:'same-origin',redirect:'follow',...options});
     if(new URL(response.url).origin!==origin||response.url.includes('/login')||!response.ok)throw new Error('编程网格未返回已登录的评测接口；请检查登录状态。');
-    const value=await response.json().catch(()=>null);
+    const raw=await response.text();
+    const value=(()=>{try{return JSON.parse(raw);}catch{return null;}})();
     if(!value||typeof value!=='object')throw new Error('编程网格返回格式无法识别，可能需要重新登录。');
-    if(value.status!=='OK'||value.type!=='solution'||!value.solution||value.solution.id==null)throw new Error(String(value.text||'编程网格未确认提交。').slice(0,500));
-    return value.solution;
+    if(value.status!=='OK'||value.type!=='solution'||!value.solution||value.solution.id==null)return {error:String(value.text||'编程网格未确认执行。'),raw};
+    return {solution:value.solution,raw};
   };
   const statusMap={Passed:'AC',WrongAnswer:'WA',CompileError:'CE',RuntimeError:'RE',TimeOut:'TLE',OutOfMemory:'MLE',OutputExceeded:'OLE',EmptyOutput:'WA',Processing:'pending',Testing:'pending',WaitTimeOut:'system_error',SystemError:'system_error',NoProblem:'system_error',NoTestData:'system_error'};
-  let solution,id;
+  let solution,id,websiteReplyRaw;
   if(mode==='submit'||mode==='test'){
     if(typeof params.code!=='string'||params.code.length<5||params.code.length>100000)throw new Error('当前代码长度无效。');
     if(params.language!=='C++')throw new Error('目前只支持编程网格的 C++ 编译器。');
@@ -25,17 +26,21 @@ export async function gridJudgeRequest(problemUrl,mode,params={}){
       if(typeof params.input!=='string'||params.input.length>20000)throw new Error('网站测试输入无效或超过 20000 字。');
       form.set('stdin',params.input);
     }
-    solution=await read(endpoint.href,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8','Accept':'application/json','X-Requested-With':'XMLHttpRequest'},body:form});
+    const reply=await read(endpoint.href,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8','Accept':'application/json','X-Requested-With':'XMLHttpRequest'},body:form});
+    if(reply.error)return {error:reply.error,websiteReplyRaw:reply.raw};
+    solution=reply.solution;websiteReplyRaw=reply.raw;
     id=String(solution.id);
     if(!/^\d+$/.test(id))throw new Error('编程网格返回的测试或提交编号无效，请在网站核对记录。');
   }else if(mode==='refresh'){
     id=String(params.receipt?.solutionId||'');
     if(!/^\d+$/.test(id))throw new Error('缺少本次提交编号，不能猜测评测结果。');
-    solution=await read(`${origin}/solution/${id}/status.do`,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8','Accept':'application/json','X-Requested-With':'XMLHttpRequest'},body:new URLSearchParams()});
+    const reply=await read(`${origin}/solution/${id}/status.do`,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8','Accept':'application/json','X-Requested-With':'XMLHttpRequest'},body:new URLSearchParams()});
+    if(reply.error)return {error:reply.error,websiteReplyRaw:reply.raw};
+    solution=reply.solution;websiteReplyRaw=reply.raw;
     if(String(solution.id)!==id)throw new Error('评测编号与本次提交不一致。');
   }else throw new Error('不支持的网站执行方式。');
-  const hint=typeof solution.hint==='string'?solution.hint.slice(0,20000):'';
+  const hint=typeof solution.hint==='string'?solution.hint:'';
   const verdict={status:statusMap[solution.result]||'unknown',text:[solution.result,hint.slice(0,1500)].filter(Boolean).join(' · ').slice(0,2000)};
   const receipt={solutionId:id,solutionUrl:`${origin}/solution/${id}/`};
-  return {receipt,submission:{problemMatches:true,problemUrl:problem.href,submissionId:id,url:receipt.solutionUrl,submittedCode:params.code,sourceTruncated:false,verdict,platformResult:String(solution.result||'unknown'),runtime:{text:hint,error:solution.result==='CompileError'?hint:''},observedAt:new Date().toISOString()},message:verdict.text};
+  return {receipt,submission:{problemMatches:true,problemUrl:problem.href,submissionId:id,url:receipt.solutionUrl,submittedCode:params.code,sourceTruncated:false,verdict,platformResult:String(solution.result||'unknown'),websiteReplyRaw,runtime:{text:hint,error:solution.result==='CompileError'?hint:''},observedAt:new Date().toISOString()},message:verdict.text};
 }
