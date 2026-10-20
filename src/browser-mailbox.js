@@ -4,7 +4,7 @@ import {randomUUID} from 'node:crypto';
 import {dataDir,writeRecord,processAlive} from './browser-review.js';
 export const mailboxDir=()=>path.join(dataDir(),'browser-bridge');
 export async function browserRequest(action,params={},timeoutMs=6000){
-  if(!['tabs','capture','inspect_submit','prepare_submit','submit','refresh_submission'].includes(action))throw new Error('不支持的浏览器操作。');
+  if(!['tabs','capture','inspect_submit','prepare_submit','submit','refresh_submission','test','refresh_test'].includes(action))throw new Error('不支持的浏览器操作。');
   const dir=mailboxDir();let ready;
   try{ready=JSON.parse(await fs.readFile(path.join(dir,'ready.json'),'utf8'));}catch{}
   if(!ready?.connected||!processAlive(ready.pid))throw new Error('Chrome 尚未连接。请在 编程网格 页面点击独立的“编程网格 · VS Code 连接”扩展图标。');

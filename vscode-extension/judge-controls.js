@@ -1,40 +1,69 @@
 (()=>{
-  const $=id=>document.getElementById(id),port=chrome.runtime.connect(),sampleLabels={passed:'样例输出一致',whitespace:'仅空白不同，请核对格式',wrong_answer:'与样例输出不同',compile_error:'编译失败',runtime_error:'运行错误',timeout:'超过时间限制',output_limit:'输出超过限制'};
-  let prepared=false,jobId,timer,refreshes=0,busy=false;
+  const $=id=>document.getElementById(id),port=chrome.runtime.connect();
+  let prepared=false,submitJobId,submitTimer,submitRefreshes=0,submitBusy=false;
+  let testJobId,testTimer,testRefreshes=0,testBusy=false,inputInitialized=false;
   const send=(type,extra={})=>port.postMessage({type,...extra,actionId:crypto.randomUUID(),requestedAt:new Date().toISOString()});
-  function block(parent,label,text){const box=document.createElement('div');box.className='execution-block';const h=document.createElement('h4'),pre=document.createElement('pre'),code=document.createElement('code');h.textContent=label;code.textContent=String(text||'（空）');pre.append(code);box.append(h,pre);parent.append(box);}
-  function sample(value){
-    if(!value?.result)return;const r=value.result;$('samplePanel').hidden=false;$('sampleState').textContent=(sampleLabels[r.status]||r.status)+' · '+r.durationMs+' ms · 源码 '+(value.codeHash||r.codeHash||'').slice(0,8)+'；样例一致不代表网站 AC。';
-    $('sampleState').className=r.status==='passed'?'execution-pass':'execution-fail';$('sampleResults').replaceChildren();
-    block($('sampleResults'),'例子输入',r.input);const grid=document.createElement('div');grid.className='execution-grid';$('sampleResults').append(grid);block(grid,'预期输出',r.expected);block(grid,'实际输出',r.actual);
-    if(r.compiler||r.stderr){const details=document.createElement('details'),summary=document.createElement('summary');summary.textContent='编译与运行信息';details.append(summary);block(details,'诊断',[r.compiler,r.stderr].filter(Boolean).join('\n'));$('sampleResults').append(details);}
+  function block(parent,label,text){
+    const box=document.createElement('div'),h=document.createElement('h4'),pre=document.createElement('pre'),code=document.createElement('code');
+    box.className='execution-block';h.textContent=label;code.textContent=String(text||'（空）');pre.append(code);box.append(h,pre);parent.append(box);
   }
-  $('runSample').onclick=()=>{$('runSample').disabled=true;$('samplePanel').hidden=false;$('sampleState').textContent='正在保存本次代码并编译，随后运行题目样例…';send('run_sample');};
-  $('submitOJ').onclick=()=>{
-    if(busy)return;busy=true;$('submitOJ').disabled=true;$('ojPanel').hidden=false;
-    if(!prepared){$('ojState').textContent='正在读取本题提交入口与 C++ 编译器选项…';send('oj_prepare');}
-    else{$('ojState').textContent='正在保存本次完整代码并提交；此操作只发送一次…';refreshes=0;clearTimeout(timer);send('oj_submit',{language:$('ojLanguage').value});}
+  $('webTestInput').addEventListener('input',()=>{inputInitialized=true;});
+  $('gridTest').onclick=()=>{
+    if(testBusy)return;
+    testBusy=true;$('gridTest').disabled=true;$('webTestPanel').hidden=false;$('refreshGridTest').disabled=true;
+    $('webTestState').textContent='正在保存当前 VS Code 代码并请求编程网格网站测试执行…';
+    $('webTestResults').replaceChildren();testJobId=null;testRefreshes=0;clearTimeout(testTimer);
+    send('grid_test',{input:$('webTestInput').value});
   };
-  const refresh=()=>{if(!jobId)return;$('refreshOJ').disabled=true;send('oj_refresh',{id:jobId});};$('refreshOJ').onclick=refresh;
+  const refreshTest=()=>{if(!testJobId)return;$('refreshGridTest').disabled=true;send('grid_test_refresh',{id:testJobId});};
+  $('refreshGridTest').onclick=refreshTest;
+  $('submitOJ').onclick=()=>{
+    if(submitBusy)return;submitBusy=true;$('submitOJ').disabled=true;$('ojPanel').hidden=false;
+    if(!prepared){$('ojState').textContent='正在读取本题提交入口与 C++ 编译器选项…';send('oj_prepare');}
+    else{$('ojState').textContent='正在保存本次完整代码并正式提交；此操作只发送一次…';submitRefreshes=0;clearTimeout(submitTimer);send('oj_submit',{language:$('ojLanguage').value});}
+  };
+  const refreshSubmit=()=>{if(!submitJobId)return;$('refreshOJ').disabled=true;send('oj_refresh',{id:submitJobId});};
+  $('refreshOJ').onclick=refreshSubmit;
   port.onMessage.addListener(value=>{
-    if(value.type==='sample_result'){sample(value);$('runSample').disabled=false;return;}
-    if(value.type==='oj_prepared'){
-      $('ojLanguage').replaceChildren();for(const item of value.languages.filter(o=>/c\+\+|g\+\+/i.test(o.label))){const option=document.createElement('option');option.value=item.value;option.textContent=item.label;option.selected=item.selected;$('ojLanguage').append(option);}
-      prepared=true;busy=false;$('submitOJ').disabled=false;$('ojLanguageRow').hidden=false;$('ojState').textContent='已核对 IDE 提交入口。选择编译器，再点“提交到编程网格”发送当前代码。';return;
-    }
-    if(value.type==='oj_result'){
-      busy=false;jobId=value.id;$('submitOJ').disabled=false;$('refreshOJ').disabled=false;$('ojPanel').hidden=false;const s=value.submission;
-      $('ojState').textContent=value.error|| (s?'提交 '+s.submissionId+'：'+s.verdict.text+' · 源码 '+(value.codeHash||'').slice(0,8):value.message||'已提交，正在读取评测。');
-      $('ojResults').replaceChildren();if(s?.runtime?.error)block($('ojResults'),'网站编译信息',s.runtime.error);
-      if(value.receipt?.solutionUrl){const a=document.createElement('a');a.href=value.receipt.solutionUrl;a.textContent='查看这次提交详情';$('ojResults').append(a);}
-      clearTimeout(timer);if(!value.error&&s&&['pending','unknown'].includes(s.verdict.status)&&++refreshes<30)timer=setTimeout(refresh,2000);
-      else if(!value.error&&!s&&value.receipt?.solutionUrl&&++refreshes<30)timer=setTimeout(refresh,2000);
+    if((value.type==='assist_context'||value.type==='action_preview')&&!inputInitialized){
+      const sample=value.capture?.problem?.sampleInput;
+      if(typeof sample==='string'){$('webTestInput').value=sample.slice(0,20000);inputInitialized=true;}
       return;
     }
-    if(value.type==='error'&&['run_sample','sample_history','oj_prepare','oj_submit','oj_refresh'].includes(value.requestType)){
-      busy=false;$('submitOJ').disabled=false;$('runSample').disabled=false;$('refreshOJ').disabled=!jobId;
-      $(value.requestType.startsWith('oj_')?'ojState':'sampleState').textContent=value.error;
+    if(value.type==='grid_test_result'){
+      testJobId=value.id;const s=value.submission,pending=value.status==='pending';
+      testBusy=Boolean(pending);$('gridTest').disabled=testBusy;$('webTestPanel').hidden=false;$('refreshGridTest').disabled=!testJobId;
+      $('webTestState').textContent=value.message&&value.status==='uncertain'?value.message:s?`网站测试 ${s.submissionId}：${s.platformResult||s.verdict?.status||'处理中'} · 源码 ${(value.codeHash||'').slice(0,8)}；这不是正式提交。`:value.error||value.message||'网站测试请求已送出，等待返回。';
+      $('webTestResults').replaceChildren();
+      if(value.input!==undefined)block($('webTestResults'),'本次测试输入',value.input);
+      if(s?.runtime?.text)block($('webTestResults'),'网站返回的执行输出与提示（原文）',s.runtime.text);
+      if(s?.runtime?.error&&s.runtime.error!==s.runtime.text)block($('webTestResults'),'网站编译信息',s.runtime.error);
+      if(value.workerError)block($('webTestResults'),'本机保存提示',value.workerError);
+      if(value.receipt?.solutionUrl){const a=document.createElement('a');a.href=value.receipt.solutionUrl;a.textContent='查看网站这次测试记录';$('webTestResults').append(a);}
+      clearTimeout(testTimer);
+      if(pending&&testJobId){
+        if(++testRefreshes<30)testTimer=setTimeout(refreshTest,2000);
+        else{testBusy=false;$('gridTest').disabled=false;$('webTestState').textContent+=' 自动查询已暂停；仍可点“刷新这次测试结果”。';}
+      }
+      return;
+    }
+    if(value.type==='oj_prepared'){
+      $('ojLanguage').replaceChildren();for(const item of value.languages.filter(o=>/c\+\+|g\+\+/i.test(o.label))){const option=document.createElement('option');option.value=item.value;option.textContent=item.label;option.selected=item.selected;$('ojLanguage').append(option);}
+      prepared=true;submitBusy=false;$('submitOJ').disabled=false;$('ojLanguageRow').hidden=false;$('ojState').textContent='已核对 IDE 提交入口。选择编译器，再点“提交到编程网格”发送当前代码。';return;
+    }
+    if(value.type==='oj_result'){
+      submitBusy=false;submitJobId=value.id;$('submitOJ').disabled=false;$('refreshOJ').disabled=false;$('ojPanel').hidden=false;const s=value.submission;
+      $('ojState').textContent=value.error|| (s?'正式提交 '+s.submissionId+'：'+(s.platformResult||s.verdict.text)+' · 源码 '+(value.codeHash||'').slice(0,8):value.message||'已提交，正在读取评测。');
+      $('ojResults').replaceChildren();if(s?.runtime?.text)block($('ojResults'),'网站返回的评测与提示（原文）',s.runtime.text);
+      if(s?.runtime?.error&&s.runtime.error!==s.runtime.text)block($('ojResults'),'网站编译信息',s.runtime.error);
+      if(value.receipt?.solutionUrl){const a=document.createElement('a');a.href=value.receipt.solutionUrl;a.textContent='查看这次提交详情';$('ojResults').append(a);}
+      clearTimeout(submitTimer);if(!value.error&&s&&['pending','unknown'].includes(s.verdict.status)&&++submitRefreshes<30)submitTimer=setTimeout(refreshSubmit,2000);
+      else if(!value.error&&!s&&value.receipt?.solutionUrl&&++submitRefreshes<30)submitTimer=setTimeout(refreshSubmit,2000);
+      return;
+    }
+    if(value.type==='error'&&['grid_test','grid_test_refresh','oj_prepare','oj_submit','oj_refresh'].includes(value.requestType)){
+      if(value.requestType.startsWith('grid_test')){testBusy=false;$('gridTest').disabled=false;$('refreshGridTest').disabled=!testJobId;$('webTestState').textContent=value.error;}
+      else{submitBusy=false;$('submitOJ').disabled=false;$('refreshOJ').disabled=!submitJobId;$('ojState').textContent=value.error;}
     }
   });
-  send('sample_history');
 })();

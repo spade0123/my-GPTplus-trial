@@ -10,6 +10,7 @@ import {gridUrl,sameProblem} from './grid-url.js';
 import {readProblemDisplay} from './problem-display.js';
 import {runSample,latestSample,saveSampleRequest,finishSample} from './sample-runner.js';
 import {readSubmission,createSubmission,updateSubmission} from './oj-submissions.js';
+import {readGridTestRun,createGridTestRun,updateGridTestRun} from './grid-test-runs.js';
 const sha=value=>createHash('sha256').update(value).digest('hex');
 const normalize=code=>code.replace(/\r\n/g,'\n').trim();
 // VS Code can supply file, untitled, WSL/SSH, and other virtual document URIs.
@@ -66,7 +67,7 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
     if(!warning)await patchContext(source.uri,{problem:page},binding.problemUrl);
     const submission=web.submission;
     if(submission&&(!submission.problemMatches||!sameProblem(submission.problemUrl,binding.problemUrl)))throw new Error('提交详情属于另一题，本次未保存。');
-    const codeHash=sha(normalize(source.code)),matching=Boolean(submission?.submittedCode&&!submission.sourceTruncated&&sha(normalize(submission.submittedCode))===codeHash);
+    const codeHash=sha(normalize(source.code)),matching=Boolean(submission?.submittedCode&&!submission.sourceTruncated&&sha(normalize(submission.submittedCode))===codeHash),officialMatch=Boolean(matching&&submission?.submissionId);
     const site=web.runtime||{},read=(field,max=20000)=>typeof site[field]==='string'?site[field].slice(0,max):'';
     const siteInput=read('input'),siteStatus=read('status',1000),siteText=read('text'),siteOutput=read('output'),siteHints=read('hints'),siteError=read('error');
     const siteEvidence=[siteStatus&&`网页运行区显示状态（不能确认对应当前 VS Code 代码）：${siteStatus}`,siteText,siteOutput&&`网页执行输出（不能确认对应当前 VS Code 代码）：\n${siteOutput}`].filter(Boolean).join('\n\n');
@@ -75,13 +76,13 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
     if(submission){
       const verdict=submission.verdict||{};
       runtime.hints=[runtime.hints,verdict.text].filter(Boolean).join('\n').slice(0,20000);runtime.error=[runtime.error,submission.runtime?.error].filter(Boolean).join('\n').slice(0,20000);
-      if(matching)runtime.status=verdict.status||'unknown';
-      runtime.text=[runtime.text,`编程网格提交 ${submission.submissionId||'网页当前结果'}：${verdict.text||'未知状态'}。${matching?'已核对提交源码，与本次 VS Code 完整代码相同；网页运行区内容仍可能属于另一次运行。':'尚未与本次 VS Code 代码匹配，不能把该状态当成当前代码的结果。'}`].filter(Boolean).join('\n\n').slice(0,20000);
-      if(matching&&['AC','WA','CE','RE','TLE','MLE','PE','OLE'].includes(verdict.status))judgeEvidence={status:verdict.status,source:'matching-submission',codeHash,runtimeAssociation:'matching-judgment'};
+      if(officialMatch)runtime.status=verdict.status||'unknown';
+      runtime.text=[runtime.text,`编程网格${submission.submissionId?'正式提交 '+submission.submissionId:'网页当前结果（可能是测试执行）'}：${verdict.text||'未知状态'}。${officialMatch?'已核对正式提交编号与源码；网页运行区内容仍可能属于另一次运行。':matching?'网页源码与当前 VS Code 代码相同，但没有正式提交编号，不能当成正式评测结果。':'尚未与本次 VS Code 代码匹配，不能把该状态当成当前代码的结果。'}`].filter(Boolean).join('\n\n').slice(0,20000);
+      if(officialMatch&&['AC','WA','CE','RE','TLE','MLE','PE','OLE'].includes(verdict.status))judgeEvidence={status:verdict.status,source:'matching-submission',codeHash,runtimeAssociation:'matching-judgment'};
     }
     const u=gridUrl(binding.problemUrl,{kind:'problem'}),url='https://'+u.key+'ide.do';
     const sample=await latestSample(url,source.code);
-    if(sample?.result){const r=sample.result;runtime.input=r.input;runtime.output=r.actual.slice(0,20000);runtime.error=[runtime.error,r.compiler,r.stderr].filter(Boolean).join('\n').slice(0,20000);runtime.text=[siteInput&&`网页当前输入框（不能确认已用于网页运行）：\n${siteInput}`,runtime.text,'本机样例测试：'+r.status+'；runtime.input/output 为本机样例输入与实际输出，不代表网站 AC。'].filter(Boolean).join('\n\n').slice(0,20000);if(!matching)runtime.status=`本机样例：${r.status}`.slice(0,1000);}
+    if(sample?.result){const r=sample.result;runtime.input=r.input;runtime.output=r.actual.slice(0,20000);runtime.error=[runtime.error,r.compiler,r.stderr].filter(Boolean).join('\n').slice(0,20000);runtime.text=[siteInput&&`网页当前输入框（不能确认已用于网页运行）：\n${siteInput}`,runtime.text,'本机样例测试：'+r.status+'；runtime.input/output 为本机样例输入与实际输出，不代表网站 AC。'].filter(Boolean).join('\n\n').slice(0,20000);if(!officialMatch)runtime.status=`本机样例：${r.status}`.slice(0,1000);}
     const result=Capture.parse({url,title:page.title,problem:page.problem,code:source.code,standard:context.standard||'c++17',runtime});
     return {capture:result,browserUrl:binding.problemUrl,missingSections:page.missingSections||[],judgment:judgeEvidence,submission,matching,warning};
   }
@@ -96,9 +97,26 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
     if(verdict.status==='AC')await saveAttempt(capture,{kind:'ac',eventId:uuid('ac:'+id),submissionId:id,verdict,origin:'programminggrid'});
     return saved;
   }
+  function officialResultCapture(capture,submission){
+    const raw=String(submission.runtime?.text||'');
+    return {...capture,runtime:{...capture.runtime,status:submission.verdict.status,text:[`编程网格正式提交 ${submission.submissionId}：${submission.platformResult||submission.verdict.status}`,raw&&`网站返回的评测与提示（原文）：\n${raw}`].filter(Boolean).join('\n\n').slice(0,20000),error:String(submission.runtime?.error||'').slice(0,20000)}};
+  }
+  async function finishGridTest(job,value){
+    const submission=value.submission,platformResult=String(submission?.platformResult||''),final=Boolean(submission&&platformResult&&!['Processing','Testing'].includes(platformResult));
+    let updated=await updateGridTestRun(job,{...value,status:final?'result_received':'pending'});
+    if(!final)return updated;
+    const raw=String(submission.runtime?.text||'').slice(0,20000),result=String(submission.platformResult||submission.verdict.status||'unknown');
+    const runtime={input:job.input,output:'',hints:'编程网格网站测试执行；返回内容可能混合程序输出、编译信息和平台提示，不代表正式提交 AC。',error:String(submission.runtime?.error||'').slice(0,20000),status:`网站测试执行：${result}（非正式提交）`.slice(0,1000),text:[`网站测试执行编号 ${submission.submissionId}；源码 ${job.codeHash}。`,raw||'网站未提供可显示的输出或提示。'].join('\n\n').slice(0,20000)};
+    try{
+      const saved=await saveAttempt({...job.capture,runtime},{eventId:uuid('grid-test-result:'+job.id),origin:'grid_test_result',note:`编程网格网站测试执行：${result}`});
+      let workerError;try{await launchReport();}catch(error){workerError=error.message;}
+      updated=await updateGridTestRun(updated,{status:'complete',saved:reviewSummary(saved),workerError});
+    }catch(error){updated=await updateGridTestRun(updated,{status:'result_received',workerError:'网站结果已收到，但本机保存失败：'+error.message});}
+    return updated;
+  }
   return {async handle(message){
     const type=message.type;
-    if(type==='status')return {ready:true,dataDirectory:dataDir(),version:'0.1.2',platform:'programminggrid-vscode'};
+    if(type==='status')return {ready:true,dataDirectory:dataDir(),version:'0.2.0',platform:'programminggrid-vscode'};
     if(type==='problem_display')return currentProblem();
     if(type==='sample_history'){
       const source=Source.parse(message.source),context=await resolveContext(source.uri,message.problemUrl);
@@ -114,10 +132,18 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
       const job=await readSubmission(message.id),value=await browser('refresh_submission',{problemUrl:job.browserUrl||job.capture.url,receipt:job.receipt||{},code:job.capture.code},24000);
       if(value.error)throw new Error(value.error);const updated=await updateSubmission(job,{...value,status:'submitted'}),s=value.submission;
       if(s?.submittedCode?.replace(/\r\n/g,'\n').trim()===job.capture.code.replace(/\r\n/g,'\n').trim()&&!s.sourceTruncated){
-        const result={...job.capture,runtime:{...job.capture.runtime,status:s.verdict.status,text:'编程网格提交 '+s.submissionId+'：'+s.verdict.text,error:s.runtime?.error||''}};
+        const result=officialResultCapture(job.capture,s);
         try{await importVerdict({capture:result,submission:s,matching:true,judgment:{status:s.verdict.status,codeHash:sha(normalize(job.capture.code))}});await launchReport();}catch(e){updated.workerError=e.message;}
       }
       return {type:'oj_result',id:job.id,...updated,submission:s,capture:undefined};
+    }
+    if(type==='grid_test_refresh'){
+      const job=await readGridTestRun(message.id);
+      if(job.status==='complete'||job.status==='uncertain')return {type:'grid_test_result',...job,capture:undefined};
+      if(job.status==='result_received')return {type:'grid_test_result',...await finishGridTest(job,job),capture:undefined};
+      if(!job.receipt?.solutionId)throw new Error('网站尚未返回本次测试编号，请稍后再刷新。');
+      const value=await browser('refresh_test',{problemUrl:job.browserUrl,receipt:job.receipt,code:job.capture.code,input:job.input},24000);
+      return {type:'grid_test_result',...await finishGridTest(job,value),capture:undefined};
     }
     if(type==='context_get')return resolveContext(validUri(message.uri),message.problemUrl);
     if(type==='context_bind'){
@@ -133,13 +159,25 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
       await patchContext(validUri(message.uri),{ui,...(uiStamp?{uiStamp}:{})},message.problemUrl);return {saved:true};
     }
     if(type==='hint_status'){if(!/^[a-f0-9]{64}$/.test(message.id||''))throw new Error('任务编号无效。');return {type:'hint_status',...hintSummary(await readHint(message.id))};}
-    if(!['quick_save','hint_open','hint','discuss','assist_history','run_sample','oj_submit'].includes(type))throw new Error('不支持的 VS Code 操作。');
+    if(!['quick_save','hint_open','hint','discuss','assist_history','run_sample','grid_test','oj_submit'].includes(type))throw new Error('不支持的 VS Code 操作。');
     const source=Source.parse(message.source);
     if(type==='discuss'&&(typeof message.question!=='string'||!message.question.trim()||message.question.length>2000))throw new Error('请输入 1—2000 字的问题。');
     if(message.purpose!==undefined&&(type!=='discuss'||!['solution','discussion'].includes(message.purpose)))throw new Error('无效的问答用途。');
     const selected=await capture(source,{allowCached:['quick_save','hint_open','assist_history'].includes(type),problemUrl:message.problemUrl});
     if(type==='assist_history')return {type:'assist_history',context:selected,...await assistHistory(selected.capture.url)};
     if(!/^[-a-f0-9]{36}$/i.test(message.actionId||''))throw new Error('保存事件编号无效。');
+    if(type==='grid_test'){
+      const input=z.string().max(20000).parse(message.input);
+      let job=await createGridTestRun(selected.capture,selected.browserUrl,message.actionId,input);
+      if(job.status!=='prepared')return {type:'grid_test_result',...job,capture:undefined};
+      await saveAttempt({...selected.capture,runtime:{input,output:'',hints:'网站测试执行请求，等待编程网格返回结果。',error:'',status:'pending',text:''}},{eventId:message.actionId,origin:'grid_test_request',note:'从 VS Code 发起编程网格网站测试执行'});
+      job=await updateGridTestRun(job,{status:'sending'});
+      try{
+        const value=await browser('test',{jobId:job.id,problemUrl:job.browserUrl,code:job.capture.code,language:'C++',input:job.input},30000);
+        job=await finishGridTest(job,value);
+      }catch(error){job=await updateGridTestRun(job,{status:'uncertain',error:error.message,message:'网站测试是否已执行尚未确认；请先在编程网格查看记录，不会自动重复发送。'});}
+      return {type:'grid_test_result',...job,capture:undefined};
+    }
     if(type==='oj_submit'){
       if(typeof message.language!=='string'||message.language.length>100)throw new Error('请选择 C++ 编译器。');
       let job=await createSubmission(selected.capture,message.actionId,message.language);
@@ -151,7 +189,7 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
         job=await updateSubmission(job,{...value,status:value.error?'uncertain':'submitted'});
         const s=value.submission;
         if(s?.submittedCode?.replace(/\r\n/g,'\n').trim()===job.capture.code.replace(/\r\n/g,'\n').trim()&&s.verdict?.status&&!['pending','unknown'].includes(s.verdict.status)){
-          try{await importVerdict({capture:job.capture,submission:s,matching:true,judgment:{status:s.verdict.status,codeHash:sha(normalize(job.capture.code))}});}catch(e){job.workerError=e.message;}
+          try{await importVerdict({capture:officialResultCapture(job.capture,s),submission:s,matching:true,judgment:{status:s.verdict.status,codeHash:sha(normalize(job.capture.code))}});}catch(e){job.workerError=e.message;}
         }
       }catch(error){job=await updateSubmission(job,{status:'uncertain',error:error.message,message:'未确认是否提交成功，请先刷新/查看记录，不会自动重试。'});}
       let workerError;try{await launchReport();}catch(e){workerError=e.message;}return {type:'oj_result',...job,capture:undefined,workerError};

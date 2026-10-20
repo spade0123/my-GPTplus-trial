@@ -36,20 +36,26 @@ async function handle(request){
     if(!r?.result)throw new Error('本题 IDE 的提交按钮不可用；请在浏览器确认登录及题目开放状态。');
     return {languages:[{label:'C++',value:'C++',selected:true}],tabId:tab.id};
   }
-  if(['submit','refresh_submission'].includes(request.action)){
+  if(['submit','test','refresh_submission','refresh_test'].includes(request.action)){
     const invoke=async()=>{
       const before=await chrome.tabs.get(tab.id);
-      const [result]=await chrome.scripting.executeScript({target:{tabId:tab.id},world:'ISOLATED',func:gridJudgeRequest,args:[expected.url,request.action==='submit'?'submit':'refresh',p]});
+      if(request.action==='test'){
+        const [available]=await chrome.scripting.executeScript({target:{tabId:tab.id},world:'ISOLATED',func:()=>{const button=document.querySelector('#btnTest');return Boolean(button&&!button.hasAttribute('disabled')&&button.getClientRects().length);}});
+        if(!available?.result)throw new Error('网页测试执行按钮不可用，请在 Chrome 核对 IDE 是否已加载。');
+      }
+      const mode=request.action==='submit'?'submit':request.action==='test'?'test':'refresh';
+      const [result]=await chrome.scripting.executeScript({target:{tabId:tab.id},world:'ISOLATED',func:gridJudgeRequest,args:[expected.url,mode,p]});
       const after=await chrome.tabs.get(tab.id);
       if(info(after.url)?.key!==info(before.url)?.key)throw new Error('提交期间浏览器切换了题目，请检查网站提交记录。');
       if(!result?.result)throw new Error('未确认网站返回，请检查提交记录，不会自动重试。');
       result.result.receipt.tabId=tab.id;
       return result.result;
     };
-    if(request.action==='submit'){
+    if(request.action==='submit'||request.action==='test'){
       if(!/^[a-f0-9]{64}$/.test(p.jobId||''))throw new Error('提交事件编号无效。');
-      if(!sent.has(p.jobId))sent.set(p.jobId,invoke());
-      return sent.get(p.jobId);
+      const key=request.action+':'+p.jobId;
+      if(!sent.has(key))sent.set(key,invoke());
+      return sent.get(key);
     }
     return invoke();
   }

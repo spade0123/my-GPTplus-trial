@@ -54,11 +54,11 @@ function activate(context){
     template=template.replace(/<script([^>]*?)src="([^"]+)"([^>]*)>/g,(_all,before,file,after)=>`<script nonce="${nonce}"${before}src="${uri('media/'+file)}"${after}>`);
     template=template.replace('<head>','<head><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; script-src \'nonce-'+nonce+'\'; style-src '+webview.cspSource+' \'unsafe-inline\'; font-src '+webview.cspSource+'; img-src '+webview.cspSource+' data:; connect-src \'none\';">');
     template=template.replace('</head>',`<link rel="stylesheet" href="${uri('theme.css')}"></head>`);
-    template=template.replace('<button id="giveSolution" type="button">给出解答</button>','<button id="giveSolution" type="button">给出解答</button><button id="runSample" type="button">运行样例</button><button id="submitOJ" type="button">提交到编程网格</button>');
-    template=template.replace('<details id="chatPanel"','<section id="samplePanel" class="execution-panel" hidden><h3>本机样例测试</h3><p id="sampleState" role="status"></p><div id="sampleResults"></div></section><section id="ojPanel" class="execution-panel" hidden><h3>编程网格提交与评测</h3><p class="muted">提交按钮会把本次完整代码发送到编程网格；刷新只查询评测，不重复提交。</p><label id="ojLanguageRow" hidden>编译器 <select id="ojLanguage"></select></label><button id="refreshOJ" type="button" disabled>刷新本次结果</button><p id="ojState" role="status"></p><div id="ojResults"></div></section><details id="chatPanel"');
+    template=template.replace('<button id="giveSolution" type="button">给出解答</button>','<button id="giveSolution" type="button">给出解答</button><button id="gridTest" type="button">网格·测试执行</button><button id="submitOJ" type="button">提交到编程网格</button>');
+    template=template.replace('<details id="chatPanel"','<section id="webTestPanel" class="execution-panel"><h3>编程网格 · 测试执行</h3><p class="muted">使用网站自己的测试执行；仅运行下方输入，不正式提交评测。</p><label for="webTestInput">测试输入</label><textarea id="webTestInput" rows="5" maxlength="20000" placeholder="可编辑输入；首次打开会填入题目样例输入"></textarea><button id="refreshGridTest" type="button" disabled>刷新这次测试结果</button><p id="webTestState" role="status"></p><div id="webTestResults"></div></section><section id="ojPanel" class="execution-panel" hidden><h3>编程网格提交与评测</h3><p class="muted">提交按钮会把本次完整代码发送到编程网格；刷新只查询评测，不重复提交。</p><label id="ojLanguageRow" hidden>编译器 <select id="ojLanguage"></select></label><button id="refreshOJ" type="button" disabled>刷新本次结果</button><p id="ojState" role="status"></p><div id="ojResults"></div></section><details id="chatPanel"');
     template=template.replace('<body><header>',`<body><header><div class="vscode-controls"><strong>编程网格 · C++ 学习教练</strong><button id="closeCoach">收起</button></div>`);
     template=template.replace('<section id="hintPanel"',`<details id="bindingControls"><summary>题目连接与保存位置</summary><button id="bindProblem">关联/更换题目</button><button id="showRecords">本机记录与报告</button></details><section id="hintPanel"`);
-    template=template.replace(/<details><summary>使用范围<\/summary>[\s\S]*?<\/details>\s*<script/,`<details><summary>使用范围</summary><p>题面随浏览器只读同步；本次完整代码与评测在点击时读取。运行样例和提交编程网格 只在明确点击对应按钮时执行，不改写编辑器源码。网页 AC 只有在题号、提交源码和当前代码一致时才关联。原始输出若网站不提供就标为缺失。</p><input id="source" value="" hidden></details><script`);
+    template=template.replace(/<details><summary>使用范围<\/summary>[\s\S]*?<\/details>\s*<script/,`<details><summary>使用范围</summary><p>题面随浏览器只读同步；点击“网格·测试执行”会把本次完整代码和测试输入送到网站执行，但不正式提交；点击“提交到编程网格”才正式提交。两种结果按各自编号带回 VS Code，不改写编辑器源码。网页 AC 只有在题号、提交源码和当前代码一致时才关联。</p><input id="source" value="" hidden></details><script`);
     template=template.replace(/<script nonce="[^"]+" src="[^"]*vendor\/marked\/marked\.umd\.js"/,`<script nonce="${nonce}" src="${uri('webview-adapter.js')}"></script>$&`);
     // Insert before the first shared script without changing the shared renderer.
     if(!template.includes('webview-adapter.js'))template=template.replace(/(<script nonce=)/,`<script nonce="${nonce}" src="${uri('webview-adapter.js')}"></script>$1`);
@@ -84,9 +84,9 @@ function activate(context){
       if(message.type==='resume'){
         await reply({type:'resume_context',mode:state.mode});const saved=await client.request({type:'context_get',uri:state.uri,problemUrl:state.problemUrl});if(saved.ui)await reply({type:'restore_ui',ui:saved.ui});return;
       }
-      if(!['hint_status','assist_history','hint','discuss','quick_save','run_sample','oj_prepare','oj_submit','oj_refresh','sample_history'].includes(message.type))throw new Error('不支持的界面操作。');
-      const request={type:message.type,uri:state.uri,problemUrl:state.problemUrl,language:message.language,actionId:message.actionId,id:message.id,question:message.question,purpose:message.purpose,requestedAt:message.requestedAt};
-      if(!['hint_status','oj_prepare','oj_refresh'].includes(message.type))request.source=sourceFor(state);
+      if(!['hint_status','assist_history','hint','discuss','quick_save','grid_test','grid_test_refresh','oj_prepare','oj_submit','oj_refresh'].includes(message.type))throw new Error('不支持的界面操作。');
+      const request={type:message.type,uri:state.uri,problemUrl:state.problemUrl,language:message.language,input:message.input,actionId:message.actionId,id:message.id,question:message.question,purpose:message.purpose,requestedAt:message.requestedAt};
+      if(!['hint_status','grid_test_refresh','oj_prepare','oj_refresh'].includes(message.type))request.source=sourceFor(state);
       const result=await client.request(request);
       if(result.context){
         const selected=result.context;
