@@ -1,0 +1,6 @@
+{
+  "type":"object",
+  "properties":{"answer":{"type":"string","description":"直接回答当前代码问题的简洁 Markdown；不默认重写完整答案。"},"next_step":{"type":"string","description":"下一步操作或验证建议。"}},
+  "required":["answer","next_step"],
+  "additionalProperties":false
+}

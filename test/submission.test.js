@@ -44,9 +44,9 @@ test('actual PKU span submit control and output title are supported, history and
 test('fast AC waits for its own submission extraction/save and archives the submitted code while drafts remain independent',async()=>{
   const dom=new JSDOM('',{url,runScripts:'outside-only'});let onConnect,onNativeReply,receive,release,started;const messages=[],session={};
   const gate=new Promise(r=>{release=r;}),ready=new Promise(r=>{started=r;});let extracts=0;
-  dom.window.extractPage=()=>{};dom.window.installSubmissionObserver=()=>{};
+  dom.window.extractPage=()=>{};dom.window.installSubmissionObserver=()=>{};dom.window.installIdeProtection=()=>{};
   dom.window.chrome={tabs:{get:async()=>({url})},storage:{local:{get:async()=>({})},session:{set:async data=>Object.assign(session,data),get:async key=>({[key]:session[key]}),remove:async key=>{delete session[key];}}},
-    scripting:{executeScript:async spec=>{if(spec.func===dom.window.installSubmissionObserver)return [];if(++extracts===1){started();await gate;}return [{result:{title:'测试题',problem:{description:'题面完整文字题面完整文字题面完整文字题面完整文字'},runtime:{output:'judged output'},candidates:[{value:'int main(){return 99;}'}]}}];}},
+    scripting:{executeScript:async spec=>{if([dom.window.installSubmissionObserver,dom.window.installIdeProtection].includes(spec.func))return [];if(++extracts===1){started();await gate;}return [{result:{title:'测试题',problem:{description:'题面完整文字题面完整文字题面完整文字题面完整文字'},runtime:{output:'judged output'},candidates:[{value:'int main(){return 99;}'}]}}];}},
     runtime:{onConnect:{addListener:fn=>{onConnect=fn;}},connectNative:()=>({onMessage:{addListener:fn=>{onNativeReply=fn;}},onDisconnect:{addListener(){}},postMessage:m=>{messages.push(m);queueMicrotask(()=>onNativeReply({type:m.type==='verdict'?'verdict_saved':'saved',requestType:m.type,requestId:m.requestId,id:'a'.repeat(64)}));}})}};
   const source=await fs.readFile(new URL('../extension/background.js',import.meta.url),'utf8');dom.window.eval(source.replace(/^import[^\n]+\n/gm,''));
   onConnect({name:'pku-coach',sender:{url,tab:{id:1}},onMessage:{addListener:fn=>{receive=fn;}},onDisconnect:{addListener(){}},postMessage(){},disconnect(){}});

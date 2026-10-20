@@ -1,0 +1,67 @@
+{
+  "name": "openjudge-cpp-coach",
+  "displayName": "OpenJudge C++ 学习教练",
+  "description": "Chrome 读取百练/NOI 题面与评测，VS Code 读取当前 C++，三个按钮保存、提示和交流。",
+  "publisher": "local-coach",
+  "version": "0.1.0",
+  "license": "UNLICENSED",
+  "engines": {
+    "vscode": "^1.96.0"
+  },
+  "categories": [
+    "Education"
+  ],
+  "extensionKind": [
+    "ui"
+  ],
+  "main": "./extension.cjs",
+  "activationEvents": [
+    "onLanguage:cpp",
+    "onWebviewPanel:openjudgeCoach"
+  ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": false
+    },
+    "virtualWorkspaces": {
+      "supported": false
+    }
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "openjudgeCoach.quickSave",
+        "title": "OpenJudge：快捷保存"
+      },
+      {
+        "command": "openjudgeCoach.hint",
+        "title": "OpenJudge：提示"
+      },
+      {
+        "command": "openjudgeCoach.discussion",
+        "title": "OpenJudge：交流"
+      },
+      {
+        "command": "openjudgeCoach.bindProblem",
+        "title": "OpenJudge：关联当前 C++ 文件与 Chrome 题目"
+      },
+      {
+        "command": "openjudgeCoach.bindSubmission",
+        "title": "OpenJudge：选择本题提交详情标签"
+      },
+      {
+        "command": "openjudgeCoach.configureBackend",
+        "title": "OpenJudge：选择本机程序目录"
+      },
+      {
+        "command": "openjudgeCoach.showRecords",
+        "title": "OpenJudge：打开保存记录与报告目录"
+      }
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/spade0123/my-GPTplus-trial.git",
+    "directory": "vscode-extension"
+  }
+}

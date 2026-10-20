@@ -84,7 +84,7 @@ test('page UI previews sections and submits runtime separately',async()=>{
   dom.window.eval(await fs.readFile(new URL('../extension/vendor/marked/marked.umd.js',import.meta.url),'utf8'));
   dom.window.eval(await fs.readFile(new URL('../extension/report-renderer.js',import.meta.url),'utf8'));
   dom.window.eval(await fs.readFile(new URL('../extension/content.js',import.meta.url),'utf8'));
-  ui.getElementById('launch').click();assert.ok(sent.some(m=>m.type==='extract'));
+  ui.getElementById('hintDetails').click();assert.ok(sent.some(m=>m.type==='extract'));
   const problem={description:'输入两个整数，输出它们的和。',input:'输入范围为零到一百。',output:'一个整数',sampleInput:'1 2',sampleOutput:'3'};
   await messageHandler({type:'capture',capture:{url,title:'测试题',problem,runtime:{input:'2 3',output:'5',hints:'编译完成'},statement:'题面兼容文本',candidates:[{source:'ace:0',label:'Ace',value:'int main(){return 0;}'}]}});
   assert.equal(ui.getElementById('sampleInput').value,'1 2');assert.equal(ui.getElementById('runOutput').value,'5');

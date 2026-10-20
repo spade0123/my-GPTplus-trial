@@ -1,0 +1,8 @@
+body{font-family:var(--vscode-font-family);background:var(--vscode-editor-background);color:var(--vscode-editor-foreground)}
+body.vscode-dark,body.vscode-high-contrast{--ink:var(--vscode-editor-foreground);--muted:var(--vscode-descriptionForeground);--line:var(--vscode-widget-border,#46515f);--accent:var(--vscode-textLink-foreground)}
+.vscode-dark section,.vscode-high-contrast section{background:var(--vscode-editor-background)}
+.vscode-dark .embedded-chat,.vscode-high-contrast .embedded-chat{background:var(--vscode-sideBar-background)}
+.vscode-dark button,.vscode-dark textarea,.vscode-dark input,.vscode-high-contrast button,.vscode-high-contrast textarea{background:var(--vscode-input-background);color:var(--vscode-input-foreground);border-color:var(--line)}
+.vscode-dark button.primary,.vscode-high-contrast button.primary{background:var(--vscode-button-background);color:var(--vscode-button-foreground)}
+.status{color:var(--vscode-descriptionForeground)}.error{color:var(--vscode-errorForeground)}
+.vscode-controls{display:flex;align-items:center;justify-content:space-between;gap:8px}.vscode-controls button{padding:4px 10px}#bindingControls{font-size:12px}#bindingControls button{font-size:12px;margin:4px;padding:5px 9px}

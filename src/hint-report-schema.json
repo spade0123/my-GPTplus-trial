@@ -1,0 +1,18 @@
+{
+  "type":"object",
+  "properties":{
+    "summary":{"type":"string","description":"当前版本的简短诊断，不虚构 AC 或失败。"},
+    "solution":{"type":"object","properties":{
+      "goal":{"type":"string","description":"结合完整题面说明本题要计算的结果；信息不足时明确缺少什么。"},
+      "approach":{"type":"string","description":"依据题意和约束推导的解法方向或关键不变量，不直接给完整程序。"},
+      "gap":{"type":"string","description":"对照现有代码说明已实现部分及与正确逻辑的具体差距；允许不同的正确算法。"}
+    },"required":["goal","approach","gap"],"additionalProperties":false},
+    "issues":{"type":"array","maxItems":4,"items":{"type":"object","properties":{
+      "lines":{"type":"string"},"certainty":{"type":"string","enum":["已确认","待验证"]},
+      "reason":{"type":"string","description":"这处逻辑与题意或正确解法的具体差异及影响。"},"hint":{"type":"string"},"correction":{"type":"string","description":"沿用现有代码的局部修改方向。"},"check":{"type":"string","description":"题目允许的验证输入、预期输出及当前代码手算过程；未运行时明确标注。"}
+    },"required":["lines","certainty","reason","hint","correction","check"],"additionalProperties":false}},
+    "next_step":{"type":"string"}
+  },
+  "required":["summary","solution","issues","next_step"],
+  "additionalProperties":false
+}

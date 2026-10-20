@@ -18,7 +18,7 @@ int wmain(int argc,wchar_t** argv) {
     if(utf8.empty())return 2;
     int n=MultiByteToWideChar(CP_UTF8,0,utf8.data(),(int)utf8.size(),nullptr,0);
     std::wstring node(n,L'\0');MultiByteToWideChar(CP_UTF8,0,utf8.data(),(int)utf8.size(),node.data(),n);
-    auto script=folder.parent_path() / L"src" / L"native-host.js";
+    auto script=folder.parent_path() / L"src" / L"oj-native-host.js";
     std::wstring origin=argc>1?argv[1]:L"";
     if(origin.find_first_of(L"\"\r\n")!=std::wstring::npos)return 3;
     std::wstring command=L"\""+node+L"\" \""+script.wstring()+L"\" \""+origin+L"\"";

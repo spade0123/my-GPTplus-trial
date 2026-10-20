@@ -1,47 +1,25 @@
 {
   "manifest_version": 3,
-  "name": "北大 C++ 学习教练",
-  "version": "1.4.0",
-  "description": "在北大 IDE 页面分析并保存自己的 C++ 作业，供每周复盘使用。",
+  "name": "OpenJudge · VS Code 连接",
+  "version": "2.0.0",
+  "description": "仅按 VS Code 按钮请求读取百练/NOI 题面和评测，不修改网页、不保存 Chrome 数据。",
+  "minimum_chrome_version": "116",
   "permissions": [
     "scripting",
-    "nativeMessaging",
-    "storage"
+    "nativeMessaging"
   ],
   "host_permissions": [
-    "https://programming.pku.edu.cn/*"
+    "http://bailian.openjudge.cn/*",
+    "https://bailian.openjudge.cn/*",
+    "http://noi.openjudge.cn/*",
+    "https://noi.openjudge.cn/*"
   ],
   "background": {
-    "service_worker": "background.js",
+    "service_worker": "openjudge-worker.js",
     "type": "module"
   },
-  "content_scripts": [
-    {
-      "matches": [
-        "https://programming.pku.edu.cn/probset/*/*/ide.do*"
-      ],
-      "js": [
-        "vendor/marked/marked.umd.js",
-        "vendor/katex/katex.min.js",
-        "report-renderer.js",
-        "content.js"
-      ],
-      "run_at": "document_idle"
-    }
-  ],
-  "web_accessible_resources": [
-    {
-      "resources": [
-        "vendor/katex/katex.min.css",
-        "vendor/katex/fonts/*"
-      ],
-      "matches": [
-        "https://programming.pku.edu.cn/*"
-      ]
-    }
-  ],
   "action": {
-    "default_title": "请在北大题目 IDE 页面使用右下角按钮"
+    "default_title": "连接 OpenJudge 与 VS Code"
   },
-  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA2VvQNbdY4wArHzoE6RWGftYHvyBIddDvklzQRp6AIAjQ8zUUftBPVgDMKgRkF1+ohtClhOL1bnNxPFly5iLCNP/Mq9SKPKVSUzA3vMyCruQTCzRkn2S4XP4efXmo0D7HDnjVqY9zs0LwkQ7LcfXWTq355sXCMRhaqtWb6zthaH7yz3AbRgalVV9h0VtfcasgEDE982RfOoKDt+IVdRRZGzUjz/YbBMvuXuS0lkjxvAhmj+mCPewofEu/hP/YsYVbyb+LWjZ9tATSxelFWscC9fo74rV/JAgHLaVcZ5WvhpdlOPIoBcYBBAIRlPVEX7HUPoEPaY9tU9KxhRy23QiPqwIDAQAB"
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxXghzqIGHewk9jNIJOVaAmmUpS4MVtxtB32FOwckxhlTT0gqB6j5M2pd3mkgaEhi4aMTrKnZH70UQgsPsHQ6EmLgtndUVcd8cx0zlh41KV5V6tztFTIkp/inp+TrrZYja8jmqP5qL/07+RoRpbCyGttrhj0KZPij/noU1TBuLl3G4Xd00hCjHr0UOMUnHMVGsP4Pw4D5R7ZW1vvcsF2N6BzzNHF9ZHvzbO0ulLikQ4qKlW1bPBvtR8ZUIF7cCgFXvKWvYU+gSTYPemi2ohhiM+LCvq+3B/ZdGrTtoRM0Tbw1jaO6eJBL9+FyHrun8WpistRyodJRLzANX4zuutDl9QIDAQAB"
 }

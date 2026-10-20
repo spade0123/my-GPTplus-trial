@@ -29,6 +29,7 @@ export function groupIdenticalAttempts(attempts) {
     group.lastSavedAt=attempt.savedAt;
     // Keep every receipt and position so merging never breaks AC correlation or A -> B -> A.
     group.occurrences.push({id:attempt.id,number:attempt.number,savedAt:attempt.savedAt,submissionId:attempt.submissionId,
+      ...(attempt.origin?{origin:attempt.origin}:{}),
       ...(attempt.verdict?{verdict:attempt.verdict}:{}),...(attempt.resultRuntimeFile?{resultRuntimeFile:attempt.resultRuntimeFile}:{})});
   }
   return groups;
