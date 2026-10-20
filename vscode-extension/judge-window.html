@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>编程网格 · 测试与提交</title>
+  <link rel="stylesheet" href="media/sidepanel.css">
+  <link rel="stylesheet" href="theme.css">
+</head>
+<body>
+  <div class="vscode-controls"><button id="closeCoach">收起</button></div>
+  <main>
+    <section id="priorityPanel" class="priority-panel" aria-live="polite">
+      <div id="priorityVerdict" class="priority-verdict" hidden></div>
+      <div id="priorityLabel" class="priority-label">编程网格原文</div>
+      <pre id="priorityRaw">点击下方“网站测试执行”或“正式提交”，这里会优先显示网站返回。</pre>
+    </section>
+    <div class="judge-actions">
+      <button id="gridTest" class="primary">网站测试执行</button>
+      <button id="submitOJ">正式提交到编程网格</button>
+    </div>
+    <section id="webTestPanel" class="execution-panel" hidden>
+      <h3>网站测试</h3>
+      <p id="webTestState" role="status"></p>
+      <button id="refreshGridTest">刷新本次结果</button>
+      <div id="webTestResults"></div>
+    </section>
+    <section id="ojPanel" class="execution-panel" hidden>
+      <h3>正式提交</h3>
+      <p id="ojState" role="status"></p>
+      <button id="refreshOJ">刷新本次结果</button>
+      <div id="ojResults"></div>
+    </section>
+    <label for="webTestInput">网站测试输入</label>
+    <textarea id="webTestInput" rows="5" spellcheck="false" placeholder="测试时发给编程网格的标准输入"></textarea>
+  </main>
+  <footer class="coach-footer">
+    <details>
+      <summary>题目连接与本机记录</summary>
+      <button id="bindProblem">关联/更换题目</button>
+      <button id="showRecords">打开本机记录</button>
+    </details>
+    <p>测试与提交是两个独立按钮。这里显示编程网格的接口原文和提交详情页提示；AI 提示与交流在单独的页面。</p>
+    <p>刷新只查询本次编号，不会再次发送代码。</p>
+  </footer>
+  <script src="webview-adapter.js"></script>
+  <script src="judge-controls.js"></script>
+</body>
+</html>

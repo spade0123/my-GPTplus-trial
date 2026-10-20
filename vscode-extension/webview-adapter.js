@@ -12,10 +12,10 @@
     const id=crypto.randomUUID(),timer=setTimeout(()=>{pendingCopies.delete(id);reject(new Error('复制未确认'));},5000);
     pendingCopies.set(id,{resolve,reject,timer});api.postMessage({type:'copy_code',id,text});
   })}});
-  const state=()=>({question:document.getElementById('question').value,chatOpen:document.getElementById('chatPanel').open});
+  const state=()=>({question:document.getElementById('question')?.value||'',chatOpen:document.getElementById('chatPanel')?.open||false});
   document.getElementById('closeCoach').onclick=()=>api.postMessage({type:'collapse',ui:state()});
   document.getElementById('bindProblem').onclick=()=>api.postMessage({type:'bind_problem'});
   document.getElementById('showRecords').onclick=()=>api.postMessage({type:'show_records'});
   let timer;
-  document.getElementById('question').addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(()=>api.postMessage({type:'draft',ui:state()}),150);});
+  document.getElementById('question')?.addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(()=>api.postMessage({type:'draft',ui:state()}),150);});
 })();

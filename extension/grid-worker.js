@@ -39,9 +39,10 @@ async function handle(request){
   if(['submit','test','refresh_submission','refresh_test'].includes(request.action)){
     const invoke=async()=>{
       const before=await chrome.tabs.get(tab.id);
-      if(request.action==='test'){
-        const [available]=await chrome.scripting.executeScript({target:{tabId:tab.id},world:'ISOLATED',func:()=>{const button=document.querySelector('#btnTest');return Boolean(button&&!button.hasAttribute('disabled')&&button.getClientRects().length);}});
-        if(!available?.result)throw new Error('网页测试执行按钮不可用，请在 Chrome 核对 IDE 是否已加载。');
+      if(request.action==='test'||request.action==='submit'){
+        const selector=request.action==='test'?'#btnTest':'#btnSubmit';
+        const [available]=await chrome.scripting.executeScript({target:{tabId:tab.id},world:'ISOLATED',func:name=>{const button=document.querySelector(name);return Boolean(button&&!button.disabled&&button.getClientRects().length);},args:[selector]});
+        if(!available?.result)throw new Error(request.action==='test'?'网页测试执行按钮不可用，请在 Chrome 核对 IDE 是否已加载。':'网页提交按钮不可用，请在 Chrome 核对登录与题目开放状态。');
       }
       const mode=request.action==='submit'?'submit':request.action==='test'?'test':'refresh';
       const [result]=await chrome.scripting.executeScript({target:{tabId:tab.id},world:'ISOLATED',func:gridJudgeRequest,args:[expected.url,mode,p]});

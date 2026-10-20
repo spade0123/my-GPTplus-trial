@@ -15,8 +15,23 @@ export async function gridJudgeRequest(problemUrl,mode,params={}){
     if(value.status!=='OK'||value.type!=='solution'||!value.solution||value.solution.id==null)return {error:String(value.text||'编程网格未确认执行。'),raw};
     return {solution:value.solution,raw};
   };
-  const statusMap={Passed:'AC',WrongAnswer:'WA',CompileError:'CE',RuntimeError:'RE',TimeOut:'TLE',OutOfMemory:'MLE',OutputExceeded:'OLE',EmptyOutput:'WA',Processing:'pending',Testing:'pending',WaitTimeOut:'system_error',SystemError:'system_error',NoProblem:'system_error',NoTestData:'system_error'};
-  let solution,id,websiteReplyRaw;
+  const statusMap={Passed:'AC',Accepted:'AC',WrongAnswer:'WA','Wrong Answer':'WA',CompileError:'CE','Compile Error':'CE',RuntimeError:'RE','Runtime Error':'RE',TimeOut:'TLE','Time Limit Exceeded':'TLE',OutOfMemory:'MLE','Memory Limit Exceeded':'MLE',OutputExceeded:'OLE','Output Limit Exceeded':'OLE',EmptyOutput:'WA',Processing:'pending',Testing:'pending',Pending:'pending',WaitTimeOut:'system_error',SystemError:'system_error',NoProblem:'system_error',NoTestData:'system_error'};
+  const readDetail=async id=>{
+    const url=`${origin}/solution/${id}/`;
+    const response=await fetch(url,{method:'GET',credentials:'same-origin',redirect:'error',signal:AbortSignal.timeout(3500)});
+    if(!response.ok||response.url!==url||!response.headers.get('content-type')?.includes('text/html'))throw new Error('提交详情页尚未准备好。');
+    const html=await response.text();if(html.length>1000000)throw new Error('提交详情页过大。');
+    const doc=new DOMParser().parseFromString(html,'text/html');
+    if(doc.querySelector('input[type="password"]')||/登录|login/i.test(doc.title||'')&&!doc.querySelector('pre'))throw new Error('提交详情页要求登录。');
+    const candidates=[...doc.querySelectorAll('h1,h2,h3,h4,strong,b,span,div')].map(el=>el.textContent.trim()).filter(text=>text.length<40&&statusMap[text]);
+    const result=candidates.find(text=>!['pending','unknown'].includes(statusMap[text]))||candidates[0]||'';
+    const marker=[...doc.querySelectorAll('h1,h2,h3,h4,h5,dt,strong,b,span,div')].find(el=>el.textContent.trim()==='提示信息'&&(!el.children.length||el.children.length===1));
+    const pre=marker?[...doc.querySelectorAll('pre')].find(el=>Boolean(marker.compareDocumentPosition(el)&4)):null;
+    const hint=pre?.textContent.replace(/\r\n|\r/g,'\n').slice(0,20000)||'';
+    if(!result&&!hint)throw new Error('提交详情页尚未显示可识别的评测。');
+    return {result,hint};
+  };
+  let solution,id,websiteReplyRaw,detail,detailChecked=false,detailError='';
   if(mode==='submit'||mode==='test'){
     if(typeof params.code!=='string'||params.code.length<5||params.code.length>100000)throw new Error('当前代码长度无效。');
     if(params.language!=='C++')throw new Error('目前只支持编程网格的 C++ 编译器。');
@@ -34,13 +49,19 @@ export async function gridJudgeRequest(problemUrl,mode,params={}){
   }else if(mode==='refresh'){
     id=String(params.receipt?.solutionId||'');
     if(!/^\d+$/.test(id))throw new Error('缺少本次提交编号，不能猜测评测结果。');
-    const reply=await read(`${origin}/solution/${id}/status.do`,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8','Accept':'application/json','X-Requested-With':'XMLHttpRequest'},body:new URLSearchParams()});
-    if(reply.error)return {error:reply.error,websiteReplyRaw:reply.raw};
-    solution=reply.solution;websiteReplyRaw=reply.raw;
-    if(String(solution.id)!==id)throw new Error('评测编号与本次提交不一致。');
+    const [statusResult,detailResult]=await Promise.allSettled([
+      read(`${origin}/solution/${id}/status.do`,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8','Accept':'application/json','X-Requested-With':'XMLHttpRequest'},body:new URLSearchParams()}),
+      readDetail(id)
+    ]);
+    detailChecked=true;
+    if(detailResult.status==='fulfilled')detail=detailResult.value;else detailError=String(detailResult.reason?.message||'提交详情暂不可读');
+    if(statusResult.status==='fulfilled'&&!statusResult.value.error){solution=statusResult.value.solution;websiteReplyRaw=statusResult.value.raw;if(String(solution.id)!==id)throw new Error('评测编号与本次提交不一致。');}
+    else if(detail){solution={id,result:detail.result,hint:detail.hint};websiteReplyRaw=statusResult.status==='fulfilled'?statusResult.value.raw:'';}
+    else throw statusResult.status==='rejected'?statusResult.reason:new Error(statusResult.value.error);
   }else throw new Error('不支持的网站执行方式。');
-  const hint=typeof solution.hint==='string'?solution.hint:'';
-  const verdict={status:statusMap[solution.result]||'unknown',text:[solution.result,hint.slice(0,1500)].filter(Boolean).join(' · ').slice(0,2000)};
+  const hint=detail?.hint|| (typeof solution.hint==='string'?solution.hint:'');
+  const result=detail?.result&&statusMap[detail.result]&&!['pending','unknown'].includes(statusMap[detail.result])?detail.result:solution.result;
+  const verdict={status:statusMap[result]||'unknown',text:[result,hint.slice(0,1500)].filter(Boolean).join(' · ').slice(0,2000)};
   const receipt={solutionId:id,solutionUrl:`${origin}/solution/${id}/`};
-  return {receipt,submission:{problemMatches:true,problemUrl:problem.href,submissionId:id,url:receipt.solutionUrl,submittedCode:params.code,sourceTruncated:false,verdict,platformResult:String(solution.result||'unknown'),websiteReplyRaw,runtime:{text:hint,error:solution.result==='CompileError'?hint:''},observedAt:new Date().toISOString()},message:verdict.text};
+  return {receipt,submission:{problemMatches:true,problemUrl:problem.href,submissionId:id,url:receipt.solutionUrl,submittedCode:params.code,sourceTruncated:false,verdict,platformResult:String(result||'unknown'),websiteReplyRaw,detailLoaded:Boolean(detail),detailChecked,detailError,runtime:{text:hint,error:verdict.status==='CE'?hint:''},observedAt:new Date().toISOString()},message:verdict.text};
 }
