@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "OpenJudge · VS Code 连接",
-  "version": "2.0.0",
-  "description": "仅按 VS Code 按钮请求读取百练/NOI 题面和评测，不修改网页、不保存 Chrome 数据。",
+  "version": "2.1.0",
+  "description": "只读同步原文题面到 VS Code；主动点击才运行样例或向 OJ 提交，不访问网站存储。",
   "minimum_chrome_version": "116",
   "permissions": [
     "scripting",

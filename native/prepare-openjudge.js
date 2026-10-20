@@ -6,7 +6,7 @@ if(!node||!codex||!compiler)throw new Error('需要 Node、Codex 和编译器的
 const patterns=['http://bailian.openjudge.cn/*','https://bailian.openjudge.cn/*','http://noi.openjudge.cn/*','https://noi.openjudge.cn/*'];
 let key;try{const previous=JSON.parse(await fs.readFile(path.join(root,'extension/manifest.json'),'utf8'));if(previous.name==='OpenJudge · VS Code 连接')key=previous.key;}catch{}
 key||=generateKeyPairSync('rsa',{modulusLength:2048}).publicKey.export({type:'spki',format:'der'}).toString('base64');
-const manifest={manifest_version:3,name:'OpenJudge · VS Code 连接',version:'2.0.0',description:'仅按 VS Code 按钮请求读取百练/NOI 题面和评测，不修改网页、不保存 Chrome 数据。',minimum_chrome_version:'116',permissions:['scripting','nativeMessaging'],host_permissions:patterns,background:{service_worker:'openjudge-worker.js',type:'module'},action:{default_title:'连接 OpenJudge 与 VS Code'},key};
+const manifest={manifest_version:3,name:'OpenJudge · VS Code 连接',version:'2.1.0',description:'切换题目时只读同步题面到 VS Code 左侧；按钮读取评测，不修改网页、不保存 Chrome 数据。',minimum_chrome_version:'116',permissions:['scripting','nativeMessaging'],host_permissions:patterns,background:{service_worker:'openjudge-worker.js',type:'module'},action:{default_title:'连接 OpenJudge 与 VS Code'},key};
 await fs.writeFile(path.join(root,'extension/manifest.json'),JSON.stringify(manifest,null,2));
 const extensionId=[...createHash('sha256').update(Buffer.from(key,'base64')).digest().subarray(0,16)].flatMap(n=>[String.fromCharCode(97+(n>>4)),String.fromCharCode(97+(n&15))]).join('');
 await fs.writeFile(path.join(root,'native/node-path.txt'),node);

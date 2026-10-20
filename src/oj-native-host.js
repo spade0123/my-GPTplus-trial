@@ -5,16 +5,17 @@ import {ROOT} from './core.js';
 import {frame,decoder} from './native-protocol.js';
 import {mailboxDir} from './browser-mailbox.js';
 import {writeRecord,acquireLock} from './browser-review.js';
+import {saveProblemNotice} from './problem-display.js';
 const config=JSON.parse(await fs.readFile(path.join(ROOT,'native/paths.json'),'utf8'));
 if(process.argv[2]!==`chrome-extension://${config.extensionId}/`)process.exit(2);
-const dir=mailboxDir(),pending=new Map();let watcher,opening,release;
+const dir=mailboxDir(),pending=new Map();let watcher,opening,release,noticeSequence=0,noticeWrites=Promise.resolve();
 const send=value=>process.stdout.write(frame(value));
 async function scan(){
   for(const name of await fs.readdir(path.join(dir,'requests'))){
     if(!/^[-a-f0-9]{36}\.json$/.test(name))continue;
     try{
       const request=JSON.parse(await fs.readFile(path.join(dir,'requests',name),'utf8'));
-      if(request.id+'.json'!==name||request.expiresAt<Date.now()||!['tabs','capture'].includes(request.action)||pending.has(request.id))continue;
+      if(request.id+'.json'!==name||request.expiresAt<Date.now()||!['tabs','capture','inspect_submit','prepare_submit','submit','refresh_submission'].includes(request.action)||pending.has(request.id))continue;
       pending.set(request.id,request.expiresAt);send({type:'browser_request',...request});
     }catch{}
   }
@@ -30,9 +31,13 @@ async function open(){
 process.stdin.on('data',decoder(async message=>{
   try{
     if(message.type==='bridge_open'){opening||=open();await opening;return;}
+    if(message.type==='problem_notice'){
+      await opening;if(!release||!Number.isInteger(message.sequence)||message.sequence<=noticeSequence)return;
+      noticeSequence=message.sequence;noticeWrites=noticeWrites.catch(()=>{}).then(()=>saveProblemNotice(message));await noticeWrites;return;
+    }
     if(message.type!=='browser_reply'||!pending.has(message.id))return;
     pending.delete(message.id);
     await writeRecord(path.join(dir,'responses',message.id+'.json'),{value:message.value,error:message.error,code:message.code});
   }catch(e){send({type:'bridge_error',error:String(e.message).slice(0,1000)});}
 },()=>process.exit(2)));
-process.stdin.on('end',()=>{void(async()=>{try{await opening;}catch{}watcher?.close();if(release){await writeRecord(path.join(dir,'ready.json'),{connected:false});await release();}})().finally(()=>process.exit());});
+process.stdin.on('end',()=>{void(async()=>{try{await opening;await noticeWrites;}catch{}watcher?.close();if(release){await writeRecord(path.join(dir,'ready.json'),{connected:false});await release();}})().finally(()=>process.exit());});

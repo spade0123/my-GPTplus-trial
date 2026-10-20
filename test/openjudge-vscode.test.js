@@ -67,8 +67,45 @@ test('local drafts persist per source file and another problem cannot inherit th
   const service=createVscodeService();await service.handle({type:'ui_save',uri:source.uri,ui:{question:'还没发送的问题',chatOpen:true}});
   assert.equal((await service.handle({type:'context_get',uri:source.uri})).ui.question,'还没发送的问题');assert.equal((await service.handle({type:'context_get',uri:'file:///C:/fixture/other.cpp'})).ui,undefined);
 }));
+
+test('one reused source file follows the browser question while snapshots and conversation drafts remain per problem',()=>isolated(async()=>{
+  let current=url,revision=1;const launches=[];
+  const currentProblem=async()=>({type:'problem_display',status:'ready',connected:true,revision:String(revision),url:current,tabId:revision,page:page(current)});
+  const service=createVscodeService({currentProblem,browser:async(_type,b)=>({problem:page(b.problemUrl),submission:null}),launchReport:async()=>launches.push('report'),launchHint:async()=>launches.push('hint')});
+  const a=await service.handle({type:'context_get',uri:source.uri});assert.equal(a.binding.problemUrl,url);assert.equal(launches.length,0);
+  await service.handle({type:'ui_save',uri:source.uri,problemUrl:url,ui:{question:'A 题的未发送问题',chatOpen:true}});
+  const first=await service.handle({type:'quick_save',source,problemUrl:url,actionId:randomUUID()});
+  current=other;revision++;
+  const b=await service.handle({type:'context_get',uri:source.uri});assert.equal(b.binding.problemUrl,other);assert.equal(b.ui,undefined);
+  const changed={...source,code:code.replace('a+b','a-b'),version:3};
+  const second=await service.handle({type:'discuss',source:changed,problemUrl:other,question:'B 题怎么写？',actionId:randomUUID()});assert.notEqual(first.id,second.id);
+  assert.equal((await getProblem(url)).attempts.length,1);assert.equal((await getProblem(other)).attempts.length,1);assert.equal((await readReview(first.id)).code,code);
+  await assert.rejects(service.handle({type:'hint',source:changed,problemUrl:url,actionId:randomUUID()}),/浏览器已切换题目/);
+  await service.handle({type:'ui_save',uri:source.uri,problemUrl:other,ui:{question:'B 题草稿',chatOpen:false}});
+  // A late UI save from the old window must not change the current B binding.
+  await service.handle({type:'ui_save',uri:source.uri,problemUrl:url,ui:{question:'A 题补存草稿',chatOpen:true}});
+  assert.equal((await service.handle({type:'context_get',uri:source.uri})).binding.problemUrl,other);
+  current=url;revision++;const restored=await service.handle({type:'context_get',uri:source.uri});assert.equal(restored.ui.question,'A 题补存草稿');
+  current=other;revision++;assert.equal((await service.handle({type:'context_get',uri:source.uri})).ui.question,'B 题草稿');
+}));
 test('real stdio transport preserves job id independently from request id',()=>isolated(async dir=>{
   const id='a'.repeat(64);await fs.mkdir(path.join(dir,'hints'),{recursive:true});await fs.writeFile(path.join(dir,'hints',id+'.json'),JSON.stringify({id,kind:'discussion',purpose:'discussion',status:'complete',analysis:'已保存的真实回复',sourceUrl:url}));
   const client=new RpcClient(process.execPath,path.resolve(import.meta.dirname,'..'));
   try{const status=await client.request({type:'status'});assert.equal(status.platform,'openjudge-vscode');const result=await client.request({type:'hint_status',id});assert.equal(result.id,id);assert.equal(result.analysis,'已保存的真实回复');}finally{client.dispose();}
+}));
+
+test('late older UI saves cannot overwrite the final collapse draft',()=>isolated(async()=>{
+  const service=createVscodeService(),session=randomUUID(),ui={question:'收起时的最终草稿',chatOpen:true};
+  await service.handle({type:'ui_save',uri:source.uri,problemUrl:url,ui,uiStamp:{session,startedAt:1000,revision:2}});
+  await service.handle({type:'ui_save',uri:source.uri,problemUrl:url,ui:{question:'旧草稿',chatOpen:false},uiStamp:{session,startedAt:1000,revision:1}});
+  assert.equal((await service.handle({type:'context_get',uri:source.uri})).ui.question,ui.question);
+}));
+test('each hint opening saves the click-time source even when earlier conversations exist, without starting a hint job',()=>isolated(async()=>{
+  const launches=[];const service=createVscodeService({currentProblem:async()=>({connected:false}),browser:async()=>({problem:page(),submission:null}),launchReport:async()=>launches.push('report'),launchHint:async()=>launches.push('hint')});
+  await service.handle({type:'context_bind',uri:source.uri,binding:{problemUrl:url,tabId:1}});
+  await service.handle({type:'ui_save',uri:source.uri,problemUrl:url,ui:{question:'保留上次对话草稿',chatOpen:true}});
+  const first=await service.handle({type:'hint_open',source,problemUrl:url,actionId:randomUUID()});
+  const changed={...source,code:code.replace('a+b','a-b'),version:2};const second=await service.handle({type:'hint_open',source:changed,problemUrl:url,actionId:randomUUID()});
+  assert.notEqual(first.id,second.id);assert.equal((await readReview(second.id)).code,changed.code);assert.deepEqual(launches,['report','report']);
+  assert.equal((await service.handle({type:'context_get',uri:source.uri,problemUrl:url})).ui.question,'保留上次对话草稿');assert.equal((await getProblem(url)).attempts.length,2);
 }));

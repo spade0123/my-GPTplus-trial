@@ -1,10 +1,12 @@
 const vscode=require('vscode'),fs=require('node:fs/promises'),path=require('node:path'),{randomUUID}=require('node:crypto'),{execFile}=require('node:child_process'),{promisify}=require('node:util');
 const {RpcClient}=require('./rpc-client.cjs');
+const {ProblemView}=require('./problem-view.cjs');
 const isCpp=document=>document?.languageId==='cpp'&&!document.isClosed;
 const escape=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function activate(context){
   let rpc,opening,lastSource;const panels=new Map(),buttons=[];
   const output=vscode.window.createOutputChannel('OpenJudge 学习教练');context.subscriptions.push(output);
+  const statementView=new ProblemView(context);
   async function backend(){
     if(rpc&&!rpc.closed)return rpc;
     if(opening)return opening;
@@ -21,7 +23,7 @@ function activate(context){
       if(config.variant!=='openjudge-vscode')throw new Error('所选目录不是独立的 OpenJudge 版本，不会使用或覆盖原北大插件。');
       let node=local.nodePath||'';
       if(!node)node=(await fs.readFile(path.join(root,'native/node-path.txt'),'utf8')).trim();
-      rpc=new RpcClient(node,root,why=>output.appendLine(why));rpc.root=root;await rpc.request({type:'status'});return rpc;
+      rpc=new RpcClient(node,root,why=>output.appendLine(why),event=>{if(event.event==='problem_display')void statementView.accept(event.value).catch(e=>output.appendLine(e.message));});rpc.root=root;await rpc.request({type:'status'});return rpc;
     })().finally(()=>opening=null);return opening;
   }
   function sourceFor(state){
@@ -52,7 +54,7 @@ function activate(context){
     }
     return true;
   }
-  async function ensureBinding(source){const client=await backend(),saved=await client.request({type:'context_get',uri:source.uri});return saved.binding?true:bind(source);}
+  async function ensureBinding(source){const client=await backend();let saved=await client.request({type:'context_get',uri:source.uri});if(!saved.binding){if(!await bind(source))return null;saved=await client.request({type:'context_get',uri:source.uri});}return saved;}
   async function showRecords(){const client=await backend(),status=await client.request({type:'status'});await vscode.env.openExternal(vscode.Uri.file(status.dataDirectory));}
   async function html(webview){
     let template=await fs.readFile(path.join(context.extensionPath,'media/assist-window.html'),'utf8');
@@ -61,34 +63,39 @@ function activate(context){
     template=template.replace(/<script([^>]*?)src="([^"]+)"([^>]*)>/g,(_all,before,file,after)=>`<script nonce="${nonce}"${before}src="${uri('media/'+file)}"${after}>`);
     template=template.replace('<head>','<head><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; script-src \'nonce-'+nonce+'\'; style-src '+webview.cspSource+' \'unsafe-inline\'; font-src '+webview.cspSource+'; img-src '+webview.cspSource+' data:; connect-src \'none\';">');
     template=template.replace('</head>',`<link rel="stylesheet" href="${uri('theme.css')}"></head>`);
+    template=template.replace('<button id="giveSolution" type="button">给出解答</button>','<button id="giveSolution" type="button">给出解答</button><button id="runSample" type="button">运行样例</button><button id="submitOJ" type="button">提交到 OJ</button>');
+    template=template.replace('<details id="chatPanel"','<section id="samplePanel" class="execution-panel" hidden><h3>本机样例测试</h3><p id="sampleState" role="status"></p><div id="sampleResults"></div></section><section id="ojPanel" class="execution-panel" hidden><h3>OJ 提交与评测</h3><p class="muted">提交按钮会把本次完整代码发送到 OJ；刷新只查询评测，不重复提交。</p><label id="ojLanguageRow" hidden>编译器 <select id="ojLanguage"></select></label><button id="refreshOJ" type="button" disabled>刷新本次结果</button><p id="ojState" role="status"></p><div id="ojResults"></div></section><details id="chatPanel"');
     template=template.replace('<body><header>',`<body><header><div class="vscode-controls"><strong>OpenJudge · C++ 学习教练</strong><button id="closeCoach">收起</button></div>`);
     template=template.replace('<section id="hintPanel"',`<details id="bindingControls"><summary>题目连接与保存位置</summary><button id="bindProblem">关联/更换题目</button><button id="bindSubmission">选择提交详情标签</button><button id="showRecords">本机记录与报告</button></details><section id="hintPanel"`);
-    template=template.replace(/<details><summary>使用范围<\/summary>[\s\S]*?<\/details>\s*<script/,`<details><summary>使用范围</summary><p>只在点击时读取本次 VS Code 完整代码、Chrome 关联题面与评测。保存与分析在本机后台，不改写编辑器，不运行或提交程序。网页 AC 只有在题号、提交源码和当前代码一致时才关联。原始输出若网站不提供就标为缺失。</p><input id="source" value="" hidden></details><script`);
+    template=template.replace(/<details><summary>使用范围<\/summary>[\s\S]*?<\/details>\s*<script/,`<details><summary>使用范围</summary><p>题面随浏览器只读同步；本次完整代码与评测在点击时读取。运行样例和提交 OJ 只在明确点击对应按钮时执行，不改写编辑器源码。网页 AC 只有在题号、提交源码和当前代码一致时才关联。原始输出若网站不提供就标为缺失。</p><input id="source" value="" hidden></details><script`);
     template=template.replace(/<script nonce="[^"]+" src="[^"]*vendor\/marked\/marked\.umd\.js"/,`<script nonce="${nonce}" src="${uri('webview-adapter.js')}"></script>$&`);
     // Insert before the first shared script without changing the shared renderer.
     if(!template.includes('webview-adapter.js'))template=template.replace(/(<script nonce=)/,`<script nonce="${nonce}" src="${uri('webview-adapter.js')}"></script>$1`);
+    template=template.replace('</body>',`<script nonce="${nonce}" src="${uri('judge-controls.js')}"></script></body>`);
     return template;
   }
   async function panelMessage(state,message){
     const reply=value=>state.panel.webview.postMessage(value);
     try{
+      if(message.type==='draft'&&state.closing)return;
+      if(message.type==='collapse')state.closing=true;
       if(message.type==='copy_code'){
         if(typeof message.text!=='string'||message.text.length>100000)throw new Error('复制内容过长。');
         await vscode.env.clipboard.writeText(message.text);return reply({type:'copy_reply',id:message.id});
       }
       const client=await backend();
       if(message.type==='draft'||message.type==='collapse'){
-        await client.request({type:'ui_save',uri:state.uri,ui:message.ui});
+        await client.request({type:'ui_save',uri:state.uri,problemUrl:state.problemUrl,ui:message.ui,uiStamp:{session:state.uiSession,startedAt:state.startedAt,revision:++state.uiRevision}});
         if(message.type==='collapse'){state.panel.dispose();const doc=vscode.workspace.textDocuments.find(d=>d.uri.toString()===state.uri);if(doc)await vscode.window.showTextDocument(doc,{viewColumn:state.sourceColumn,preserveFocus:false});}return;
       }
       if(message.type==='bind_problem'||message.type==='bind_submission'){await bind(sourceFor(state),message.type==='bind_submission');return reply({type:'resume_context',mode:state.mode});}
       if(message.type==='show_records')return showRecords();
       if(message.type==='resume'){
-        await reply({type:'resume_context',mode:state.mode});const saved=await client.request({type:'context_get',uri:state.uri});if(saved.ui)await reply({type:'restore_ui',ui:saved.ui});return;
+        await reply({type:'resume_context',mode:state.mode});const saved=await client.request({type:'context_get',uri:state.uri,problemUrl:state.problemUrl});if(saved.ui)await reply({type:'restore_ui',ui:saved.ui});return;
       }
-      if(!['hint_status','assist_history','hint','discuss','quick_save'].includes(message.type))throw new Error('不支持的界面操作。');
-      const request={type:message.type,actionId:message.actionId,id:message.id,question:message.question,purpose:message.purpose,requestedAt:message.requestedAt};
-      if(message.type!=='hint_status')request.source=sourceFor(state);
+      if(!['hint_status','assist_history','hint','discuss','quick_save','run_sample','oj_prepare','oj_submit','oj_refresh','sample_history'].includes(message.type))throw new Error('不支持的界面操作。');
+      const request={type:message.type,uri:state.uri,problemUrl:state.problemUrl,language:message.language,actionId:message.actionId,id:message.id,question:message.question,purpose:message.purpose,requestedAt:message.requestedAt};
+      if(!['hint_status','oj_prepare','oj_refresh'].includes(message.type))request.source=sourceFor(state);
       const result=await client.request(request);
       if(result.context){
         const selected=result.context;
@@ -102,17 +109,22 @@ function activate(context){
     }
   }
   async function open(mode){
-    const source=sourceFor();if(!await ensureBinding(source))return;
+    const source=sourceFor(),selected=await ensureBinding(source);if(!selected)return;
+    const saving=mode==='hint'?(await backend()).request({type:'hint_open',source,problemUrl:selected.binding.problemUrl,actionId:randomUUID(),requestedAt:new Date().toISOString()}).then(result=>({result}),error=>({error})):null;
     let state=panels.get(source.uri);
-    if(state){state.mode=mode;state.panel.reveal(state.panel.viewColumn);await state.panel.webview.postMessage({type:'resume_context',mode});return;}
+    if(state&&new URL(state.problemUrl).host+new URL(state.problemUrl).pathname!==new URL(selected.binding.problemUrl).host+new URL(selected.binding.problemUrl).pathname){state.panel.dispose();state=null;}
+    if(state){state.mode=mode;state.panel.reveal(state.panel.viewColumn);await state.panel.webview.postMessage({type:'resume_context',mode});}
+    else{
     const panel=vscode.window.createWebviewPanel('openjudgeCoach','C++ 提示与交流 · '+source.name,vscode.ViewColumn.Beside,{enableScripts:true,retainContextWhenHidden:true,localResourceRoots:[context.extensionUri]});
-    state={panel,uri:source.uri,mode,sourceColumn:lastSource?.viewColumn||vscode.ViewColumn.One};panels.set(source.uri,state);
+    state={panel,uri:source.uri,problemUrl:selected.binding.problemUrl,mode,sourceColumn:lastSource?.viewColumn||vscode.ViewColumn.One,uiSession:randomUUID(),startedAt:Date.now(),uiRevision:0};panels.set(source.uri,state);
     context.subscriptions.push(panel.onDidDispose(()=>panels.delete(source.uri)),panel.webview.onDidReceiveMessage(message=>{void panelMessage(state,message);}));
     panel.webview.html=await html(panel.webview);
+    }
+    if(saving){const saved=await saving;if(saved.error)throw saved.error;vscode.window.setStatusBarMessage(saved.result.warning?'当前代码已保存；网页评测未更新，请查看连接。':saved.result.workerError?'当前代码已保存；后台启动失败，请查看 OpenJudge 输出。':'当前代码已自动保存，后台继续分析；上次对话保留。',3500);}
   }
   async function quickSave(){
-    const source=sourceFor();if(!await ensureBinding(source))return;
-    const result=await (await backend()).request({type:'quick_save',source,actionId:randomUUID(),requestedAt:new Date().toISOString()});
+    const source=sourceFor(),selected=await ensureBinding(source);if(!selected)return;
+    const result=await (await backend()).request({type:'quick_save',source,problemUrl:selected.binding.problemUrl,actionId:randomUUID(),requestedAt:new Date().toISOString()});
     vscode.window.setStatusBarMessage(result.workerError?'源码已保存；后台启动失败，请查看 OpenJudge 输出。':source.name+' 已保存，后台继续分析。',3500);
   }
   const safe=fn=>async()=>{try{return await fn();}catch(e){output.appendLine(e.message);void vscode.window.showErrorMessage(e.message);}};
@@ -128,6 +140,7 @@ function activate(context){
   const update=editor=>{if(isCpp(editor?.document))lastSource=editor;for(const button of buttons)if(isCpp(editor?.document)||!editor&&[...panels.values()].some(s=>s.panel.active))button.show();else button.hide();};
   context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(update));update(vscode.window.activeTextEditor);
   context.subscriptions.push({dispose(){rpc?.dispose();for(const state of panels.values())state.panel.dispose();}});
-  return {backend,sourceFor,panels};
+  void backend().then(client=>client.request({type:'problem_display'})).then(value=>statementView.accept(value)).catch(e=>output.appendLine(e.message));
+  return {backend,sourceFor,panels,statementView};
 }
 module.exports={activate};

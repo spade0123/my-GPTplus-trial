@@ -3,7 +3,7 @@
   "displayName": "OpenJudge C++ 学习教练",
   "description": "Chrome 读取百练/NOI 题面与评测，VS Code 读取当前 C++，三个按钮保存、提示和交流。",
   "publisher": "local-coach",
-  "version": "0.1.0",
+  "version": "0.2.1",
   "license": "UNLICENSED",
   "engines": {
     "vscode": "^1.96.0"
@@ -16,6 +16,7 @@
   ],
   "main": "./extension.cjs",
   "activationEvents": [
+    "onStartupFinished",
     "onLanguage:cpp",
     "onWebviewPanel:openjudgeCoach"
   ],
@@ -28,6 +29,12 @@
     }
   },
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [{"id":"openjudgeCoachProblems","title":"OpenJudge 题目","icon":"problem-icon.svg"}]
+    },
+    "views": {
+      "openjudgeCoachProblems": [{"type":"webview","id":"openjudgeCoach.problemStatement","name":"当前题目信息"}]
+    },
     "commands": [
       {
         "command": "openjudgeCoach.quickSave",
