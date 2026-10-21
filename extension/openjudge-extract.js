@@ -55,8 +55,27 @@ export async function readOpenJudgePage(targetUrl,expectedProblemUrl){
   const sourceCandidates=[...doc.querySelectorAll('pre.source,pre.source-code,pre.sh_cpp,pre.sh_sourceCode,#sourcecode,#sourceCode,textarea#source,.source-code pre,.solution-source pre')].map(e=>plain(e)).filter(s=>s.trim().length>=5);
   const source=[...new Set(sourceCandidates)];
   const compiler=plain(doc.querySelector('.compile-error,.compiler-output,#compile-error,#compiler-output')).trim();
+  const details={problemId:expected.pathname.split('/').filter(Boolean).at(-1),submitter:null,memory:null,time:null,language:null,submittedAt:null};
+  if(!isProblem&&target.pathname.includes('/solution/')){
+    const fields={'提交人':'submitter','用户':'submitter','User':'submitter','Submitter':'submitter','内存':'memory','Memory':'memory','时间':'time','耗时':'time','Time':'time','语言':'language','Language':'language','提交时间':'submittedAt','Submit Time':'submittedAt','Submitted':'submittedAt'},values={};
+    const accept=(label,value)=>{
+      const key=fields[label.replace(/[:：\s]+$/,'').trim()],text=value.replace(/\s+/g,' ').trim();
+      if(!key||!text||text.length>300)return;
+      (values[key]??=new Set()).add(text);
+    };
+    const safe=e=>!e.closest('pre,code,textarea,script,style,.problem-content,.source-code,.solution-source');
+    for(const dt of doc.querySelectorAll('dt'))if(safe(dt)&&dt.nextElementSibling?.tagName==='DD')accept(plain(dt).trim(),plain(dt.nextElementSibling));
+    for(const row of doc.querySelectorAll('tr'))if(safe(row)){const cells=[...row.children].filter(e=>['TD','TH'].includes(e.tagName));if(cells.length===2)accept(plain(cells[0]).trim(),plain(cells[1]));}
+    for(const item of doc.querySelectorAll('li,p,.solution-info>div,#solution-info>div')){
+      if(!safe(item)||item.querySelector('li,p,dl,table,pre,textarea,code'))continue;
+      const match=plain(item).trim().match(/^([^:：\n]{1,30})\s*[:：]\s*([^\n]+)$/);
+      if(match)accept(match[1],match[2]);
+    }
+    for(const [key,items]of Object.entries(values))if(items.size===1)details[key]=[...items][0];
+  }
   return {url:target.href,problemUrl:expected.href,problemMatches,title:(doc.title||'OpenJudge').replace(/^OpenJudge\s*-\s*/i,'').trim().slice(0,300),problem:sections,
     kind:isProblem?'problem':target.pathname.includes('/solution/')?'solution':'status',submissionId:target.pathname.match(/\/solution\/(\d+)\//)?.[1]||null,
+    details:!isProblem&&target.pathname.includes('/solution/')?details:null,
     observedAt:new Date().toISOString(),verdict,submittedCode:source.length===1?source[0].slice(0,100000):null,sourceTruncated:source.length===1&&source[0].length>100000,runtime:{input:'',output:'',hints:!isProblem?verdict.text:'',error:compiler.slice(0,20000),status:!isProblem?verdict.status:'',text:''},
     missingSections:Object.entries(sections).filter(([,value])=>!value.trim()).map(([key])=>key)};
 }

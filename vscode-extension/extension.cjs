@@ -2,12 +2,24 @@ const vscode=require('vscode'),fs=require('node:fs/promises'),path=require('node
 const {RpcClient}=require('./rpc-client.cjs');
 const {ProblemView}=require('./problem-view.cjs');
 const {sampleHtml}=require('./sample-view.cjs');
+const {SampleWindow}=require('./sample-window.cjs');
 const isCpp=document=>document?.languageId==='cpp'&&!document.isClosed;
 const escape=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function activate(context){
-  let rpc,opening,lastSource;const panels=new Map(),buttons=[],samplePanels=new Set();
+  let rpc,opening,lastSource,sampleSequence=0;const panels=new Map(),buttons=[],samplePanels=new Set();
   const output=vscode.window.createOutputChannel('OpenJudge 学习教练');context.subscriptions.push(output);
   const statementView=new ProblemView(context,async key=>(await backend()).request({type:'library_open',key}));
+  const sampleWindow=new SampleWindow({
+    create:()=>{
+      const panel=vscode.window.createWebviewPanel('openjudgeCoach.sampleRun','样例测试',vscode.ViewColumn.Beside,{enableScripts:true,retainContextWhenHidden:true,localResourceRoots:[context.extensionUri]});
+      samplePanels.add(panel);panel.onDidDispose(()=>samplePanels.delete(panel));return panel;
+    },
+    render:state=>sampleHtml({}, {session:state.session,nonce:randomUUID().replace(/-/g,''),cspSource:state.panel.webview.cspSource,uri:file=>state.panel.webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri,file)).toString()}),
+    receive:panelMessage,
+    collapse:async state=>{const doc=vscode.workspace.textDocuments.find(d=>d.uri.toString()===state.uri);if(doc&&!doc.isClosed)await vscode.window.showTextDocument(doc,{viewColumn:state.sourceColumn,preserveFocus:false});},
+    onError:e=>output.appendLine(e.message)
+  });
+  context.subscriptions.push(sampleWindow);
   async function backend(){
     if(rpc&&!rpc.closed)return rpc;
     if(opening)return opening;
@@ -129,27 +141,15 @@ function activate(context){
     vscode.window.setStatusBarMessage(result.workerError?'源码已保存；后台启动失败，请查看 OpenJudge 输出。':source.name+' 已保存，后台继续分析。',3500);
   }
   async function testRun(){
-    const source=sourceFor(),selected=await ensureBinding(source);if(!selected)return;
+    const sequence=++sampleSequence,source=sourceFor(),selected=await ensureBinding(source);if(!selected)return;
     const sourceColumn=lastSource?.viewColumn||vscode.ViewColumn.One;
-    const panel=vscode.window.createWebviewPanel('openjudgeCoach.sampleRun','样例测试 · '+source.name,vscode.ViewColumn.Beside,{enableScripts:true,retainContextWhenHidden:true,localResourceRoots:[context.extensionUri]});samplePanels.add(panel);let disposed=false,ready=false,latest={};
-    const state={panel,uri:source.uri,problemUrl:selected.binding.problemUrl,sourceColumn};
-    const show=value=>{latest=value;if(!disposed&&ready)void panel.webview.postMessage({type:'sample_view',...value});};
-    context.subscriptions.push(panel.onDidDispose(()=>{disposed=true;state.disposed=true;samplePanels.delete(panel);}),panel.webview.onDidReceiveMessage(async message=>{
-      if(disposed)return;
-      if(message.type==='sample_ready'){ready=true;show(latest);return;}
-      if(message.type==='sample_collapse'){
-        panel.dispose();const doc=vscode.workspace.textDocuments.find(d=>d.uri.toString()===source.uri);
-        if(doc&&!doc.isClosed)await vscode.window.showTextDocument(doc,{viewColumn:sourceColumn,preserveFocus:false});return;
-      }
-      if(['oj_prepare','oj_submit','oj_refresh'].includes(message.type))await panelMessage(state,message);
-    }));
-    const uri=file=>panel.webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri,file)).toString();
-    panel.webview.html=sampleHtml({}, {nonce:randomUUID().replace(/-/g,''),cspSource:panel.webview.cspSource,uri});
+    const state=sequence===sampleSequence?sampleWindow.open({uri:source.uri,problemUrl:selected.binding.problemUrl,sourceColumn,name:source.name}):null;
+    const show=value=>{if(state&&sequence===sampleSequence)sampleWindow.show(state,value);};
     let saved;
     try{
       const client=await backend(),problemUrl=selected.binding.problemUrl;
       saved=await client.request({type:'quick_save',source,problemUrl,actionId:randomUUID(),requestedAt:new Date().toISOString()});
-      panel.title='样例测试 · '+saved.title;show({saved:true,title:saved.title,message:'代码已保存，正在编译并运行题目样例…',workerError:saved.workerError});
+      show({saved:true,title:saved.title,message:'代码已保存，正在编译并运行题目样例…',workerError:saved.workerError});
       const result=await client.request({type:'run_sample',source,problemUrl,actionId:randomUUID(),requestedAt:new Date().toISOString()});
       show({...result,saved:true});return result;
     }catch(error){show({saved:Boolean(saved),title:saved?.title,error:error.message});output.appendLine(error.message);return {error:error.message,saved:Boolean(saved)};}
@@ -166,7 +166,7 @@ function activate(context){
     const chosen=await vscode.window.showOpenDialog({canSelectFolders:true,canSelectFiles:false,canSelectMany:false,openLabel:'选择 OpenJudge 新版目录'});if(!chosen)return;
     await fs.access(path.join(chosen[0].fsPath,'src/vscode-host.js'));await fs.mkdir(context.globalStorageUri.fsPath,{recursive:true});await fs.writeFile(path.join(context.globalStorageUri.fsPath,'backend.json'),JSON.stringify({backendPath:chosen[0].fsPath}));rpc?.dispose();rpc=null;await backend();
   })));
-  const update=editor=>{if(isCpp(editor?.document))lastSource=editor;for(const button of buttons)if(isCpp(editor?.document)||!editor&&([...panels.values()].some(s=>s.panel.active)||[...samplePanels].some(p=>p.active)))button.show();else button.hide();};
+  const update=editor=>{if(isCpp(editor?.document))lastSource=editor;for(const button of buttons)button.show();};
   context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(update));update(vscode.window.activeTextEditor);
   context.subscriptions.push({dispose(){rpc?.dispose();for(const state of panels.values())state.panel.dispose();for(const panel of samplePanels)panel.dispose();}});
   void backend().then(client=>client.request({type:'problem_display'})).then(value=>statementView.accept(value)).catch(e=>output.appendLine(e.message));

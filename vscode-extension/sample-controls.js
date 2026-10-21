@@ -1,8 +1,9 @@
 (()=>{
-  const api=acquireVsCodeApi(),listeners=[],$=id=>document.getElementById(id);
+  const api=acquireVsCodeApi(),listeners=[],$=id=>document.getElementById(id),viewSession=document.body.dataset.session;
+  const post=message=>api.postMessage({...message,viewSession});
   // Reuse the same official-submit controller as the hint window; no browser storage.
-  globalThis.chrome={runtime:{connect:()=>({postMessage:message=>api.postMessage(message),onMessage:{addListener:fn=>listeners.push(fn)}})}};
-  $('closeCoach').onclick=()=>api.postMessage({type:'sample_collapse'});
+  globalThis.chrome={runtime:{connect:()=>({postMessage:post,onMessage:{addListener:fn=>listeners.push(fn)}})}};
+  $('closeCoach').onclick=()=>post({type:'sample_collapse'});
   window.addEventListener('message',event=>{
     const value=event.data;
     if(value.type==='sample_view'){
@@ -18,5 +19,5 @@
       for(const listener of listeners)listener({...value,type:'sample_result'});
     }else for(const listener of listeners)listener(value);
   });
-  window.addEventListener('DOMContentLoaded',()=>api.postMessage({type:'sample_ready'}),{once:true});
+  window.addEventListener('DOMContentLoaded',()=>post({type:'sample_ready'}),{once:true});
 })();

@@ -1,6 +1,6 @@
 const $=id=>document.getElementById(id);
 const chats=new Map(),jobs=new Map(),actions=new Map(),polling=new Set();
-let port,currentHint,currentSolution,solutionAction,hintCapture,hintJudgment,activeUrl='',sequence=0,contextSequence=0,historyAction,hintOpened=false,chatWasOpen=false,hintRequestSequence=0,solutionRequestSequence=0;
+let port,currentHint,currentSolution,solutionAction,hintCapture,hintJudgment,activeUrl='',sequence=0,contextSequence=0,historyAction,hintOpened=false,chatWasOpen=false,hintRequestSequence=0,solutionRequestSequence=0,displayMode='hint';
 const solutionQuestion='请先给出本题完整、无注释的 C++ 参考程序，使用 cnt+1 这种符号旁不加多余空格的写法，保留 using namespace std;。结合本次源码、刚读取的运行信息和上次解答修正问题，程序后再给讲解、复杂度与验证，原题和样例放最后。';
 function resetSolution(){currentSolution=null;solutionAction=null;$('solutionPanel').hidden=true;$('solutionPanel').open=false;$('solutionAnswer').replaceChildren();$('giveSolution').disabled=false;$('giveSolution').textContent='给出解答';}
 // The worker binds this own frame to the exact source tab/window. No page
@@ -16,7 +16,8 @@ function showCapture(capture,missing=[]){
   const runtime=capture.runtime||{},count=['input','output','hints','error','status','text'].reduce((n,key)=>n+String(runtime[key]||'').length,0);activeUrl=capture.url;$('context').textContent=`当前读取：${capture.title} · ${capture.code.length} 字符代码 · 运行区${count?'已读取 '+count+' 字符':'当前为空'}${missing.length?' · 部分题面缺失，建议核对':''}`;
 }
 function openHistory(mode){
-  const hint=mode==='hint';$('hintPanel').hidden=false;
+  displayMode=mode;const hint=mode==='hint';$('hintPanel').hidden=false;
+  if(hint){$('chatPanel').open=false;chatWasOpen=false;}
   if(!hint){
     $('chatPanel').open=true;chatWasOpen=true;
     (document.scrollingElement||document.documentElement).scrollTop=Math.max(0,$('chatPanel').offsetTop-12);
@@ -51,7 +52,7 @@ function start(type,question){
 function renderChats(){
   $('chatMessages').replaceChildren();
   const time=item=>Date.parse(item.job?.createdAt)||item.createdAt||0;
-  for(const item of [...chats.values()].sort((a,b)=>time(a)-time(b))){
+  for(const item of [...chats.values()].reverse().sort((a,b)=>time(b)-time(a))){
     if(item.job&&(item.job.kind!=='discussion'||item.job.purpose==='solution'))continue;
     if(activeUrl&&item.url&&item.url!==activeUrl)continue;
     const card=document.createElement('div');card.className='chat';
@@ -94,7 +95,7 @@ function updateJob(job,actionId){
 function receive(msg){
   if(msg.type==='restore_ui'){
     if(typeof msg.ui?.question==='string')$('question').value=msg.ui.question.slice(0,2000);
-    if(msg.ui?.chatOpen){$('chatPanel').open=true;chatWasOpen=true;}return;
+    if(msg.ui?.chatOpen&&displayMode!=='hint'){$('chatPanel').open=true;chatWasOpen=true;}return;
   }
   if(msg.type==='refresh_discussion_context'){$('discussion').click();return;}
   if(msg.type==='resume_context'){

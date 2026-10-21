@@ -5,6 +5,14 @@
   const chat=$('chatPanel');if(chat&&$('hintPanel'))$('hintPanel').prepend(chat);
   function pinStatus(){const panel=$('ojPanel');document.querySelector('header')?.after(panel);panel.hidden=false;panel.scrollIntoView?.({block:'start',behavior:'auto'});}
   function block(parent,label,text){const box=document.createElement('div');box.className='execution-block';const h=document.createElement('h4'),pre=document.createElement('pre'),code=document.createElement('code');h.textContent=label;code.textContent=String(text||'（空）');pre.append(code);box.append(h,pre);parent.append(box);}
+  function submissionDetails(submission){
+    if(!submission)return;
+    const details=submission.details||{},list=document.createElement('dl');list.className='oj-details';list.setAttribute('aria-label','本次 OJ 提交基本信息');
+    for(const [label,value]of [['提交编号',submission.submissionId],['题号',details.problemId],['提交人',details.submitter],['内存',details.memory],['耗时',details.time],['编译语言',details.language],['提交时间',details.submittedAt]]){
+      const term=document.createElement('dt'),description=document.createElement('dd');term.textContent=label;description.textContent=value||'未提供';list.append(term,description);
+    }
+    $('ojResults').append(list);
+  }
   function sample(value){
     if(!value?.result)return;const r=value.result;$('samplePanel').hidden=false;$('sampleState').textContent=(sampleLabels[r.status]||r.status)+' · '+r.durationMs+' ms · 源码 '+(value.codeHash||r.codeHash||'').slice(0,8)+'；样例一致不代表网站 AC。';
     $('sampleState').className=r.status==='passed'?'execution-pass':'execution-fail';$('sampleResults').replaceChildren();
@@ -28,7 +36,7 @@
       if(value.requestType==='oj_submit'&&value.actionId!==submitAction||value.requestType==='oj_refresh'&&value.id!==jobId)return;
       busy=false;jobId=value.id;$('submitOJ').disabled=false;$('refreshOJ').disabled=false;$('ojPanel').hidden=false;const s=value.submission;
       $('ojState').textContent=value.error|| (s?'提交 '+s.submissionId+'：'+s.verdict.text+' · 源码 '+(value.codeHash||'').slice(0,8):value.message||'已提交，正在读取评测。');
-      $('ojResults').replaceChildren();if(s?.runtime?.error)block($('ojResults'),'网站编译信息',s.runtime.error);
+      $('ojResults').replaceChildren();submissionDetails(s);if(s?.runtime?.error)block($('ojResults'),'网站编译信息',s.runtime.error);
       if(value.submitPageClosed){const note=document.createElement('p');note.className='muted';note.textContent='已确认本次 AC，对应提交页面已关闭。';$('ojResults').append(note);}
       else if(value.closeReason==='source_changed'||value.closeReason==='newer_submission'){const note=document.createElement('p');note.className='muted';note.textContent='提交页已有新的代码或提交，已保留该页。';$('ojResults').append(note);}
       if(value.receipt?.solutionUrl){const a=document.createElement('a');a.href=value.receipt.solutionUrl;a.textContent='查看这次提交详情';$('ojResults').append(a);}

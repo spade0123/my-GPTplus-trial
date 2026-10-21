@@ -42,6 +42,17 @@ test('solution status needs matching problem identity; source is taken only from
   await assert.rejects(parse('<a href="/practice/1002/">另一题</a><span class="result">Accepted</span>',url.replace('/1001/','/solution/53535882/')),/无法将/);
   await assert.rejects(parse(href+'<a href="/practice/1002/">另一题</a><span class="result">Accepted</span>',url.replace('/1001/','/solution/53535882/')),/无法将/);
 });
+test('solution details preserve official memory, time, language, submitter and timestamp in supported basic-info layouts',async()=>{
+  const fields=[['提交人','fixture-user'],['内存','272kB'],['时间','991ms'],['语言','G++'],['提交时间','2026-10-21 08:10:00']];
+  for(const markup of ['<dl>'+fields.map(([k,v])=>'<dt>'+k+'：</dt><dd>'+v+'</dd>').join('')+'</dl>','<ul>'+fields.map(([k,v])=>'<li>'+k+'：'+v+'</li>').join('')+'</ul>','<table>'+fields.map(([k,v])=>'<tr><th>'+k+'</th><td>'+v+'</td></tr>').join('')+'</table>']){
+    const result=await parse('<a href="/practice/1001/">1001</a><div class="result">Accepted</div>'+markup,url.replace('/1001/','/solution/123/'));
+    assert.equal(result.details.problemId,'1001');assert.equal(result.details.submitter,'fixture-user');assert.equal(result.details.memory,'272kB');assert.equal(result.details.time,'991ms');assert.equal(result.details.language,'G++');assert.equal(result.details.submittedAt,'2026-10-21 08:10:00');
+  }
+});
+test('missing or conflicting OJ metrics remain missing and neither statement nor source code can supply fake metadata',async()=>{
+  const result=await parse('<a href="/practice/1001/">1001</a><dl><dt>内存</dt><dd>1kB</dd><dt>内存</dt><dd>2kB</dd></dl><pre class="source-code">语言：fake\n提交时间：fake</pre><dl class="problem-content"><dt>时间</dt><dd>999ms</dd></dl>',url.replace('/1001/','/solution/123/'));
+  assert.equal(result.details.memory,null);assert.equal(result.details.time,null);assert.equal(result.details.language,null);assert.equal(result.details.submittedAt,null);assert.equal((await parse('<dl><dt>内存</dt><dd>fake</dd></dl>',url)).details,null);
+});
 test('VS Code snapshots use click-time full source, isolate problems, deduplicate content, and never accept unmatched AC',()=>isolated(async()=>{
   let submitted=code,currentUrl=url,offline=false;const launches=[];
   const service=createVscodeService({browser:async(type,b)=>{

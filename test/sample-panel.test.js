@@ -38,3 +38,13 @@ test('live sample updates preserve prepared compiler and active OJ job; status p
 test('failed sample keeps confirmed save visible and allows official submission, with no HTML execution',async()=>{
   const f=await fixture();try{f.emit({type:'sample_view',saved:true,error:'<img src=x onerror=alert(1)>',workerError:'后台暂时不可用'});assert.equal(f.$('sampleSaved').hidden,false);assert(f.$('sampleState').textContent.startsWith('代码已保存；测试未完成：'));assert.equal(f.w.document.querySelectorAll('img').length,0);f.$('submitOJ').click();assert.equal(f.messages.at(-1).type,'oj_prepare');}finally{f.w.close();}
 });
+test('official submission basics appear in the result panel, survive refresh, and escape values rather than executing markup',async()=>{
+  const f=await fixture();try{
+    f.$('submitOJ').click();f.emit({type:'oj_prepared',languages:[{label:'G++',value:'G++'}]});f.$('submitOJ').click();const action=f.messages.at(-1);
+    const submission={submissionId:'123',verdict:{status:'AC',text:'Accepted'},details:{problemId:'1001',submitter:'<img src=x>',memory:'272kB',time:'991ms',language:'G++',submittedAt:'2026-10-21 08:10:00'}};
+    f.emit({type:'oj_result',requestType:'oj_submit',actionId:action.actionId,id:'a'.repeat(64),submission});
+    assert.deepEqual([...f.$('ojResults').querySelectorAll('dd')].map(e=>e.textContent),['123','1001','<img src=x>','272kB','991ms','G++','2026-10-21 08:10:00']);assert.equal(f.$('ojResults').querySelectorAll('img').length,0);
+    f.$('refreshOJ').click();f.emit({type:'oj_result',requestType:'oj_refresh',id:'a'.repeat(64),submission:{...submission,details:{problemId:'1001'}}});
+    assert.equal(f.$('ojResults').querySelectorAll('.oj-details').length,1);assert.equal(f.$('ojResults').querySelectorAll('dd')[3].textContent,'未提供');assert.equal(f.messages.filter(m=>m.type==='oj_submit').length,1);
+  }finally{f.w.close();}
+});
