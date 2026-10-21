@@ -11,12 +11,12 @@
   }
   function priority(kind,value){
     if(activeKind!==kind)return;
-    const submission=value.submission,reply=submission?.websiteReplyRaw||value.websiteReplyRaw;
-    const raw=submission?.runtime?.text||reply||value.error||value.message||(value.browserStage?value.browserStage+'，等待编程网格返回原文…':'请求已发出，等待编程网格返回原文…');
+    const submission=value.submission;
+    const raw=submission?.runtime?.text||value.error||value.message||(value.browserStage?value.browserStage+'，等待编程网格返回原文…':'等待编程网格返回判题原文…');
     const verdictCode=submission?.verdict?.status,verdict=platformName[submission?.platformResult]||verdictName[verdictCode]||'';
     $('priorityPanel').hidden=false;$('priorityVerdict').hidden=!verdict;$('priorityVerdict').textContent=verdict;
     $('priorityVerdict').className='priority-verdict'+(verdictName[verdictCode]?' verdict-'+verdictCode.toLowerCase():'');
-    const label=(kind==='test'?(testInputMode==='manual'?'手工输入测试 · ':'测试代码 · '):'正式提交 · ')+(submission?.runtime?.text?'输出与提示原文':reply?'接口原文':value.error||value.status==='uncertain'?'连接未确认':value.message&&value.status==='rejected'?'网站未接受请求':'等待网站回复');
+    const label=(value.restored?'上次记录 · ':'')+(kind==='test'?(testInputMode==='manual'?'手工输入测试 · ':'测试代码 · '):'正式提交 · ')+(submission?.runtime?.text?'输出与提示原文':value.error||value.status==='uncertain'?'连接提示':value.message&&value.status==='rejected'?'网站未接受请求':'等待网站原文');
     $('priorityLabel').textContent=label+(Number.isFinite(value.responseMs)?` · 首次回复 ${value.responseMs} ms`:'');
     $('priorityRaw').textContent=raw;
   }
@@ -24,6 +24,7 @@
   $('useManualInput').onchange=()=>{
     $('webTestInput').disabled=!$('useManualInput').checked;
     $('gridTest').textContent=$('useManualInput').checked?'手工输入测试':'测试代码 · 网格判题';
+    $('testModeSummary').textContent=$('useManualInput').checked?'测试方式：手工输入（自行核对输出）':'测试方式：网格判题（默认）｜手工输入';
   };
   $('gridTest').onclick=()=>{
     if(testBusy)return;
@@ -52,8 +53,8 @@
       if(activeKind)return;
       const latest=value.test&&value.submission?String(value.test.createdAt)>String(value.submission.createdAt)?'test':'submit':value.test?'test':value.submission?'submit':'';
       activeKind=latest;
-      if(value.test)handleMessage({type:'grid_test_result',...value.test});
-      if(value.submission)handleMessage({type:'oj_result',...value.submission});
+      if(value.test)handleMessage({type:'grid_test_result',...value.test,restored:true});
+      if(value.submission)handleMessage({type:'oj_result',...value.submission,restored:true});
       return;
     }
     if((value.type==='assist_context'||value.type==='action_preview')&&!inputInitialized){
@@ -66,23 +67,22 @@
       lastTest=value;
       if(typeof value.input==='string')testInputMode=value.input.length?'manual':'platform';
       $('testPanelTitle').textContent=testInputMode==='manual'?'手工输入测试':'测试代码 · 网格判题';
-      testJobId=value.id;const s=value.submission,sending=['prepared','sending'].includes(value.status),pending=sending||value.status==='pending';
+      testJobId=value.id;const s=value.submission,sending=['prepared','sending'].includes(value.status),terminal=s&&(!['pending','unknown'].includes(s.verdict?.status||'unknown')||s.platformResult==='Testing'&&s.runtime?.text),pending=sending||value.status==='pending'&&!terminal;
       testBusy=pending;$('gridTest').disabled=testBusy;$('webTestPanel').hidden=false;$('refreshGridTest').disabled=!value.receipt?.solutionId;
       $('webTestState').textContent=value.status==='uncertain'?value.message:s?`网站测试 ${s.submissionId}：${s.platformResult||s.verdict?.status||'处理中'} · 源码 ${(value.codeHash||'').slice(0,8)}；非正式提交。`:value.error||value.message||'网站测试已发出，等待首次回复。';
       priority('test',value);
       $('webTestResults').replaceChildren();
       if(s?.runtime?.text)block($('webTestResults'),'编程网格输出与提示（完整原文）',s.runtime.text);
       if(s?.runtime?.error&&s.runtime.error!==s.runtime.text)block($('webTestResults'),'网站编译信息',s.runtime.error);
-      const testReply=s?.websiteReplyRaw||value.websiteReplyRaw;
-      if(testReply)block($('webTestResults'),'编程网格接口完整回复（原始 JSON）',testReply);
-      else if(s&&!s.runtime?.text)block($('webTestResults'),'网站返回状态',s.platformResult||s.verdict?.status);
+      if(s&&!s.runtime?.text)block($('webTestResults'),'网站判定',platformName[s.platformResult]||verdictName[s.verdict?.status]||'等待判题原文');
       if(value.input)block($('webTestResults'),'本次手工输入',value.input);
       if(value.workerError)block($('webTestResults'),'本机保存提示',value.workerError);
       if(value.receipt?.solutionUrl){const a=document.createElement('a');a.href=value.receipt.solutionUrl;a.textContent='查看网站这次测试记录';$('webTestResults').append(a);}
       clearTimeout(testTimer);
-      if(sending)testTimer=setTimeout(()=>send('grid_test_status',{id:testJobId}),180);
-      else if(value.receipt?.solutionId&&(s?.verdict?.status==='pending'||!s?.detailLoaded)&&++testRefreshes<30)testTimer=setTimeout(refreshTest,s?.verdict?.status==='pending'?700:350);
-      else if(value.receipt?.solutionId&&!s?.detailLoaded&&testRefreshes>=30)$('webTestState').textContent+=' 详情页暂未读到，可手动刷新。';
+      if(value.restored){testBusy=false;$('gridTest').disabled=false;$('webTestState').textContent+=' 上次记录；未自动查询。';}
+      else if(sending)testTimer=setTimeout(()=>send('grid_test_status',{id:testJobId}),180);
+      else if(value.receipt?.solutionId&&(!terminal||!s?.runtime?.text&&!s?.detailLoaded)&&++testRefreshes<30)testTimer=setTimeout(refreshTest,terminal?350:700);
+      else if(value.receipt?.solutionId&&testRefreshes>=30){testBusy=false;$('gridTest').disabled=false;$('webTestState').textContent+=' 自动查询已暂停，可手动刷新。';}
       return;
     }
     if(value.type==='oj_result'){
@@ -94,14 +94,13 @@
       priority('submit',value);
       $('ojResults').replaceChildren();if(s?.runtime?.text)block($('ojResults'),'编程网格提交反馈（完整原文）',s.runtime.text);
       if(s?.runtime?.error&&s.runtime.error!==s.runtime.text)block($('ojResults'),'网站编译信息',s.runtime.error);
-      const submitReply=s?.websiteReplyRaw||value.websiteReplyRaw;
-      if(submitReply)block($('ojResults'),'编程网格接口完整回复（原始 JSON）',submitReply);
-      else if(s&&!s.runtime?.text)block($('ojResults'),'网站返回状态',s.platformResult||s.verdict?.status);
+      if(s&&!s.runtime?.text)block($('ojResults'),'网站判定',platformName[s.platformResult]||verdictName[s.verdict?.status]||'等待判题原文');
       if(value.receipt?.solutionUrl){const a=document.createElement('a');a.href=value.receipt.solutionUrl;a.textContent='查看这次提交详情';$('ojResults').append(a);}
       clearTimeout(submitTimer);
-      if(sending)submitTimer=setTimeout(()=>send('oj_status',{id:submitJobId}),180);
-      else if(value.receipt?.solutionId&&(s?.verdict?.status==='pending'||!s?.detailLoaded)&&++submitRefreshes<30)submitTimer=setTimeout(refreshSubmit,s?.verdict?.status==='pending'?700:350);
-      else if(value.receipt?.solutionId&&!s?.detailLoaded&&submitRefreshes>=30)$('ojState').textContent+=' 详情页暂未读到，可手动刷新。';
+      if(value.restored){submitBusy=false;$('submitOJ').disabled=false;$('ojState').textContent+=' 上次记录；未自动查询。';}
+      else if(sending)submitTimer=setTimeout(()=>send('oj_status',{id:submitJobId}),180);
+      else if(value.receipt?.solutionId&&(s?.verdict?.status==='pending'||!s?.runtime?.text&&!s?.detailLoaded)&&++submitRefreshes<30)submitTimer=setTimeout(refreshSubmit,s?.verdict?.status==='pending'?700:350);
+      else if(value.receipt?.solutionId&&submitRefreshes>=30)$('ojState').textContent+=' 自动查询已暂停，可手动刷新。';
       return;
     }
     if(value.type==='error'&&['grid_test','grid_test_status','grid_test_refresh','oj_submit','oj_status','oj_refresh'].includes(value.requestType)){

@@ -81,6 +81,28 @@ test('Grid test defaults to empty stdin even after sample input has been populat
   }finally{w.close();}
 });
 
+test('restored Grid results stay still, completed replies stop polling, and JSON stays off the page',async()=>{
+  const html=await fs.readFile(new URL('../vscode-extension/judge-window.html',import.meta.url),'utf8');
+  const script=await fs.readFile(new URL('../vscode-extension/judge-controls.js',import.meta.url),'utf8');
+  const dom=new JSDOM(html,{url,runScripts:'outside-only'}),w=dom.window,timers=[];let receive;
+  w.crypto.randomUUID=randomUUID;w.setTimeout=(fn,delay)=>{timers.push({fn,delay});return timers.length;};w.clearTimeout=()=>{};
+  w.chrome={runtime:{connect:()=>({postMessage(){},onMessage:{addListener:fn=>receive=fn}})}};
+  try{
+    w.eval(script);
+    const stored={id:'old',status:'pending',receipt:{solutionId:'42'},submission:{platformResult:'Testing',verdict:{status:'pending'},runtime:{text:'Result: Complete! Please check the output by yourself.'},websiteReplyRaw:'{"internalJSONOnly":"secret-fixture"}'}};
+    receive({type:'judge_history',test:stored});
+    assert.equal(timers.length,0);
+    assert.equal(w.document.getElementById('gridTest').disabled,false);
+    assert.equal(w.document.body.textContent.includes('secret-fixture'),false);
+    assert(w.document.getElementById('manualTestOptions').compareDocumentPosition(w.document.getElementById('webTestPanel'))&4);
+    w.document.getElementById('gridTest').click();
+    receive({type:'grid_test_result',id:'new',status:'result_received',input:'',receipt:{solutionId:'43'},submission:{platformResult:'WrongAnswer',verdict:{status:'WA'},detailLoaded:false,runtime:{text:'Result: WrongAnswer\nStd: expected\nOut: actual'},websiteReplyRaw:'{"internalJSONOnly":"secret-fixture"}'}});
+    assert.equal(timers.length,0);
+    assert.equal(w.document.getElementById('priorityVerdict').textContent,'Wrong Answer');
+    assert.equal(w.document.body.textContent.includes('secret-fixture'),false);
+  }finally{w.close();}
+});
+
 test('Grid native test keeps empty stdin while formal submission omits it, preserving full cloud diff',async()=>{
   const dom=new JSDOM('',{url,runScripts:'outside-only'}),w=dom.window,forms=[];
   const hint="Testing Input: sample\n--------\nResult: WrongAnswer\n--------\nOutput: Hello world!\n--------\nHint: WrongAnswer: in case 0.\nDifferent at line 1. Std: 'expected' Out: 'Hello world!'\n";
@@ -181,6 +203,12 @@ test('Grid test keeps querying a pending detail page until the final website rep
     assert.equal(result.submission.verdict.status,'AC');
     assert.equal(result.submission.runtime.text,'Case 0: Diff: 0');
     await until(async()=>(await service.handle({type:'grid_test_status',id:queued.id})).status==='complete');
+    const file=path.join(directory,'grid-tests',queued.id+'.json'),stored=JSON.parse(await fs.readFile(file,'utf8'));
+    await fs.writeFile(file,JSON.stringify({...stored,status:'pending',submission:{...stored.submission,platformResult:'Testing',verdict:{status:'pending'},runtime:{text:'Result: Complete! Please check the output by yourself.'}}}));
+    const restored=await service.handle({type:'grid_test_refresh',id:queued.id});
+    assert.equal(restored.submission.verdict.status,'tested');
+    assert.equal(restored.status,'complete');
+    assert.equal(refreshes,1,'legacy completed test must not trigger another website query');
   }finally{
     if(prior===undefined)delete process.env.PKU_DATA_DIR;else process.env.PKU_DATA_DIR=prior;
     await fs.rm(directory,{recursive:true,force:true,maxRetries:5,retryDelay:50});

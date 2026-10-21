@@ -19,6 +19,11 @@
       <button id="gridTest" class="primary">测试代码 · 网格判题</button>
       <button id="submitOJ">正式提交到编程网格</button>
     </div>
+    <details id="manualTestOptions">
+      <summary id="testModeSummary">测试方式：网格判题（默认）｜手工输入</summary>
+      <label><input id="useManualInput" type="checkbox">改用手工输入测试，自行核对输出</label>
+      <textarea id="webTestInput" rows="5" maxlength="20000" spellcheck="false" disabled placeholder="启用手工输入后发送这段输入"></textarea>
+    </details>
     <section id="webTestPanel" class="execution-panel" hidden>
       <h3 id="testPanelTitle">测试代码 · 网格判题</h3>
       <p id="webTestState" role="status"></p>
@@ -31,11 +36,6 @@
       <button id="refreshOJ">刷新本次结果</button>
       <div id="ojResults"></div>
     </section>
-    <details id="manualTestOptions">
-      <summary>手工输入（可选）</summary>
-      <label><input id="useManualInput" type="checkbox">改用手工输入测试，自行核对输出</label>
-      <textarea id="webTestInput" rows="5" maxlength="20000" spellcheck="false" disabled placeholder="启用手工输入后发送这段输入"></textarea>
-    </details>
   </main>
   <footer class="coach-footer">
     <details>
@@ -46,6 +46,7 @@
     <p>“测试代码”默认使用网页测试按钮的空输入模式，显示网格判定和逐用例反馈。勾选手工输入后，输出由你自行核对。“正式提交”保留为独立操作。</p>
     <p>AI 提示与交流在单独的页面。</p>
     <p>刷新只查询本次编号，不会再次发送代码。</p>
+    <p>重新打开时只显示上次记录，不自动查询。</p>
   </footer>
   <script src="webview-adapter.js"></script>
   <script src="judge-controls.js"></script>

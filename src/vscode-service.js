@@ -109,7 +109,8 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
       }catch{}
     }
     matches.sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||'')));
-    return matches[0]||null;
+    const latest=matches[0]||null;
+    return latest&&folder==='grid-tests'?normalizeStoredTest(latest):latest;
   }
   async function importVerdict(selected){
     const s=selected.submission;if(!selected.matching||!s?.submissionId||selected.judgment.status==='unknown')return;
@@ -127,11 +128,24 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
     return {...capture,runtime:{...capture.runtime,status:submission.verdict.status,text:[`编程网格正式提交 ${submission.submissionId}：${submission.platformResult||submission.verdict.status}`,raw&&`网站返回的评测与提示（原文）：\n${raw}`].filter(Boolean).join('\n\n').slice(0,20000),error:String(submission.runtime?.error||'').slice(0,20000)}};
   }
   async function finishGridTest(job,value){
+    if(value.submission)value.submission=normalizeTestSubmission(value.submission);
     if(value.submission&&!value.submission.websiteReplyRaw&&job.submission?.websiteReplyRaw)value.submission.websiteReplyRaw=job.submission.websiteReplyRaw;
     const submission=value.submission,final=Boolean(submission&&!['pending','unknown'].includes(submission.verdict?.status||'unknown'));
     const updated=await updateGridTestRun(job,{...value,status:job.saved?'complete':final?'result_received':'pending',websiteReplyAt:new Date().toISOString()});
-    if(final&&!job.saved&&submission?.detailChecked)void persistGridTest(updated);
+    if(final&&!job.saved&&(submission?.detailChecked||submission?.runtime?.text))void persistGridTest(updated);
     return updated;
+  }
+  function normalizeTestSubmission(submission){
+    if(submission?.platformResult!=='Testing'||!submission.runtime?.text)return submission;
+    const code=submission.runtime.text.match(/^Result:\s*([^\r\n]+)/m)?.[1]?.trim();
+    const names={Passed:'AC',Accepted:'AC',WrongAnswer:'WA','Wrong Answer':'WA',CompileError:'CE','Compile Error':'CE',RuntimeError:'RE','Runtime Error':'RE',TimeOut:'TLE','Time Out':'TLE',OutOfMemory:'MLE',OutputExceeded:'OLE',EmptyOutput:'WA'};
+    const status=names[code]||(!['pending','unknown'].includes(submission.verdict?.status||'unknown')?submission.verdict.status:'tested');
+    return status===submission.verdict?.status?submission:{...submission,verdict:{...submission.verdict,status}};
+  }
+  async function normalizeStoredTest(job){
+    const submission=normalizeTestSubmission(job.submission);
+    if(submission!==job.submission||job.status==='pending'&&submission&&!['pending','unknown'].includes(submission.verdict?.status||'unknown'))return finishGridTest(job,{submission});
+    return job;
   }
   async function persistGridTest(job){
     if(finalizingTests.has(job.id))return;
@@ -175,7 +189,7 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
   }
   return {async handle(message){
     const type=message.type;
-    if(type==='status')return {ready:true,dataDirectory:dataDir(),version:'0.2.7',platform:'programminggrid-vscode'};
+    if(type==='status')return {ready:true,dataDirectory:dataDir(),version:'0.2.8',platform:'programminggrid-vscode'};
     if(type==='problem_display')return currentProblem();
     if(type==='judge_history'){
       const context=await getContext(validUri(message.uri),message.problemUrl);
@@ -211,12 +225,12 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
       return {type:'oj_result',id:job.id,...updated,submission:s,capture:undefined};
     }
     if(type==='grid_test_status'){
-      const job=await readGridTestRun(message.id);
+      const job=await normalizeStoredTest(await readGridTestRun(message.id));
       if(job.status==='sending'&&!activeExecutions.has(job.id))return {type:'grid_test_result',...await updateGridTestRun(job,{status:'uncertain',message:'本机连接中断；请核对网站测试记录，不会自动重复发送。'}),capture:undefined};
       return {type:'grid_test_result',...job,capture:undefined};
     }
     if(type==='grid_test_refresh'){
-      const job=await readGridTestRun(message.id);
+      const job=await normalizeStoredTest(await readGridTestRun(message.id));
       if(['uncertain','rejected'].includes(job.status)||job.submission?.detailLoaded&&!['pending','unknown'].includes(job.submission.verdict?.status||'unknown'))return {type:'grid_test_result',...job,capture:undefined};
       if(!job.receipt?.solutionId)throw new Error('网站尚未返回本次测试编号，请稍后再刷新。');
       const value=await browser('refresh_test',{problemUrl:job.browserUrl,receipt:job.receipt,code:job.capture.code,input:job.input},24000);
