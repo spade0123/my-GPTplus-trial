@@ -7,7 +7,9 @@ export async function gridJudgeRequest(problemUrl,mode,params={}){
   if(current.origin!==origin||problem.origin!==origin||!a||!b||a[1]!==b[1]||a[2]!==b[2]||problem.search||problem.hash)throw new Error('浏览器已切换题目，停止提交。');
   const endpoint=new URL('submit.do',problem);
   const read=async(url,options={})=>{
-    const response=await fetch(url,{credentials:'same-origin',redirect:'follow',...options});
+    let response;
+    try{response=await fetch(url,{credentials:'same-origin',redirect:'follow',signal:AbortSignal.timeout(12000),...options});}
+    catch(error){if(error.name==='TimeoutError')throw new Error('编程网格接口 12 秒未回应；本次是否执行尚未确认，请先核对网站记录。');throw error;}
     if(new URL(response.url).origin!==origin||response.url.includes('/login')||!response.ok)throw new Error('编程网格未返回已登录的评测接口；请检查登录状态。');
     const raw=await response.text();
     const value=(()=>{try{return JSON.parse(raw);}catch{return null;}})();
@@ -33,6 +35,7 @@ export async function gridJudgeRequest(problemUrl,mode,params={}){
   };
   let solution,id,websiteReplyRaw,detail,detailChecked=false,detailError='';
   if(mode==='submit'||mode==='test'){
+    if(params.requestExpiresAt&&params.requestExpiresAt<=Date.now())throw new Error('请求已超时，本次没有发送到网站。');
     if(typeof params.code!=='string'||params.code.length<5||params.code.length>100000)throw new Error('当前代码长度无效。');
     if(params.language!=='C++')throw new Error('目前只支持编程网格的 C++ 编译器。');
     const form=new URLSearchParams({programLanguage:params.language,sourceCode:params.code,type:'json'});
@@ -49,14 +52,16 @@ export async function gridJudgeRequest(problemUrl,mode,params={}){
   }else if(mode==='refresh'){
     id=String(params.receipt?.solutionId||'');
     if(!/^\d+$/.test(id))throw new Error('缺少本次提交编号，不能猜测评测结果。');
-    const [statusResult,detailResult]=await Promise.allSettled([
-      read(`${origin}/solution/${id}/status.do`,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8','Accept':'application/json','X-Requested-With':'XMLHttpRequest'},body:new URLSearchParams()}),
-      readDetail(id)
-    ]);
+    let statusResult;
+    const statusTask=read(`${origin}/solution/${id}/status.do`,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8','Accept':'application/json','X-Requested-With':'XMLHttpRequest'},body:new URLSearchParams()})
+      .then(value=>(statusResult={status:'fulfilled',value}),reason=>(statusResult={status:'rejected',reason}));
+    const detailResult=await readDetail(id).then(value=>({status:'fulfilled',value}),reason=>({status:'rejected',reason}));
     detailChecked=true;
     if(detailResult.status==='fulfilled')detail=detailResult.value;else detailError=String(detailResult.reason?.message||'提交详情暂不可读');
-    if(statusResult.status==='fulfilled'&&!statusResult.value.error){solution=statusResult.value.solution;websiteReplyRaw=statusResult.value.raw;if(String(solution.id)!==id)throw new Error('评测编号与本次提交不一致。');}
-    else if(detail){solution={id,result:detail.result,hint:detail.hint};websiteReplyRaw=statusResult.status==='fulfilled'?statusResult.value.raw:'';}
+    // A finished detail page must not wait for a slower status endpoint.
+    if(!detail)statusResult=await statusTask;
+    if(statusResult?.status==='fulfilled'&&!statusResult.value.error){solution=statusResult.value.solution;websiteReplyRaw=statusResult.value.raw;if(String(solution.id)!==id)throw new Error('评测编号与本次提交不一致。');}
+    else if(detail){solution={id,result:detail.result,hint:detail.hint};websiteReplyRaw=statusResult?.status==='fulfilled'?statusResult.value.raw:'';}
     else throw statusResult.status==='rejected'?statusResult.reason:new Error(statusResult.value.error);
   }else throw new Error('不支持的网站执行方式。');
   const hint=detail?.hint|| (typeof solution.hint==='string'?solution.hint:'');

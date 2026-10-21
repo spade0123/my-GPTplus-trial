@@ -5,6 +5,7 @@ import {gridJudgeRequest} from './grid-submit.js';
 const patterns=['https://programming.pku.edu.cn/*'];
 let port,ready=false,sequence=0,timer;
 const sent=new Map();
+const progress=(id,stage)=>{try{port?.postMessage({type:'browser_progress',id,stage});}catch{}};
 function info(value){
   try{const u=new URL(value),m=u.pathname.match(/^\/(?:course\/)?probset\/([a-f0-9]{32})\/([a-f0-9]{32})\/ide\.do$/i);
     return u.origin==='https://programming.pku.edu.cn'&&!u.search&&!u.hash&&m?{url:u.href,key:`${m[1].toLowerCase()}/${m[2].toLowerCase()}`} :null;
@@ -25,10 +26,12 @@ async function page(tab,code){
   return {problem:{problemMatches:true,problemUrl:expected.url,title:value.title,problem:value.problem,missingSections:value.missingSections},runtime:value.runtime,submission};
 }
 async function handle(request){
+  if(request.expiresAt&&request.expiresAt<=Date.now())throw new Error('请求已超时，本次没有继续发送到网站。');
   const tabs=(await chrome.tabs.query({url:patterns})).filter(t=>info(t.url));
   if(request.action==='tabs')return tabs.map(t=>({id:t.id,url:t.url,title:t.title,kind:'problem',active:t.active}));
-  const p=request.params||{},expected=info(p.problemUrl),tab=tabs.find(t=>t.id===(p.tabId||p.receipt?.tabId))||tabs.find(t=>info(t.url)?.key===expected?.key);
+  const p=request.params||{},expected=info(p.problemUrl),tab=tabs.find(t=>t.id===(p.tabId||p.receipt?.tabId)&&info(t.url)?.key===expected?.key)||tabs.find(t=>info(t.url)?.key===expected?.key);
   if(!expected||!tab||info(tab.url)?.key!==expected.key)throw Object.assign(new Error('题目 IDE 标签已关闭或切换，请重新关联。'),{code:'PROBLEM_CHANGED'});
+  progress(request.id,'已找到题目标签');
   if(request.action==='capture')return page(tab,p.code);
   if(request.action==='prepare_submit'){
     await page(tab);
@@ -45,11 +48,13 @@ async function handle(request){
         if(!available?.result)throw new Error(request.action==='test'?'网页测试执行按钮不可用，请在 Chrome 核对 IDE 是否已加载。':'网页提交按钮不可用，请在 Chrome 核对登录与题目开放状态。');
       }
       const mode=request.action==='submit'?'submit':request.action==='test'?'test':'refresh';
-      const [result]=await chrome.scripting.executeScript({target:{tabId:tab.id},world:'ISOLATED',func:gridJudgeRequest,args:[expected.url,mode,p]});
+      progress(request.id,'正在等待网站接口');
+      const [result]=await chrome.scripting.executeScript({target:{tabId:tab.id},world:'ISOLATED',func:gridJudgeRequest,args:[expected.url,mode,{...p,requestExpiresAt:request.expiresAt}]});
+      progress(request.id,'网站接口已返回');
       const after=await chrome.tabs.get(tab.id);
       if(info(after.url)?.key!==info(before.url)?.key)throw new Error('提交期间浏览器切换了题目，请检查网站提交记录。');
       if(!result?.result)throw new Error('未确认网站返回，请检查提交记录，不会自动重试。');
-      result.result.receipt.tabId=tab.id;
+      if(result.result.receipt)result.result.receipt.tabId=tab.id;
       return result.result;
     };
     if(request.action==='submit'||request.action==='test'){
@@ -70,6 +75,7 @@ function connect(){
     if(message.type==='bridge_ready'){ready=true;await chrome.action.setBadgeText({text:'ON'});await publish();return;}
     if(message.type==='bridge_error'){await chrome.action.setBadgeText({text:'!'});return;}
     if(message.type!=='browser_request')return;
+    progress(message.id,'Chrome 已接收请求');
     const reply={type:'browser_reply',id:message.id};try{reply.value=await handle(message);}catch(e){reply.error=e.message;reply.code=e.code;}
     try{port?.postMessage(reply);}catch{}
   });

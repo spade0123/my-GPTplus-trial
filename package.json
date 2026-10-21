@@ -1,6 +1,6 @@
 {
   "name": "programminggrid-vscode-coach-mcp",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "private": true,
   "type": "module",
   "description": "编程网格题目 IDE + VS Code C++ 学习教练",

@@ -127,7 +127,8 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
     return {...capture,runtime:{...capture.runtime,status:submission.verdict.status,text:[`编程网格正式提交 ${submission.submissionId}：${submission.platformResult||submission.verdict.status}`,raw&&`网站返回的评测与提示（原文）：\n${raw}`].filter(Boolean).join('\n\n').slice(0,20000),error:String(submission.runtime?.error||'').slice(0,20000)}};
   }
   async function finishGridTest(job,value){
-    const submission=value.submission,platformResult=String(submission?.platformResult||''),final=Boolean(submission&&platformResult&&!['Processing','Testing'].includes(platformResult));
+    if(value.submission&&!value.submission.websiteReplyRaw&&job.submission?.websiteReplyRaw)value.submission.websiteReplyRaw=job.submission.websiteReplyRaw;
+    const submission=value.submission,final=Boolean(submission&&!['pending','unknown'].includes(submission.verdict?.status||'unknown'));
     const updated=await updateGridTestRun(job,{...value,status:job.saved?'complete':final?'result_received':'pending',websiteReplyAt:new Date().toISOString()});
     if(final&&!job.saved&&submission?.detailChecked)void persistGridTest(updated);
     return updated;
@@ -147,15 +148,19 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
   }
   async function runGridTest(job){
     try{
-      const value=await browser('test',{jobId:job.id,problemUrl:job.browserUrl,code:job.capture.code,language:'C++',input:job.input},30000);
+      const value=await browser('test',{jobId:job.id,problemUrl:job.browserUrl,code:job.capture.code,language:'C++',input:job.input},30000,{onProgress:async browserStage=>{
+        const current=await readGridTestRun(job.id);if(current.status==='sending')await updateGridTestRun(current,{browserStage});
+      }});
       const timed={...value,responseMs:Date.now()-Date.parse(job.dispatchedAt)};
       if(value.error)await updateGridTestRun(await readGridTestRun(job.id),{...timed,status:'rejected',websiteReplyAt:new Date().toISOString()});
       else await finishGridTest(await readGridTestRun(job.id),timed);
-    }catch(error){await updateGridTestRun(await readGridTestRun(job.id),{status:'uncertain',error:error.message,message:'网站测试是否已执行尚未确认；请先在编程网格查看记录，不会自动重复发送。'});}
+    }catch(error){await updateGridTestRun(await readGridTestRun(job.id),{status:error.code==='PROBLEM_CHANGED'?'rejected':'uncertain',error:error.message,message:error.code==='PROBLEM_CHANGED'?'未发送到网站：'+error.message:'网站测试是否已执行尚未确认；请先在编程网格查看记录，不会自动重复发送。'});}
   }
   async function runSubmission(job){
     try{
-      const value=await browser('submit',{jobId:job.id,problemUrl:job.browserUrl,code:job.capture.code,language:job.language},30000);
+      const value=await browser('submit',{jobId:job.id,problemUrl:job.browserUrl,code:job.capture.code,language:job.language},30000,{onProgress:async browserStage=>{
+        const current=await readSubmission(job.id);if(current.status==='sending')await updateSubmission(current,{browserStage});
+      }});
       const updated=await updateSubmission(await readSubmission(job.id),{...value,status:value.error?'rejected':'submitted',websiteReplyAt:new Date().toISOString(),responseMs:Date.now()-Date.parse(job.dispatchedAt)});
       void (async()=>{
         let workerError;
@@ -166,11 +171,11 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
         try{await launchReport();}catch(error){workerError=error.message;}
         if(workerError)await updateSubmission(await readSubmission(updated.id),{workerError});
       })().catch(()=>{});
-    }catch(error){await updateSubmission(await readSubmission(job.id),{status:'uncertain',error:error.message,message:'未确认是否提交成功，请先刷新/查看记录，不会自动重试。'});}
+    }catch(error){await updateSubmission(await readSubmission(job.id),{status:error.code==='PROBLEM_CHANGED'?'rejected':'uncertain',error:error.message,message:error.code==='PROBLEM_CHANGED'?'未发送到网站：'+error.message:'未确认是否提交成功，请先刷新/查看记录，不会自动重试。'});}
   }
   return {async handle(message){
     const type=message.type;
-    if(type==='status')return {ready:true,dataDirectory:dataDir(),version:'0.2.3',platform:'programminggrid-vscode'};
+    if(type==='status')return {ready:true,dataDirectory:dataDir(),version:'0.2.4',platform:'programminggrid-vscode'};
     if(type==='problem_display')return currentProblem();
     if(type==='judge_history'){
       const context=await getContext(validUri(message.uri),message.problemUrl);
@@ -197,6 +202,7 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
     if(type==='oj_refresh'){
       const job=await readSubmission(message.id),value=await browser('refresh_submission',{problemUrl:job.browserUrl||job.capture.url,receipt:job.receipt||{},code:job.capture.code},24000);
       if(value.error){const updated=await updateSubmission(job,{detailError:value.error});return {type:'oj_result',...updated,capture:undefined};}
+      if(value.submission&&!value.submission.websiteReplyRaw&&job.submission?.websiteReplyRaw)value.submission.websiteReplyRaw=job.submission.websiteReplyRaw;
       const updated=await updateSubmission(job,{...value,status:'submitted'}),s=value.submission;
       if(s?.submittedCode?.replace(/\r\n/g,'\n').trim()===job.capture.code.replace(/\r\n/g,'\n').trim()&&!s.sourceTruncated&&s.verdict?.status&&!['pending','unknown'].includes(s.verdict.status)){
         const result=officialResultCapture(job.capture,s);
@@ -211,7 +217,7 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
     }
     if(type==='grid_test_refresh'){
       const job=await readGridTestRun(message.id);
-      if(['uncertain','rejected'].includes(job.status)||job.submission?.detailLoaded)return {type:'grid_test_result',...job,capture:undefined};
+      if(['uncertain','rejected'].includes(job.status)||job.submission?.detailLoaded&&!['pending','unknown'].includes(job.submission.verdict?.status||'unknown'))return {type:'grid_test_result',...job,capture:undefined};
       if(!job.receipt?.solutionId)throw new Error('网站尚未返回本次测试编号，请稍后再刷新。');
       const value=await browser('refresh_test',{problemUrl:job.browserUrl,receipt:job.receipt,code:job.capture.code,input:job.input},24000);
       if(value.error){const updated=await updateGridTestRun(job,{detailError:value.error});if(job.status==='result_received'&&!job.saved)void persistGridTest(updated);return {type:'grid_test_result',...updated,capture:undefined};}

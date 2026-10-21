@@ -1,7 +1,7 @@
 (()=>{
   const $=id=>document.getElementById(id),port=chrome.runtime.connect();
   let submitJobId,submitTimer,submitRefreshes=0,submitBusy=false;
-  let testJobId,testTimer,testRefreshes=0,testBusy=false,inputInitialized=false,activeKind='';
+  let testJobId,testTimer,testRefreshes=0,testBusy=false,inputInitialized=false,activeKind='',lastTest,lastSubmission;
   const send=(type,extra={})=>port.postMessage({type,...extra,actionId:crypto.randomUUID(),requestedAt:new Date().toISOString()});
   const verdictName={AC:'AC',WA:'WA',CE:'CE',TLE:'TLE',RE:'RE',MLE:'MLE',PE:'PE',OLE:'OLE'};
   function block(parent,label,text){
@@ -11,11 +11,11 @@
   function priority(kind,value){
     if(activeKind!==kind)return;
     const submission=value.submission,reply=submission?.websiteReplyRaw||value.websiteReplyRaw;
-    const raw=submission?.runtime?.text||reply||value.error||value.message||'请求已发出，等待编程网格返回原文…';
+    const raw=submission?.runtime?.text||reply||value.error||value.message||(value.browserStage?value.browserStage+'，等待编程网格返回原文…':'请求已发出，等待编程网格返回原文…');
     const verdict=verdictName[submission?.verdict?.status]||'';
     $('priorityPanel').hidden=false;$('priorityVerdict').hidden=!verdict;$('priorityVerdict').textContent=verdict;
     $('priorityVerdict').className='priority-verdict'+(verdict?' verdict-'+verdict.toLowerCase():'');
-    const label=kind==='test'?'网站测试 · '+(submission?.runtime?.text?'输出与提示原文':reply?'接口原文':'等待网站回复'):'正式提交 · '+(submission?.runtime?.text?'详情页提示原文':reply?'接口原文':'等待网站回复');
+    const label=(kind==='test'?'网站测试 · ':'正式提交 · ')+(submission?.runtime?.text?'输出与提示原文':reply?'接口原文':value.error||value.status==='uncertain'?'连接未确认':value.message&&value.status==='rejected'?'网站未接受请求':'等待网站回复');
     $('priorityLabel').textContent=label+(Number.isFinite(value.responseMs)?` · 首次回复 ${value.responseMs} ms`:'');
     $('priorityRaw').textContent=raw;
   }
@@ -56,6 +56,7 @@
     }
     if(value.type==='grid_test_result'){
       if(testJobId&&value.id!==testJobId)return;
+      lastTest=value;
       testJobId=value.id;const s=value.submission,sending=['prepared','sending'].includes(value.status),pending=sending||value.status==='pending';
       testBusy=pending;$('gridTest').disabled=testBusy;$('webTestPanel').hidden=false;$('refreshGridTest').disabled=!value.receipt?.solutionId;
       $('webTestState').textContent=value.status==='uncertain'?value.message:s?`网站测试 ${s.submissionId}：${s.platformResult||s.verdict?.status||'处理中'} · 源码 ${(value.codeHash||'').slice(0,8)}；非正式提交。`:value.error||value.message||'网站测试已发出，等待首次回复。';
@@ -77,6 +78,7 @@
     }
     if(value.type==='oj_result'){
       if(submitJobId&&value.id!==submitJobId)return;
+      lastSubmission=value;
       submitJobId=value.id;const s=value.submission,sending=['prepared','sending'].includes(value.status);
       submitBusy=sending;$('submitOJ').disabled=sending;$('refreshOJ').disabled=!value.receipt?.solutionId;$('ojPanel').hidden=false;
       $('ojState').textContent=value.status==='uncertain'?value.message:value.error|| (s?'正式提交 '+s.submissionId+'：'+(s.platformResult||s.verdict.text)+' · 源码 '+(value.codeHash||'').slice(0,8):value.message||'已发送，等待网站回复。');
@@ -94,8 +96,8 @@
       return;
     }
     if(value.type==='error'&&['grid_test','grid_test_status','grid_test_refresh','oj_submit','oj_status','oj_refresh'].includes(value.requestType)){
-      if(value.requestType.startsWith('grid_test')){testBusy=false;$('gridTest').disabled=false;$('refreshGridTest').disabled=!testJobId;$('webTestState').textContent=value.error;if(activeKind==='test')priority('test',{error:value.error});}
-      else{submitBusy=false;$('submitOJ').disabled=false;$('refreshOJ').disabled=!submitJobId;$('ojState').textContent=value.error;if(activeKind==='submit')priority('submit',{error:value.error});}
+      if(value.requestType.startsWith('grid_test')){testBusy=false;$('gridTest').disabled=false;$('refreshGridTest').disabled=!testJobId;$('webTestState').textContent=value.error;if(activeKind==='test'&&!(value.requestType==='grid_test_refresh'&&lastTest?.submission))priority('test',{error:value.error});}
+      else{submitBusy=false;$('submitOJ').disabled=false;$('refreshOJ').disabled=!submitJobId;$('ojState').textContent=value.error;if(activeKind==='submit'&&!(value.requestType==='oj_refresh'&&lastSubmission?.submission))priority('submit',{error:value.error});}
     }
   }
   port.onMessage.addListener(handleMessage);

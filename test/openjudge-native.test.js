@@ -21,6 +21,8 @@ test('independent Windows native bridge rejects other origins and relays only ex
     const id=randomUUID(),file=path.join(dir,'browser-bridge/requests',id+'.json');
     await fs.writeFile(file,JSON.stringify({id,action:'tabs',params:{},expiresAt:Date.now()+5000}));
     const request=await until(()=>messages.find(m=>m.type==='browser_request'&&m.id===id));assert.equal(request.action,'tabs');
+    child.stdin.write(frame({type:'browser_progress',id,stage:'Chrome 已接收请求'}));
+    await until(()=>fs.readFile(path.join(dir,'browser-bridge/progress',id+'.json'),'utf8').then(JSON.parse).then(value=>value.stage==='Chrome 已接收请求').catch(()=>false));
     child.stdin.write(frame({type:'browser_reply',id,value:[{id:1,url:'http://noi.openjudge.cn/ch0101/10/'}]}));
     const response=await until(()=>fs.readFile(path.join(dir,'browser-bridge/responses',id+'.json'),'utf8').then(JSON.parse).catch(()=>null));assert.equal(response.value[0].id,1);
     assert.equal((await fs.readdir(dir)).some(name=>/^[a-f0-9]{64}\.json$/.test(name)),false);

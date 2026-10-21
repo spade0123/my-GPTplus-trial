@@ -3,7 +3,7 @@
   "displayName": "北大编程网格 · C++ 学习教练",
   "description": "Chrome 连接编程网格，VS Code 读取当前 C++ 并提供保存、提示、交流、网站测试与正式提交。",
   "publisher": "local-coach",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "license": "UNLICENSED",
   "engines": {
     "vscode": "^1.96.0"
