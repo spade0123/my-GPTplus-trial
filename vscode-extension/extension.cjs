@@ -30,7 +30,8 @@ function activate(context){
   function sourceFor(state){
     const active=vscode.window.activeTextEditor;
     if(active&&(!isCpp(active.document)||state&&active.document.uri.toString()!==state.uri))throw new Error('已切换源码文件，请从目标题目的三个按钮重新打开教练。');
-    const editor=active||lastSource;
+    const visible=vscode.window.visibleTextEditors.filter(editor=>isCpp(editor.document));
+    const editor=active||(isCpp(lastSource?.document)?lastSource:undefined)||(state?visible.find(editor=>editor.document.uri.toString()===state.uri):visible.length===1?visible[0]:undefined);
     if(!isCpp(editor?.document)||state&&editor.document.uri.toString()!==state.uri)throw new Error('请先打开或选中你正在写的 C++ 文件。');
     lastSource=editor;
     const doc=editor.document;
@@ -180,7 +181,7 @@ function activate(context){
   const safe=fn=>async()=>{try{return await fn();}catch(e){output.appendLine(e.message);void vscode.window.showErrorMessage(e.message);}};
   for(const [label,command,fn,priority]of [['网格·保存','quickSave',quickSave,1004],['网格·评测','judge',openJudge,1003],['网格·提示','hint',()=>open('hint'),1002],['网格·交流','discussion',()=>open('discussion'),1001]]){
     context.subscriptions.push(vscode.commands.registerCommand('gridCoach.'+command,safe(fn)));
-    const button=vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right,priority);button.text=label;button.tooltip='编程网格 C++ 教练：'+label;button.command='gridCoach.'+command;button.name='编程网格 '+label;buttons.push(button);context.subscriptions.push(button);
+    const button=vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right,priority);button.text=label;button.tooltip='编程网格 C++ 教练：'+label;button.command='gridCoach.'+command;button.name='编程网格 '+label;button.show();buttons.push(button);context.subscriptions.push(button);
   }
   context.subscriptions.push(vscode.commands.registerCommand('gridCoach.bindProblem',safe(()=>bind(sourceFor()))),vscode.commands.registerCommand('gridCoach.showRecords',safe(showRecords)),vscode.commands.registerCommand('gridCoach.organizeProjectByDate',safe(organizeProjectByDate)));
   const organizeButton=vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right,1000);
@@ -191,7 +192,7 @@ function activate(context){
     const chosen=await vscode.window.showOpenDialog({canSelectFolders:true,canSelectFiles:false,canSelectMany:false,openLabel:'选择 编程网格 新版目录'});if(!chosen)return;
     await fs.access(path.join(chosen[0].fsPath,'src/vscode-host.js'));await fs.mkdir(context.globalStorageUri.fsPath,{recursive:true});await fs.writeFile(path.join(context.globalStorageUri.fsPath,'backend.json'),JSON.stringify({backendPath:chosen[0].fsPath}));rpc?.dispose();rpc=null;await backend();
   })));
-  const update=editor=>{if(isCpp(editor?.document))lastSource=editor;for(const button of buttons)if(isCpp(editor?.document)||!editor&&[...panels.values(),...judgePanels.values()].some(s=>s.panel.active))button.show();else button.hide();};
+  const update=editor=>{if(isCpp(editor?.document))lastSource=editor;};
   context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(update));update(vscode.window.activeTextEditor);
   context.subscriptions.push({dispose(){rpc?.dispose();for(const state of [...panels.values(),...judgePanels.values()])state.panel.dispose();}});
   void backend().then(client=>client.request({type:'problem_display'})).then(value=>statementView.accept(value)).catch(e=>output.appendLine(e.message));

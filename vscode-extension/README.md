@@ -7,7 +7,7 @@
 1. 安装 Node.js 22+、G++、已登录的 Codex，以及桌面版 VS Code 和 Chrome。在本项目根目录运行 `npm ci --ignore-scripts`。
 2. 在本项目根目录运行 `powershell -ExecutionPolicy Bypass -File .\install-grid.ps1`。需要时可指定 `-NodePath`、`-CodexPath`、`-CompilerPath`。它注册独立的 `edu.pku.grid_vscode_coach` 本机连接，不会覆盖 OpenJudge 连接。
 3. 在 Chrome 扩展管理页打开开发者模式，选择“加载已解压的扩展程序”，选择本项目的 `extension/` 目录；如果已加载，更新源码后点“重新加载”。在 Chrome 自己登录编程网格并打开具体题目的 `/ide.do` 页面，点击“编程网格 · VS Code 连接”图标。
-4. 在 VS Code 里通过“从 VSIX 安装”选择 `dist/pku-grid-cpp-coach-0.2.5.vsix`，打开 C++ 文件。如果安装后没有看到“网格·保存 / 网格·评测 / 网格·提示 / 网格·交流”，重新加载 VS Code 窗口。旧 OpenJudge 插件是另一项安装，不影响这一项的名称。
+4. 在 VS Code 里通过“从 VSIX 安装”选择 `dist/pku-grid-cpp-coach-0.2.6.vsix`，重新加载 VS Code 窗口。状态栏固定显示“网格·保存 / 网格·评测 / 网格·提示 / 网格·交流”；点击时核对当前 C++ 文件。重载后焦点停在面板时，若只有一个可见的 C++ 编辑器，会恢复该源码来源；多个来源时请先选中目标文件。旧 OpenJudge 插件是另一项安装，不影响这一项的名称。
 
 ## 它怎样工作
 
