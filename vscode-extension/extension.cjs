@@ -8,9 +8,35 @@ function activate(context){
   let rpc,opening,lastSource;const panels=new Map(),judgePanels=new Map(),buttons=[];
   const output=vscode.window.createOutputChannel('编程网格 学习教练');context.subscriptions.push(output);
   const statementView=new ProblemView(context);
+  const settings=()=>vscode.workspace.getConfiguration('gridCoach');
+  const aiSettings=()=>({model:settings().get('ai.model','gpt-6-luna'),effort:settings().get('ai.effort','low')});
+  const verdictSettings=()=>Object.fromEntries(['AC','WA','CE','TLE','RE','MLE','PE','OLE'].map(code=>[code,{
+    text:settings().get(`verdicts.${code}.text`,''),fontSize:settings().get(`verdicts.${code}.fontSize`,0),color:settings().get(`verdicts.${code}.color`,'')
+  }]));
+  async function selectModel(){
+    const current=aiSettings();
+    const choice=await vscode.window.showQuickPick([
+      {label:'GPT-6 Luna',description:'gpt-6-luna · 日常学习，默认',model:'gpt-6-luna'},
+      {label:'GPT-6.1 Sol',description:'gpt-6.1-sol',model:'gpt-6.1-sol'},
+      {label:'GPT-6 Astra',description:'gpt-6-astra',model:'gpt-6-astra'},
+      {label:'自定义模型 ID',description:`当前：${current.model}`,model:null}
+    ],{title:'编程网格：选择 AI 模型（1/2）',placeHolder:'由当前 Codex 登录账号调用，模型可用性取决于账号'});
+    if(!choice)return;
+    const model=choice.model??await vscode.window.showInputBox({title:'自定义模型 ID',value:current.model,validateInput:value=>/^[a-zA-Z0-9][a-zA-Z0-9._:/-]{0,119}$/.test(value.trim())?undefined:'请输入有效模型 ID，例如 gpt-6-luna'});
+    if(!model)return;
+    const efforts=['low','medium','high','xhigh','max'];if(!['gpt-6.1-sol','gpt-6-astra','gpt-6-sol'].includes(model.trim()))efforts.unshift('none');
+    const effort=await vscode.window.showQuickPick(efforts.map(value=>({label:value,description:value===current.effort?'当前强度':value==='low'?'优先速度':value==='none'?'不额外推理':'增加分析，可能更慢且消耗更多额度'})),{title:'编程网格：选择推理强度（2/2）',placeHolder:'自定义模型请在设置中指定其支持的强度'});
+    if(!effort)return;
+    // Application settings stay in the local user profile, never the shared repository.
+    if(current.effort==='none'&&model!=='gpt-6-luna')await settings().update('ai.effort','low',vscode.ConfigurationTarget.Global);
+    await settings().update('ai.model',model.trim(),vscode.ConfigurationTarget.Global);
+    await settings().update('ai.effort',effort.label,vscode.ConfigurationTarget.Global);
+    await (await backend()).request({type:'configure_ai',settings:aiSettings()});
+    void vscode.window.showInformationMessage(`AI 已设为 ${model.trim()} / ${effort.label}；从下一次请求生效。`);
+  }
   async function backend(){
-    if(rpc&&!rpc.closed)return rpc;
     if(opening)return opening;
+    if(rpc&&!rpc.closed)return rpc;
     opening=(async()=>{
       if(!vscode.workspace.isTrusted)throw new Error('请先在可信的 C++ 工作区使用学习教练。');
       let local={};try{local=JSON.parse(await fs.readFile(path.join(context.globalStorageUri.fsPath,'backend.json'),'utf8'));}catch{}
@@ -24,7 +50,9 @@ function activate(context){
       if(config.variant!=='programminggrid-vscode')throw new Error('所选目录不是独立的 编程网格 版本，不会使用或覆盖原北大插件。');
       let node=local.nodePath||'';
       if(!node)node=(await fs.readFile(path.join(root,'native/node-path.txt'),'utf8')).trim();
-      rpc=new RpcClient(node,root,why=>output.appendLine(why),event=>{if(event.event==='problem_display')void statementView.accept(event.value).catch(e=>output.appendLine(e.message));});rpc.root=root;await rpc.request({type:'status'});return rpc;
+      rpc=new RpcClient(node,root,why=>output.appendLine(why),event=>{if(event.event==='problem_display')void statementView.accept(event.value).catch(e=>output.appendLine(e.message));});rpc.root=root;await rpc.request({type:'status'});
+      try{await rpc.request({type:'configure_ai',settings:aiSettings()});}catch(error){output.appendLine('AI 设置未同步：'+error.message);}
+      return rpc;
     })().finally(()=>opening=null);return opening;
   }
   function sourceFor(state){
@@ -109,6 +137,8 @@ function activate(context){
         state.panel.dispose();const doc=vscode.workspace.textDocuments.find(d=>d.uri.toString()===state.uri);
         if(doc)await vscode.window.showTextDocument(doc,{viewColumn:state.sourceColumn,preserveFocus:false});return;
       }
+      if(message.type==='open_settings')return vscode.commands.executeCommand('workbench.action.openSettings','@ext:local-coach.pku-grid-cpp-coach');
+      if(message.type==='judge_ready')await reply({type:'judge_settings',settings:verdictSettings()});
       const client=await backend();
       if(message.type==='judge_ready'){
         const [saved,history]=await Promise.all([
@@ -137,6 +167,7 @@ function activate(context){
       if(!['hint_status','assist_history','hint','discuss','quick_save','grid_test','grid_test_status','grid_test_refresh','oj_prepare','oj_submit','oj_status','oj_refresh'].includes(message.type))throw new Error('不支持的界面操作。');
       const request={type:message.type,uri:state.uri,problemUrl:state.problemUrl,language:message.language,input:message.input,actionId:message.actionId,id:message.id,question:message.question,purpose:message.purpose,requestedAt:message.requestedAt};
       if(!['hint_status','grid_test_status','grid_test_refresh','oj_prepare','oj_status','oj_refresh'].includes(message.type))request.source=sourceFor(state);
+      if(['hint','discuss','quick_save'].includes(message.type))await client.request({type:'configure_ai',settings:aiSettings()});
       const result=await client.request(request);
       if(result.context){
         const selected=result.context;
@@ -150,6 +181,7 @@ function activate(context){
     }
   }
   async function open(mode){
+    await (await backend()).request({type:'configure_ai',settings:aiSettings()});
     const source=sourceFor(),selected=await ensureBinding(source);if(!selected)return;
     const saving=mode==='hint'?(await backend()).request({type:'hint_open',source,problemUrl:selected.binding.problemUrl,actionId:randomUUID(),requestedAt:new Date().toISOString()}).then(result=>({result}),error=>({error})):null;
     let state=panels.get(source.uri);
@@ -174,6 +206,7 @@ function activate(context){
     panel.webview.html=await judgeHtml(panel.webview);
   }
   async function quickSave(){
+    await (await backend()).request({type:'configure_ai',settings:aiSettings()});
     const source=sourceFor(),selected=await ensureBinding(source);if(!selected)return;
     const result=await (await backend()).request({type:'quick_save',source,problemUrl:selected.binding.problemUrl,actionId:randomUUID(),requestedAt:new Date().toISOString()});
     vscode.window.setStatusBarMessage(result.workerError?'源码已保存；后台启动失败，请查看 编程网格 输出。':source.name+' 已保存，后台继续分析。',3500);
@@ -192,6 +225,20 @@ function activate(context){
     const chosen=await vscode.window.showOpenDialog({canSelectFolders:true,canSelectFiles:false,canSelectMany:false,openLabel:'选择 编程网格 新版目录'});if(!chosen)return;
     await fs.access(path.join(chosen[0].fsPath,'src/vscode-host.js'));await fs.mkdir(context.globalStorageUri.fsPath,{recursive:true});await fs.writeFile(path.join(context.globalStorageUri.fsPath,'backend.json'),JSON.stringify({backendPath:chosen[0].fsPath}));rpc?.dispose();rpc=null;await backend();
   })));
+  context.subscriptions.push(vscode.commands.registerCommand('gridCoach.selectModel',safe(selectModel)),
+    vscode.commands.registerCommand('gridCoach.openSettings',()=>vscode.commands.executeCommand('workbench.action.openSettings','@ext:local-coach.pku-grid-cpp-coach')));
+  const modelButton=vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right,999);
+  modelButton.command='gridCoach.selectModel';modelButton.name='编程网格 AI 模型与强度';
+  const updateModelButton=()=>{const value=aiSettings();modelButton.text=`网格·AI ${value.model.replace(/^gpt-/, '')} / ${value.effort}`;modelButton.tooltip='选择 AI 模型与推理强度（提示、交流、后台报告）';modelButton.show();};
+  let configTimer;
+  context.subscriptions.push(modelButton,vscode.workspace.onDidChangeConfiguration(event=>{
+    if(!event.affectsConfiguration('gridCoach'))return;
+    for(const state of judgePanels.values())void state.panel.webview.postMessage({type:'judge_settings',settings:verdictSettings()});
+    updateModelButton();
+    if(event.affectsConfiguration('gridCoach.ai')){
+      clearTimeout(configTimer);configTimer=setTimeout(()=>{void safe(async()=>{await (await backend()).request({type:'configure_ai',settings:aiSettings()});})();},200);
+    }
+  }),{dispose(){clearTimeout(configTimer);}});updateModelButton();
   const update=editor=>{if(isCpp(editor?.document))lastSource=editor;};
   context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(update));update(vscode.window.activeTextEditor);
   context.subscriptions.push({dispose(){rpc?.dispose();for(const state of [...panels.values(),...judgePanels.values()])state.panel.dispose();}});

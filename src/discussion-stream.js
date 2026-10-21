@@ -3,6 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {spawn} from 'node:child_process';
 import {createInterface} from 'node:readline';
+import {readModelSettings} from './model-settings.js';
 import {discussionContext,DISCUSSION_GUIDE} from './discussion-context.js';
 
 // One private stdio connection per worker; each request has an ephemeral thread.
@@ -63,7 +64,7 @@ export class DiscussionStream {
       clearTimeout(active.timer);this.active.delete(p.threadId);
       const text=[...active.items.values()].join('\n\n').trim();
       if(p.turn?.status==='completed'&&text)active.resolve({answer:text,next_step:''});
-      else active.reject(new Error(p.turn?.status==='interrupted'?'交流回复已中断；已生成的部分仍保留。':'交流模型未完成回复；问题和源码已保存，可重试。'));
+      else active.reject(new Error(p.turn?.status==='interrupted'?'交流回复已中断；已生成的部分仍保留。':'交流模型未完成回复；请检查所选模型、强度与账号权限。'+(this.lastModelError?' '+this.lastModelError.slice(0,500):'')));
     }
   }
   progress(active){
@@ -71,16 +72,20 @@ export class DiscussionStream {
     if(text===active.text)return;active.text=text;
     try{const result=active.onDelta?.(text);result?.catch?.(()=>{});}catch{}
   }
-  async createThread(){
+  async createThread(settings){
+    settings ||= await readModelSettings();
     await this.open();
-    const start=await this.rpc('thread/start',{model:process.env.PKU_MODEL||'gpt-6.1-sol',cwd:this.cwd,approvalPolicy:'never',sandbox:'read-only',ephemeral:true,baseInstructions:this.guide,developerInstructions:'本服务只回答用户代码问题，禁止使用任何工具。',config:{mcp_servers:this.disabledServers},serviceTier:'default'});
+    const start=await this.rpc('thread/start',{model:settings.model,cwd:this.cwd,approvalPolicy:'never',sandbox:'read-only',ephemeral:true,baseInstructions:this.guide,developerInstructions:'本服务只回答用户代码问题，禁止使用任何工具。',config:{mcp_servers:this.disabledServers},serviceTier:'default'});
     const threadId=start.thread?.id;
     if(!threadId||start.thread.ephemeral!==true||start.sandbox?.type!=='readOnly')throw new Error('交流会话未满足临时只读要求，已停止发送源码。');
-    return start;
+    return {...start,modelSettings:settings};
   }
   async warm(){if(!this.prepared)this.prepared=await this.createThread();}
   async run(evidence,{onDelta,timeoutMs=this.timeoutMs}={}){
-    const start=this.prepared||await this.createThread();this.prepared=null;
+    const settings=await readModelSettings();
+    // A warmed thread belongs to its original model. Never mix it with new settings.
+    const prepared=this.prepared;this.prepared=null;
+    const start=prepared&&JSON.stringify(prepared.modelSettings)===JSON.stringify(settings)?prepared:await this.createThread(settings);
     const threadId=start.thread.id;
     return new Promise((resolve,reject)=>{
       const timer=setTimeout(()=>{
@@ -88,8 +93,9 @@ export class DiscussionStream {
         this.active.delete(threadId);this.rpc('turn/interrupt',{threadId,turnId:current.turnId||''}).catch(()=>{});
         reject(new Error(`${this.label}模型超过 ${Math.ceil(timeoutMs/1000)} 秒未完成；已生成内容、问题和源码已保存，可稍后重试。`));
       },timeoutMs);
+      this.lastModelError='';
       const active={resolve,reject,timer,onDelta,items:new Map(),text:''};this.active.set(threadId,active);
-      this.rpc('turn/start',{threadId,input:[{type:'text',text:JSON.stringify(this.context(evidence)),text_elements:[]}],model:process.env.PKU_MODEL||'gpt-6.1-sol',effort:'low',summary:'none',approvalPolicy:'never',sandboxPolicy:{type:'readOnly'},serviceTierForTurn:'default'}).then(result=>{active.turnId=result.turn?.id;},error=>{clearTimeout(timer);this.active.delete(threadId);reject(error);});
+      this.rpc('turn/start',{threadId,input:[{type:'text',text:JSON.stringify(this.context(evidence)),text_elements:[]}],model:settings.model,effort:settings.effort,summary:'none',approvalPolicy:'never',sandboxPolicy:{type:'readOnly'},serviceTierForTurn:'default'}).then(result=>{active.turnId=result.turn?.id;},error=>{clearTimeout(timer);this.active.delete(threadId);reject(error);});
     });
   }
   fail(error){

@@ -7,7 +7,7 @@
 1. 安装 Node.js 22+、G++、已登录的 Codex，以及桌面版 VS Code 和 Chrome。在本项目根目录运行 `npm ci --ignore-scripts`。
 2. 在本项目根目录运行 `powershell -ExecutionPolicy Bypass -File .\install-grid.ps1`。需要时可指定 `-NodePath`、`-CodexPath`、`-CompilerPath`。它注册独立的 `edu.pku.grid_vscode_coach` 本机连接，不会覆盖 OpenJudge 连接。
 3. 在 Chrome 扩展管理页打开开发者模式，选择“加载已解压的扩展程序”，选择本项目的 `extension/` 目录；如果已加载，更新源码后点“重新加载”。在 Chrome 自己登录编程网格并打开具体题目的 `/ide.do` 页面，点击“编程网格 · VS Code 连接”图标。
-4. 在 VS Code 里通过“从 VSIX 安装”选择 `dist/pku-grid-cpp-coach-0.2.8.vsix`，重新加载 VS Code 窗口。状态栏固定显示“网格·保存 / 网格·评测 / 网格·提示 / 网格·交流”；点击时核对当前 C++ 文件。重载后焦点停在面板时，若只有一个可见的 C++ 编辑器，会恢复该源码来源；多个来源时请先选中目标文件。旧 OpenJudge 插件是另一项安装，不影响这一项的名称。
+4. 在 VS Code 里通过“从 VSIX 安装”选择 `dist/pku-grid-cpp-coach-0.2.9.vsix`，重新加载 VS Code 窗口。状态栏固定显示“网格·保存 / 网格·评测 / 网格·提示 / 网格·交流”；点击时核对当前 C++ 文件。重载后焦点停在面板时，若只有一个可见的 C++ 编辑器，会恢复该源码来源；多个来源时请先选中目标文件。旧 OpenJudge 插件是另一项安装，不影响这一项的名称。
 
 ## 它怎样工作
 
@@ -44,3 +44,28 @@ Chrome 负责读取题目网页；VS Code 负责读取当前编辑器内的完�
 新使用者先读[主仓库安装与使用说明](../README.md)。组件职责、空输入和省略输入的差别、结果如何回传，见[架构与数据流](../docs/programminggrid-architecture.md)；版本变化见[更新日志](../CHANGELOG.md)。
 
 编程网格公开的 [`ide-submit-15.js`](https://programming.pku.edu.cn/static/ide-submit-15.js) 确认了 `stdin` 区分测试与提交、使用 `submit.do` 发送以及按编号查询 `/solution/{id}/status.do` 的流程；空 `stdin` 的原生测试表单还由使用者在 Network 中实际核对。提交详情页按 `/solution/{id}/` 读取。使用者手动验证过网站回传；开发检查使用隔离记录与模拟回复，没有替使用者操作网站提交。当前针对网格的 14 项本地检查通过。页面会立即显示等待状态，最终原文到达时间仍取决于网站和 Chrome 连接，“首次回复”耗时不表示最终评测耗时。
+
+
+## AI 模型与判定外观（0.2.9）
+
+- 点击状态栏 **网格·AI**，或执行 **编程网格：选择 AI 模型与推理强度**，先选模型再选强度。取消任一步都不保存本次选择。
+- 默认 **GPT-6 Luna / low**。列表提供 Luna、Sol、Astra 和自定义模型 ID；强度有 low、medium、high、xhigh、max，Luna 与自定义模型还可选 none（需模型支持）。
+- 提示、交流、保存后的后台报告统一使用这组配置，从下次请求生效；已在生成的回复继续使用原配置。不自动换模型重试。模型和强度可用性取决于当前 Codex 登录账号与服务端。
+- 执行 **编程网格：打开插件设置**，或点评测页底部设置按钮，可分别修改 AC、WA、CE、TLE、RE、MLE、PE、OLE 大字头的 **文字、字号、颜色**，已打开的评测页立即更新。
+- 文字留空保留网站完整判定名；字号 0 使用原有自适应字号，其他数字按 px（最大 200）；颜色留空保留默认色，或填写 `#e87863` 等十六进制颜色。只改变大字头，网站原文保持原样。
+- 配置保存在 VS Code 用户设置，不写入共享项目。AI 配置同步到本机私有 `data/coach-model-settings.json`，工作进程每次请求前读取。独立命令行未有此文件时，可用 `PKU_MODEL`、`PKU_MODEL_EFFORT` 环境变量，最后回退 Luna / low。
+- 本次 Chrome 仍为 0.2.7，无需重新加载 Chrome。
+
+用户设置 JSON 示例（也可以直接使用设置界面的输入框）：
+
+```json
+{
+  "gridCoach.ai.model": "gpt-6-luna",
+  "gridCoach.ai.effort": "low",
+  "gridCoach.verdicts.WA.text": "Wrong Answer",
+  "gridCoach.verdicts.WA.fontSize": 64,
+  "gridCoach.verdicts.WA.color": "#e87863"
+}
+```
+
+本次未进行真实模型测速，不承诺固定额度节省比例。模型 ID 参考 [OpenAI 官方模型目录](https://developers.openai.com/api/docs/models)。

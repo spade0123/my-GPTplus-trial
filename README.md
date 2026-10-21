@@ -56,7 +56,7 @@ Chrome 打开题目的 `.../probset/<题集ID>/<题目ID>/ide.do` 页面，点�
 
 3. Chrome 打开 `chrome://extensions`，开启开发者模式，加载项目的 **`extension/`** 目录。自己登录编程网格并打开具体题目 IDE，点击连接图标。
 
-4. VS Code 执行“扩展：从 VSIX 安装”，选择 [pku-grid-cpp-coach-0.2.8.vsix](dist/pku-grid-cpp-coach-0.2.8.vsix)，然后运行 **Developer: Reload Window**。
+4. VS Code 执行“扩展：从 VSIX 安装”，选择 [pku-grid-cpp-coach-0.2.9.vsix](dist/pku-grid-cpp-coach-0.2.9.vsix)，然后运行 **Developer: Reload Window**。
 
 5. 打开 C++ 文件，点击“网格·评测”。需要关联或更换题目时，使用评测页底部的“题目连接与本机记录”。
 
@@ -86,7 +86,7 @@ VS Code 读取点击时编辑器里的完整缓冲区，包括尚未写入文件
 
 - **更新 VS Code 扩展后**：安装新 VSIX，运行 Developer: Reload Window。
 - **更新 Chrome 连接代码后**：在扩展管理页重新加载连接扩展；需要时在题目页再次点击图标连接。
-- **只有 VS Code 界面或本机服务更新时**：按该次更新说明操作，无需每次都重载 Chrome。当前 VS Code/本机程序为 0.2.8，Chrome 连接清单为 0.2.7。
+- **只有 VS Code 界面或本机服务更新时**：按该次更新说明操作，无需每次都重载 Chrome。当前 VS Code/本机程序为 0.2.9，Chrome 连接清单为 0.2.7。
 - **显示上次的手工测试**：顶部会标明“上次记录”；默认测试方式仍是网格判题。点击测试按钮才会发送新的测试。
 - **题目标签已关闭或切换**：打开正确题目的 IDE，重新从目标 C++ 文件打开评测页，必要时更换关联。
 - **请求超时或未确认**：先核对网站记录，再决定下一步。界面会显示最后阶段和可获得的具体错误；不要把未确认当作成功。
@@ -115,7 +115,7 @@ VS Code 读取点击时编辑器里的完整缓冲区，包括尚未写入文件
 ```powershell
 npm run build:vscode
 cd vscode-extension
-npx --yes @vscode/vsce package --no-dependencies --skip-license --out ../dist/pku-grid-cpp-coach-0.2.8.vsix
+npx --yes @vscode/vsce package --no-dependencies --skip-license --out ../dist/pku-grid-cpp-coach-0.2.9.vsix
 ```
 
 这轮维护使用以下针对网格的检查，14 项通过：
@@ -135,3 +135,28 @@ node --test test/grid-feedback.test.js test/grid-statusbar.test.js test/openjudg
 - [OpenJudge 独立版本](https://github.com/spade0123/my-GPTplus-trial/tree/openjudge-vscode)
 - [旧版网页集成历史说明](docs/browser-legacy-1.6.2.md)
 - [Naiwa 宠物资料与使用教程](naiwa/README.md)
+
+
+## AI 模型与判定外观（0.2.9）
+
+- 点击状态栏 **网格·AI**，或执行 **编程网格：选择 AI 模型与推理强度**，先选模型再选强度。取消任一步都不保存本次选择。
+- 默认 **GPT-6 Luna / low**。列表提供 Luna、Sol、Astra 和自定义模型 ID；强度有 low、medium、high、xhigh、max，Luna 与自定义模型还可选 none（需模型支持）。
+- 提示、交流、保存后的后台报告统一使用这组配置，从下次请求生效；已在生成的回复继续使用原配置。不自动换模型重试。模型和强度可用性取决于当前 Codex 登录账号与服务端。
+- 执行 **编程网格：打开插件设置**，或点评测页底部设置按钮，可分别修改 AC、WA、CE、TLE、RE、MLE、PE、OLE 大字头的 **文字、字号、颜色**，已打开的评测页立即更新。
+- 文字留空保留网站完整判定名；字号 0 使用原有自适应字号，其他数字按 px（最大 200）；颜色留空保留默认色，或填写 `#e87863` 等十六进制颜色。只改变大字头，网站原文保持原样。
+- 配置保存在 VS Code 用户设置，不写入共享项目。AI 配置同步到本机私有 `data/coach-model-settings.json`，工作进程每次请求前读取。独立命令行未有此文件时，可用 `PKU_MODEL`、`PKU_MODEL_EFFORT` 环境变量，最后回退 Luna / low。
+- 本次 Chrome 仍为 0.2.7，无需重新加载 Chrome。
+
+用户设置 JSON 示例（也可以直接使用设置界面的输入框）：
+
+```json
+{
+  "gridCoach.ai.model": "gpt-6-luna",
+  "gridCoach.ai.effort": "low",
+  "gridCoach.verdicts.WA.text": "Wrong Answer",
+  "gridCoach.verdicts.WA.fontSize": 64,
+  "gridCoach.verdicts.WA.color": "#e87863"
+}
+```
+
+本次未进行真实模型测速，不承诺固定额度节省比例。模型 ID 参考 [OpenAI 官方模型目录](https://developers.openai.com/api/docs/models)。
