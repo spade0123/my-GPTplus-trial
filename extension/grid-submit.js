@@ -1,5 +1,7 @@
 // Runs in Chrome's isolated world. The logged-in browser sends its own session cookie.
 export async function gridJudgeRequest(problemUrl,mode,params={}){
+  let phase='核对题目地址',requestStarted=false,receivedRaw='';
+  try{
   const origin='https://programming.pku.edu.cn';
   const current=new URL(location.href),problem=new URL(problemUrl);
   const match=path=>path.match(/^\/(?:course\/)?probset\/([a-f0-9]{32})\/([a-f0-9]{32})\/ide\.do$/i);
@@ -10,14 +12,16 @@ export async function gridJudgeRequest(problemUrl,mode,params={}){
     let response;
     try{response=await fetch(url,{credentials:'same-origin',redirect:'follow',signal:AbortSignal.timeout(12000),...options});}
     catch(error){if(error.name==='TimeoutError')throw new Error('编程网格接口 12 秒未回应；本次是否执行尚未确认，请先核对网站记录。');throw error;}
-    if(new URL(response.url).origin!==origin||response.url.includes('/login')||!response.ok)throw new Error('编程网格未返回已登录的评测接口；请检查登录状态。');
     const raw=await response.text();
+    receivedRaw=raw;
+    if(new URL(response.url).origin!==origin||response.url.includes('/login')||!response.ok)return {error:'编程网格未返回已登录的评测接口（HTTP '+response.status+'）；请检查登录状态。',raw};
     const value=(()=>{try{return JSON.parse(raw);}catch{return null;}})();
-    if(!value||typeof value!=='object')throw new Error('编程网格返回格式无法识别，可能需要重新登录。');
+    if(!value||typeof value!=='object')return {error:'编程网格返回了非 JSON 内容，原文已保留。',raw};
     if(value.status!=='OK'||value.type!=='solution'||!value.solution||value.solution.id==null)return {error:String(value.text||'编程网格未确认执行。'),raw};
     return {solution:value.solution,raw};
   };
   const statusMap={Passed:'AC',Accepted:'AC',WrongAnswer:'WA','Wrong Answer':'WA',CompileError:'CE','Compile Error':'CE',RuntimeError:'RE','Runtime Error':'RE',TimeOut:'TLE','Time Limit Exceeded':'TLE',OutOfMemory:'MLE','Memory Limit Exceeded':'MLE',OutputExceeded:'OLE','Output Limit Exceeded':'OLE',EmptyOutput:'WA',Processing:'pending',Testing:'pending',Pending:'pending',WaitTimeOut:'system_error',SystemError:'system_error',NoProblem:'system_error',NoTestData:'system_error'};
+  const validId=value=>/^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/.test(value);
   const readDetail=async id=>{
     const url=`${origin}/solution/${id}/`;
     const response=await fetch(url,{method:'GET',credentials:'same-origin',redirect:'error',signal:AbortSignal.timeout(3500)});
@@ -44,14 +48,17 @@ export async function gridJudgeRequest(problemUrl,mode,params={}){
       if(typeof params.input!=='string'||params.input.length>20000)throw new Error('网站测试输入无效或超过 20000 字。');
       form.set('stdin',params.input);
     }
+    phase='调用编程网格执行接口';requestStarted=true;
     const reply=await read(endpoint.href,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8','Accept':'application/json','X-Requested-With':'XMLHttpRequest'},body:form});
     if(reply.error)return {error:reply.error,websiteReplyRaw:reply.raw};
     solution=reply.solution;websiteReplyRaw=reply.raw;
+    phase='读取网站返回的执行编号';
     id=String(solution.id);
-    if(!/^\d+$/.test(id))throw new Error('编程网格返回的测试或提交编号无效，请在网站核对记录。');
+    if(!validId(id))throw new Error('编程网格返回的测试或提交编号格式无法识别，网站原文已保留。');
   }else if(mode==='refresh'){
+    phase='查询本次网站评测';
     id=String(params.receipt?.solutionId||'');
-    if(!/^\d+$/.test(id))throw new Error('缺少本次提交编号，不能猜测评测结果。');
+    if(!validId(id))throw new Error('缺少有效的本次提交编号，不能猜测评测结果。');
     let statusResult;
     const statusTask=read(`${origin}/solution/${id}/status.do`,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8','Accept':'application/json','X-Requested-With':'XMLHttpRequest'},body:new URLSearchParams()})
       .then(value=>(statusResult={status:'fulfilled',value}),reason=>(statusResult={status:'rejected',reason}));
@@ -69,4 +76,9 @@ export async function gridJudgeRequest(problemUrl,mode,params={}){
   const verdict={status:statusMap[result]||'unknown',text:[result,hint.slice(0,1500)].filter(Boolean).join(' · ').slice(0,2000)};
   const receipt={solutionId:id,solutionUrl:`${origin}/solution/${id}/`};
   return {receipt,submission:{problemMatches:true,problemUrl:problem.href,submissionId:id,url:receipt.solutionUrl,submittedCode:params.code,sourceTruncated:false,verdict,platformResult:String(result||'unknown'),websiteReplyRaw,detailLoaded:Boolean(detail),detailChecked,detailError,runtime:{text:hint,error:verdict.status==='CE'?hint:''},observedAt:new Date().toISOString()},message:verdict.text};
+  }catch(error){
+    // Chrome may omit InjectionResult.result for a rejected injected Promise.
+    // Return a serializable value so the original failure reaches VS Code.
+    return {error:phase+'：'+String(error?.message||error),uncertain:requestStarted,websiteReplyRaw:receivedRaw,failure:{phase,name:String(error?.name||'Error')}};
+  }
 }

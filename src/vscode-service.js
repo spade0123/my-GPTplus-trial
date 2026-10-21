@@ -152,7 +152,7 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
         const current=await readGridTestRun(job.id);if(current.status==='sending')await updateGridTestRun(current,{browserStage});
       }});
       const timed={...value,responseMs:Date.now()-Date.parse(job.dispatchedAt)};
-      if(value.error)await updateGridTestRun(await readGridTestRun(job.id),{...timed,status:'rejected',websiteReplyAt:new Date().toISOString()});
+      if(value.error)await updateGridTestRun(await readGridTestRun(job.id),{...timed,status:value.uncertain?'uncertain':'rejected',message:value.error,websiteReplyAt:new Date().toISOString()});
       else await finishGridTest(await readGridTestRun(job.id),timed);
     }catch(error){await updateGridTestRun(await readGridTestRun(job.id),{status:error.code==='PROBLEM_CHANGED'?'rejected':'uncertain',error:error.message,message:error.code==='PROBLEM_CHANGED'?'未发送到网站：'+error.message:'网站测试是否已执行尚未确认；请先在编程网格查看记录，不会自动重复发送。'});}
   }
@@ -161,7 +161,7 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
       const value=await browser('submit',{jobId:job.id,problemUrl:job.browserUrl,code:job.capture.code,language:job.language},30000,{onProgress:async browserStage=>{
         const current=await readSubmission(job.id);if(current.status==='sending')await updateSubmission(current,{browserStage});
       }});
-      const updated=await updateSubmission(await readSubmission(job.id),{...value,status:value.error?'rejected':'submitted',websiteReplyAt:new Date().toISOString(),responseMs:Date.now()-Date.parse(job.dispatchedAt)});
+      const updated=await updateSubmission(await readSubmission(job.id),{...value,status:value.error?value.uncertain?'uncertain':'rejected':'submitted',...(value.error?{message:value.error}:{}),websiteReplyAt:new Date().toISOString(),responseMs:Date.now()-Date.parse(job.dispatchedAt)});
       void (async()=>{
         let workerError;
         const s=value.submission;
@@ -175,7 +175,7 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
   }
   return {async handle(message){
     const type=message.type;
-    if(type==='status')return {ready:true,dataDirectory:dataDir(),version:'0.2.4',platform:'programminggrid-vscode'};
+    if(type==='status')return {ready:true,dataDirectory:dataDir(),version:'0.2.5',platform:'programminggrid-vscode'};
     if(type==='problem_display')return currentProblem();
     if(type==='judge_history'){
       const context=await getContext(validUri(message.uri),message.problemUrl);

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "编程网格 · VS Code 连接",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "同步编程网格题面；点击按钮才发送当前 VS Code 代码到网站测试执行或正式评测。",
   "minimum_chrome_version": "116",
   "permissions": [

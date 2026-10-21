@@ -7,7 +7,7 @@
 1. 安装 Node.js 22+、G++、已登录的 Codex，以及桌面版 VS Code 和 Chrome。在本项目根目录运行 `npm ci --ignore-scripts`。
 2. 在本项目根目录运行 `powershell -ExecutionPolicy Bypass -File .\install-grid.ps1`。需要时可指定 `-NodePath`、`-CodexPath`、`-CompilerPath`。它注册独立的 `edu.pku.grid_vscode_coach` 本机连接，不会覆盖 OpenJudge 连接。
 3. 在 Chrome 扩展管理页打开开发者模式，选择“加载已解压的扩展程序”，选择本项目的 `extension/` 目录；如果已加载，更新源码后点“重新加载”。在 Chrome 自己登录编程网格并打开具体题目的 `/ide.do` 页面，点击“编程网格 · VS Code 连接”图标。
-4. 在 VS Code 里通过“从 VSIX 安装”选择 `dist/pku-grid-cpp-coach-0.2.4.vsix`，打开 C++ 文件。如果安装后没有看到“网格·保存 / 网格·评测 / 网格·提示 / 网格·交流”，重新加载 VS Code 窗口。旧 OpenJudge 插件是另一项安装，不影响这一项的名称。
+4. 在 VS Code 里通过“从 VSIX 安装”选择 `dist/pku-grid-cpp-coach-0.2.5.vsix`，打开 C++ 文件。如果安装后没有看到“网格·保存 / 网格·评测 / 网格·提示 / 网格·交流”，重新加载 VS Code 窗口。旧 OpenJudge 插件是另一项安装，不影响这一项的名称。
 
 ## 它怎样工作
 
@@ -28,6 +28,8 @@ Chrome 负责读取题目网页；VS Code 负责读取当前编辑器内的完�
 网站返回的 AC/WA 等结果只与相同题号、相同代码关联。网站未提供的隐藏测试输入和标准输出不会被填入记录。当前适配以 C++、Windows 桌面版 VS Code 和 Chrome 为目标。
 
 等待时顶部会显示请求经过的阶段，超时信息也会带上最后阶段。提交详情页一旦返回即可显示，不等待较慢的状态接口；详情仍为 pending 时会继续查询。网站拒绝请求时保留接口原文，刷新失败时保留此前收到的评测原文。更新后需要重新加载 Chrome 连接扩展及 VS Code 窗口，让两端和本机连接程序都运行新版。
+
+网页内执行的请求会把异常作为普通数据返回，避免 Chrome 丢失失败 Promise 的返回值后只显示“未确认网站返回”。执行编号按网站返回的安全字符串保存，支持数字、字母、连字符和下划线；非 JSON 回复也会保留原文。
 
 ## 按日期整理项目源码
 

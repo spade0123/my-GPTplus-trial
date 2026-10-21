@@ -13,6 +13,39 @@ const url='https://programming.pku.edu.cn/probset/'+ 'a'.repeat(32)+'/'+ 'b'.rep
 const code='int main(){return 0;}';
 const response=(url,value,html=false)=>({ok:true,url,headers:new Headers({'content-type':html?'text/html':'application/json'}),text:async()=>html?value:JSON.stringify(value)});
 
+test('Grid accepts opaque execution IDs returned by its own interface',async()=>{
+  const dom=new JSDOM('',{url,runScripts:'outside-only'}),w=dom.window,id='f05319a7ce694c4aabe51fb6e1b9f102';
+  w.AbortSignal=AbortSignal;
+  w.fetch=async target=>response(target,{status:'OK',type:'solution',solution:{id,result:'Passed',hint:'Case 0: Diff: 0'}});
+  try{
+    const result=await w.eval(`(${gridJudgeRequest.toString()})`)(url,'test',{code,language:'C++',input:''});
+    assert.equal(result.error,undefined);
+    assert.equal(result.receipt.solutionId,id);
+    assert.equal(result.submission.runtime.text,'Case 0: Diff: 0');
+  }finally{w.close();}
+});
+
+test('injected Grid request resolves an error envelope when fetch rejects',async()=>{
+  const dom=new JSDOM('',{url,runScripts:'outside-only'}),w=dom.window;
+  w.AbortSignal=AbortSignal;w.fetch=async()=>{throw new TypeError('Failed to fetch');};
+  try{
+    const result=await w.eval(`(${gridJudgeRequest.toString()})`)(url,'test',{code,language:'C++',input:''});
+    assert.match(result.error,/调用编程网格执行接口.*Failed to fetch/);
+    assert.equal(result.uncertain,true);
+    assert.equal(result.failure.name,'TypeError');
+  }finally{w.close();}
+});
+
+test('Grid preserves non-JSON website replies instead of dropping the raw response',async()=>{
+  const dom=new JSDOM('',{url,runScripts:'outside-only'}),w=dom.window;
+  w.AbortSignal=AbortSignal;w.fetch=async target=>response(target,'<p>服务器暂时不可用</p>',true);
+  try{
+    const result=await w.eval(`(${gridJudgeRequest.toString()})`)(url,'test',{code,language:'C++',input:''});
+    assert.match(result.error,/非 JSON/);
+    assert.equal(result.websiteReplyRaw,'<p>服务器暂时不可用</p>');
+  }finally{w.close();}
+});
+
 test('Grid detail page replaces pending API status and preserves case feedback',async()=>{
   const dom=new JSDOM('',{url,runScripts:'outside-only'}),w=dom.window;
   const hint='Case  0 :  Time:  6 ms,  Memory:  356 kB,  Diff: 0\n';
