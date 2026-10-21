@@ -6,6 +6,7 @@ import {dataDir,writeRecord,acquireLock,Capture,reviewSummary} from './browser-r
 import {saveAttempt,recordVerdict,getProblem} from './problem-history.js';
 import {queueHint,queueDiscussion,readHint,hintSummary,assistHistory} from './hint-review.js';
 import {browserRequest} from './browser-mailbox.js';
+import {readProblemProgress} from './problem-progress.js';
 import {writeModelSettings} from './model-settings.js';
 import {gridUrl,sameProblem} from './grid-url.js';
 import {readProblemDisplay} from './problem-display.js';
@@ -191,8 +192,9 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
   return {async handle(message){
     const type=message.type;
     if(type==='configure_ai')return {settings:await writeModelSettings(message.settings)};
-    if(type==='status')return {ready:true,dataDirectory:dataDir(),version:'0.2.12',platform:'programminggrid-vscode'};
+    if(type==='status')return {ready:true,dataDirectory:dataDir(),version:'0.2.13',platform:'programminggrid-vscode'};
     if(type==='problem_display')return currentProblem();
+    if(type==='problem_progress'){const target=gridUrl(message.problemUrl,{kind:'problem'});if(!target)throw new Error('题目地址无效。');return readProblemProgress({group:target.group});}
     if(type==='list_problems'){
       const display=await currentProblem(),url=message.problemUrl||display.url,parsed=gridUrl(url,{kind:'problem'});
       if(!parsed||!display.connected||!sameProblem(url,display.url))throw new Error('请先连接并打开当前题目的 IDE。');

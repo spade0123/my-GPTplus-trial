@@ -1,8 +1,9 @@
 const vscode=require('vscode'),fs=require('node:fs/promises'),{randomUUID}=require('node:crypto');
-const {StudyTimer}=require('./study-timer.cjs');
+const {ProblemTimers}=require('./problem-timers.cjs');
 class ProblemView{
   constructor(context){
-    this.timer=new StudyTimer(context,state=>this.view?.webview.postMessage({type:'timer_state',state}));
+    this.timers=new ProblemTimers(context,{onState:state=>this.view?.webview.postMessage({type:'timer_state',state}),onTimes:value=>this.view?.webview.postMessage(value)});
+    this.progress={type:'problem_progress',items:[]};
     this.context=context;this.latest={status:'waiting',connected:false};
     this.navigationState={type:'problem_navigation',problems:[],busy:false,message:'连接网页后自动读取本次作业题单。'};this.navigationSequence=0;
     context.subscriptions.push(vscode.window.registerWebviewViewProvider('gridCoach.problemStatement',this));
@@ -15,9 +16,10 @@ class ProblemView{
     webview.html='<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'+
       `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}'; style-src ${webview.cspSource} 'unsafe-inline'; font-src ${webview.cspSource}; img-src data:; connect-src 'none';">`+
       `<link rel="stylesheet" href="${uri('media/vendor/katex/katex.min.css')}"><link rel="stylesheet" href="${uri('problem-view.css')}"></head><body>`+
-      '<section class="study-timer" aria-label="做题计时"><div class="timer-tabs"><button id="timerStopwatch" aria-pressed="true">秒表</button><button id="timerCountdown" aria-pressed="false">倒计时</button></div><div id="timerDisplay" class="timer-display" role="timer" aria-live="off">00:00:00</div><div id="timerDuration" class="timer-duration" hidden><label>分钟 <input id="timerMinutes" type="number" min="0" max="10080" step="1" value="25"></label><label>秒 <input id="timerSeconds" type="number" min="0" max="59" step="1" value="0"></label></div><div class="timer-actions"><button id="timerStart" disabled>开始</button><button id="timerReset" disabled>归零 / 重置</button></div><p id="timerStatus" role="status">正在恢复计时器…</p></section>'+
-      '<section class="problem-navigation" aria-label="作业题目列表"><div class="navigation-heading"><strong>本次作业</strong><span id="problemCount"></span><button id="problemRefresh" disabled>刷新</button></div><p id="assignmentClosing" class="assignment-closing" role="status">题集截止时间尚未读取</p><div class="navigation-actions"><button id="problemPrevious" disabled>上一题</button><button id="problemNext" disabled>下一题</button></div><details><summary>选择题目</summary><input id="problemSearch" type="search" placeholder="搜索题名或序号" aria-label="搜索题目"><ol id="problemList"></ol></details><p id="navigationStatus" role="status">连接网页后自动读取题单。</p></section>'+
-      '<header><span class="eyebrow">编程网格 · 题面</span><h1 id="title">等待浏览器打开题目</h1><p id="state" role="status">Chrome 打开编程网格具体题目的 IDE 后，这里会自动显示。</p><button id="openProblem" hidden>在浏览器查看原题</button></header><main id="sections"></main><footer>题面自动显示；状态栏可打开网格·评测、提示与交流。</footer>'+
+      '<section class="study-timer" aria-label="做题计时"><div class="timer-tabs"><button id="timerStopwatch" aria-pressed="true">秒表</button><button id="timerCountdown" aria-pressed="false">倒计时</button></div><div class="timer-readout"><span id="timerScopeLabel">本题</span><div id="timerDisplay" class="timer-display" role="timer" aria-live="off">00:00:00</div></div><button id="timerStart" disabled>开始</button><details class="timer-settings"><summary aria-label="计时设置" title="计时范围与设置">⋯</summary><div class="timer-popover"><label>计时范围 <select id="timerScope"><option value="problem">本题</option><option value="assignment">整套题单</option></select></label><div id="timerDuration" class="timer-duration" hidden><label>分钟 <input id="timerMinutes" type="number" min="0" max="10080" step="1" value="25"></label><label>秒 <input id="timerSeconds" type="number" min="0" max="59" step="1" value="0"></label></div><button id="timerReset" disabled>归零 / 重置显示</button><p id="timerStatus" role="status">正在恢复计时器…</p></div></details></section>'+
+      '<header><span class="eyebrow">编程网格 · 题面</span><h1 id="title">等待浏览器打开题目</h1><p id="state" role="status">Chrome 打开编程网格具体题目的 IDE 后，这里会自动显示。</p><button id="openProblem" hidden>在浏览器查看原题</button></header><main id="sections"></main>'+
+      '<section class="problem-navigation" aria-label="作业题目列表"><div class="navigation-heading"><strong>本次作业</strong><span id="problemCount"></span><button id="assignmentTimer" title="查看整套题单计时">整套计时</button><button id="problemRefresh" disabled>刷新</button></div><p id="assignmentClosing" class="assignment-closing" role="status">题集截止时间尚未读取</p><div class="navigation-actions"><button id="problemPrevious" disabled>上一题</button><button id="problemNext" disabled>下一题</button></div><details open><summary>题目列表</summary><input id="problemSearch" type="search" placeholder="搜索题名或序号" aria-label="搜索题目"><ol id="problemList"></ol></details><p id="navigationStatus" role="status">连接网页后自动读取题单。</p></section>'+
+      '<footer>题面自动显示；状态栏可打开网格·评测、提示与交流。</footer>'+
       scripts.map(file=>`<script nonce="${nonce}" src="${uri(file)}"></script>`).join('')+'</body></html>';
     this.context.subscriptions.push(view.onDidDispose(()=>{if(this.view===view)this.view=null;}),webview.onDidReceiveMessage(async message=>{
       if(message.type==='closing_ready'){await webview.postMessage(this.latest);return webview.postMessage(this.navigationState);}
@@ -31,7 +33,7 @@ class ProblemView{
         if(message.problemUrl!==this.latest.url||!this.navigationState.problems.some(item=>item.url===message.targetUrl)){await this.postNavigation({busy:false,message:'列表已过期，请刷新后选题。'});return;}
         ++this.navigationSequence;await this.postNavigation({busy:true,message:'正在切换题目与源码…'});
         try{
-          const result=await this.navigation.activate(message.problemUrl,message.targetUrl);
+          const result=await this.navigation.activate(message.problemUrl,message.targetUrl,this.navigationState.problems.find(item=>item.url===message.targetUrl));
           if(result.cancelled){await this.postNavigation({busy:false,message:'已取消切题。'});return;}
           this.listedUrl=result.url;
           await this.accept({type:'problem_display',connected:true,status:'ready',url:result.url,tabId:result.tabId,page:result.page,revision:randomUUID()});
@@ -39,9 +41,10 @@ class ProblemView{
         }catch(error){await this.postNavigation({busy:false,message:error.message});}
         return;
       }
-      if(message.type==='timer_ready')return webview.postMessage({type:'timer_state',state:this.timer.snapshot()});
+      if(message.type==='progress_ready'){await webview.postMessage(this.progress);return webview.postMessage(this.timers.timeSnapshot());}
+      if(message.type==='timer_ready')return this.timers.publishState();
       if(message.type==='timer_action'){
-        try{await this.timer.handle(message);}catch(error){await webview.postMessage({type:'timer_error',error:error.message});}
+        try{await this.timers.handle(message);}catch(error){await webview.postMessage({type:'timer_error',error:error.message});}
         return;
       }
       if(message.type==='ready')return webview.postMessage(this.latest);
@@ -49,9 +52,10 @@ class ProblemView{
       if(message.type==='copy_sample'&&typeof message.text==='string'&&message.text.length<=20000)await vscode.env.clipboard.writeText(message.text);
     }));
   }
+  async acceptProgress(value){this.progress=value;if(this.view)await this.view.webview.postMessage(value);}
   async accept(value){
     const duplicate=this.latest.revision===value.revision&&this.latest.connected===value.connected;
-    this.latest=value;if(this.view)await this.view.webview.postMessage(value);
+    this.latest=value;if(value.status==='ready'&&value.url)await this.timers.setProblem(value.url);if(this.view)await this.view.webview.postMessage(value);
     if(this.navigationState.problemUrl!==value.url)await this.postNavigation({});
     if(value.connected&&value.status==='ready'&&this.listedUrl!==value.url&&!this.navigation?.switching)void this.refreshNavigation();
     if(!duplicate&&value.connected&&['ready','loading'].includes(value.status))await this.show();
@@ -70,8 +74,9 @@ class ProblemView{
     const sequence=++this.navigationSequence;this.listedUrl=url;
     await this.postNavigation({busy:true,message:'正在读取网页题目列表…'});
     try{
-      const result=await this.navigation.list(url,forceDeadline);
+      const [result,progress]=await Promise.all([this.navigation.list(url,forceDeadline),this.navigation.progress(url).catch(()=>null)]);
       if(sequence!==this.navigationSequence||url!==this.latest.url)return;
+      if(progress)await this.acceptProgress(progress);
       const group=new URL(url).pathname.match(/\/probset\/([a-f0-9]{32})\//i)?.[1]?.toLowerCase();
       if(group){
         const saved={...this.context.workspaceState.get('gridCoach.assignmentDeadlines.v1',{})};

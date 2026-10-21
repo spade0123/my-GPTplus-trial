@@ -1,4 +1,6 @@
 const vscode=require('vscode');
+const {sourceStem,cppTemplate}=require('./source-template.cjs');
+const CREATED_KEY='gridCoach.createdProblemFiles.v1';
 const MAP_KEY='gridCoach.problemFiles.v1',PENDING_KEY='gridCoach.navigationPending.v1';
 function identity(value){
   try{const u=new URL(value),m=u.pathname.match(/^\/(?:course\/)?probset\/([a-f0-9]{32})\/([a-f0-9]{32})\/ide\.do$/i);return u.origin==='https://programming.pku.edu.cn'&&!u.username&&!u.password&&!u.search&&!u.hash&&m?{key:m[1].toLowerCase()+'/'+m[2].toLowerCase(),group:m[1].toLowerCase(),id:m[2].toLowerCase()}:null;}catch{return null;}
@@ -11,6 +13,7 @@ class ProblemNavigation{
   }
   async associate(uri,url){const target=identity(url);if(target)await this.context.workspaceState.update(MAP_KEY,{...this.context.workspaceState.get(MAP_KEY,{}),[target.key]:uri});}
   async clearBlock(){await this.context.workspaceState.update(PENDING_KEY,false);this.blocked=false;}
+  async progress(url){return (await this.backend()).request({type:'problem_progress',problemUrl:url});}
   async list(url,forceDeadline=false){return (await this.backend()).request({type:'list_problems',problemUrl:url,forceDeadline});}
   async rememberCurrent(client,url){
     const editor=this.currentEditor();if(editor?.document.languageId!=='cpp'||editor.document.isClosed)return;
@@ -18,12 +21,17 @@ class ProblemNavigation{
     if(identity(saved.binding?.problemUrl)?.key!==identity(url)?.key)return;
     await this.context.workspaceState.update(MAP_KEY,{...this.context.workspaceState.get(MAP_KEY,{}),[identity(url).key]:uri});
   }
-  async documentFor(client,url){
+  async documentFor(client,url,problem={}){
     const target=identity(url),mapping=this.context.workspaceState.get(MAP_KEY,{}),saved=mapping[target.key];
     if(saved&&identity((await client.request({type:'context_lookup',uri:saved})).binding?.problemUrl)?.key===target.key){
       const open=vscode.workspace.textDocuments.find(document=>document.uri.toString()===saved);
       if(open&&!open.isClosed)return open;
       if(!saved.startsWith('untitled:'))try{return await vscode.workspace.openTextDocument(vscode.Uri.parse(saved));}catch{/* A moved/deleted file can be chosen again. */}
+    }
+    const created=this.context.workspaceState.get(CREATED_KEY,{})[target.key];
+    if(created){
+      const record=await client.request({type:'context_lookup',uri:created});
+      if(!record.binding||identity(record.binding.problemUrl)?.key===target.key)try{return await vscode.workspace.openTextDocument(vscode.Uri.parse(created));}catch{}
     }
     // Recover already-associated open files, including those created before navigation existed.
     const documents=vscode.workspace.textDocuments.filter(document=>document.languageId==='cpp'&&!document.isClosed).slice(0,50);
@@ -35,18 +43,30 @@ class ProblemNavigation{
       return choice?.document;
     }
     const folders=vscode.workspace.workspaceFolders||[];
-    if(!folders.length)return vscode.workspace.openTextDocument({language:'cpp',content:''});
+    const template=cppTemplate(this.context.extension.packageJSON.version);
+    if(!folders.length)return vscode.workspace.openTextDocument({language:'cpp',content:template});
     const activeUri=this.currentEditor()?.document.uri;
     let folder=folders.length===1?folders[0]:activeUri?vscode.workspace.getWorkspaceFolder(activeUri):undefined;
     if(!folder){const chosen=await vscode.window.showQuickPick(folders.map(item=>({label:item.name,folder:item})),{placeHolder:'选择新题源码的项目文件夹'});if(!chosen)return;folder=chosen.folder;}
-    const directory=vscode.Uri.joinPath(folder.uri,'编程网格',target.group),uri=vscode.Uri.joinPath(directory,target.id+'.cpp');
+    const directory=vscode.Uri.joinPath(folder.uri,'编程网格',target.group);
     await vscode.workspace.fs.createDirectory(directory);
-    // WorkspaceEdit creates only if missing; existing code is never replaced.
-    const edit=new vscode.WorkspaceEdit();edit.createFile(uri,{ignoreIfExists:true});
-    if(!await vscode.workspace.applyEdit(edit))throw new Error('未能创建本题源码文件。');
-    return vscode.workspace.openTextDocument(uri);
+    const exists=async uri=>{try{await vscode.workspace.fs.stat(uri);return true;}catch(error){if(['FileNotFound','ENOENT'].includes(error.code))return false;throw error;}};
+    // Keep legacy ID-named files usable. New names are short and collision-safe.
+    const legacy=vscode.Uri.joinPath(directory,target.id+'.cpp');
+    if(await exists(legacy))return vscode.workspace.openTextDocument(legacy);
+    const stem=sourceStem(problem.title,problem.number)+'-'+target.id.slice(0,8);
+    for(let suffix=0;suffix<100;suffix++){
+      const uri=vscode.Uri.joinPath(directory,stem+(suffix?'-'+suffix:'')+'.cpp');
+      if(await exists(uri))continue;
+      const edit=new vscode.WorkspaceEdit();edit.createFile(uri,{overwrite:false,ignoreIfExists:false});edit.insert(uri,new vscode.Position(0,0),template);
+      if(!await vscode.workspace.applyEdit(edit))throw new Error('未能创建本题源码文件；已有文件未被覆盖。');
+      await this.context.workspaceState.update(CREATED_KEY,{...this.context.workspaceState.get(CREATED_KEY,{}),[target.key]:uri.toString()});
+      const document=await vscode.workspace.openTextDocument(uri);if(!await document.save())throw new Error('模板已建立但未能写入磁盘，请先保存新文件。');return document;
+    }
+    throw new Error('同名文件过多，请整理本题目录。');
   }
-  async activate(fromUrl,targetUrl){
+
+  async activate(fromUrl,targetUrl,problem={}){
     if(this.switching)throw new Error('正在切题，请稍候。');
     const from=identity(fromUrl),target=identity(targetUrl);
     if(!from||!target||from.group!==target.group)throw new Error('请选择当前作业内的题目。');
@@ -55,7 +75,7 @@ class ProblemNavigation{
       const client=await this.backend();
       if(identity(this.display().url)?.key!==from.key)throw new Error('当前题目已改变，请刷新列表。');
       await this.rememberCurrent(client,fromUrl);
-      const document=await this.documentFor(client,targetUrl);if(!document)return {cancelled:true};
+      const document=await this.documentFor(client,targetUrl,problem);if(!document)return {cancelled:true};
       this.blocked=true;await this.context.workspaceState.update(PENDING_KEY,true);
       const result=await client.request({type:'activate_problem',problemUrl:fromUrl,targetUrl});
       // Binding is explicit, only after Chrome has read the target problem.

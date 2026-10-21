@@ -52,7 +52,7 @@ function activate(context){
       if(config.variant!=='programminggrid-vscode')throw new Error('所选目录不是独立的 编程网格 版本，不会使用或覆盖原北大插件。');
       let node=local.nodePath||'';
       if(!node)node=(await fs.readFile(path.join(root,'native/node-path.txt'),'utf8')).trim();
-      rpc=new RpcClient(node,root,why=>output.appendLine(why),event=>{if(event.event==='problem_display')void statementView.accept(event.value).catch(e=>output.appendLine(e.message));});rpc.root=root;await rpc.request({type:'status'});
+      rpc=new RpcClient(node,root,why=>output.appendLine(why),event=>{if(event.event==='problem_progress')void statementView.acceptProgress(event.value).catch(e=>output.appendLine(e.message));if(event.event==='problem_display')void statementView.accept(event.value).catch(e=>output.appendLine(e.message));});rpc.root=root;await rpc.request({type:'status'});
       try{await rpc.request({type:'configure_ai',settings:aiSettings()});}catch(error){output.appendLine('AI 设置未同步：'+error.message);}
       return rpc;
     })().finally(()=>opening=null);return opening;

@@ -56,7 +56,7 @@ Chrome 打开题目的 `.../probset/<题集ID>/<题目ID>/ide.do` 页面，点�
 
 3. Chrome 打开 `chrome://extensions`，开启开发者模式，加载项目的 **`extension/`** 目录。自己登录编程网格并打开具体题目 IDE，点击连接图标。
 
-4. VS Code 执行“扩展：从 VSIX 安装”，选择 [pku-grid-cpp-coach-0.2.12.vsix](dist/pku-grid-cpp-coach-0.2.12.vsix)，然后运行 **Developer: Reload Window**。
+4. VS Code 执行“扩展：从 VSIX 安装”，选择 [pku-grid-cpp-coach-0.2.13.vsix](dist/pku-grid-cpp-coach-0.2.13.vsix)，然后运行 **Developer: Reload Window**。
 
 5. 打开 C++ 文件，点击“网格·评测”。需要关联或更换题目时，使用评测页底部的“题目连接与本机记录”。
 
@@ -86,7 +86,7 @@ VS Code 读取点击时编辑器里的完整缓冲区，包括尚未写入文件
 
 - **更新 VS Code 扩展后**：安装新 VSIX，运行 Developer: Reload Window。
 - **更新 Chrome 连接代码后**：在扩展管理页重新加载连接扩展；需要时在题目页再次点击图标连接。
-- **只有 VS Code 界面或本机服务更新时**：按该次更新说明操作，无需每次都重载 Chrome。当前 VS Code/本机程序和 Chrome 连接清单均为 0.2.12。
+- **只有 VS Code 界面或本机服务更新时**：按该次更新说明操作，无需每次都重载 Chrome。当前 VS Code/本机程序为 0.2.13，Chrome 连接清单为 0.2.12。
 - **显示上次的手工测试**：顶部会标明“上次记录”；默认测试方式仍是网格判题。点击测试按钮才会发送新的测试。
 - **题目标签已关闭或切换**：打开正确题目的 IDE，重新从目标 C++ 文件打开评测页，必要时更换关联。
 - **请求超时或未确认**：先核对网站记录，再决定下一步。界面会显示最后阶段和可获得的具体错误；不要把未确认当作成功。
@@ -115,7 +115,7 @@ VS Code 读取点击时编辑器里的完整缓冲区，包括尚未写入文件
 ```powershell
 npm run build:vscode
 cd vscode-extension
-npx --yes @vscode/vsce package --no-dependencies --skip-license --out ../dist/pku-grid-cpp-coach-0.2.12.vsix
+npx --yes @vscode/vsce package --no-dependencies --skip-license --out ../dist/pku-grid-cpp-coach-0.2.13.vsix
 ```
 
 这轮维护使用以下针对网格的检查，14 项通过：
@@ -206,3 +206,44 @@ node --test test/grid-feedback.test.js test/grid-statusbar.test.js test/openjudg
 - 没有精确截止时间时明确显示缺失，不用“6 天”等取整文字推算；本机时间不准会影响剩余时间，网站是否允许提交以网站为准。
 
 升级本次 0.2.12 需重新加载 Chrome 连接扩展，并在 VS Code 执行 `Developer: Reload Window`。实现依据用户提供的网站代码和 DOM；已做语法检查与打包，尚未在登录后的实际网页完整联调。
+
+
+## 题单进度、轻量计时与源码模板（0.2.13）
+
+### 题干优先的布局
+
+题干、输入输出和样例先显示，“本次作业”与题单移到题干下方。顶部计时器缩成一行，滚动阅读时仍固定在视野中；“⋯”中放置范围选择、倒计时设置和显示重置。
+
+### 最近评测圆点与累计用时
+
+题名左侧圆点显示插件本机记录的最近一次情况：绿色 AC，红色 WA/RE，橙色 CE/PE/OLE，紫色 TLE/MLE，黄色等待回复，蓝色手工测试完成，灰色无记录/未确认。悬停查看完整状态、测试还是正式提交，以及北京时间；网站上独立进行、未被插件记录的历史暂不自动同步，灰色不等于从未做过。
+
+按尝试发起时间决定“最近一次”，旧提交晚到的刷新不会覆盖新尝试。评测记录更新通过本机文件通知传到侧栏，不逐题轮询网站。
+
+题名右侧显示累计耗时。本题计时开始后累计；切题暂停上一题，回到题目继续使用已保存的值。秒表或倒计时任一运行都会计入，两者同时运行不重复计算。重置显示不会清除累计耗时。
+
+### 整套计时
+
+题单中的“整套计时”或悬浮条“⋯ → 计时范围 → 整套题单”切换查看独立总计时。它复用秒表/倒计时，按题集保存；开始总计时会启动当前题计时，切题后累计到新题；暂停总计时会暂停本题计时。没有考试模式开关，不自动隐藏或打开 AI 页面。
+
+所有计时保存在 VS Code 工作区私有存储，不写进项目。计时不是编辑器击键活动统计，运行期间离开电脑/关闭 VS Code 的时间也可能计入；需要休息时请暂停。换到另一题集不自动暂停原题集的总计时。
+
+### 简短英文源码与模板
+
+新题文件使用英文关键词和短题目 ID，例如 `weekday-4c4f4bab.cpp`、`saddle-point-5fef17c8.cpp`。常见中文题名用本地关键词命名；无法识别时用 `problem-序号`。不调用 AI、不额外消耗模型额度。仍使用原有题目 ID 与文件 URI 关联，旧文件不强制改名，已有文件不覆盖。
+
+新文件自动保存下面的模板，注释中的版本由插件自动填入；无工作区时创建带模板的未命名 C++ 文档，需要自行保存。
+
+```cpp
+//Powered by Grid-Code connector plugin v0.2.13!
+#include <iostream>
+
+using namespace std;
+
+int main(){
+
+    return 0;
+}
+```
+
+本次 VS Code/本机程序为 0.2.13，Chrome 仍为 0.2.12；仅需安装新版 VSIX 后重载 VS Code。完成语法检查与打包安装，未新增或运行测试，实际界面和计时仍待使用反馈。
