@@ -3,7 +3,7 @@ import {CPP_EXAMPLE_STYLE} from './code-style.js';
 // Interactive replies do not need full review jobs, repeated assistance trees,
 // previous source files and diffs. All originals remain in the saved snapshots.
 export function discussionContext(evidence){
-  const recent=(evidence.history||[]).slice(-6).map(h=>({question:h.question,status:h.status,answer:h.status==='complete'?String(h.analysis||'').slice(0,3000):undefined}));
+  const recent=(evidence.history||[]).slice(-6).map((h,i,all)=>({question:h.question,status:h.status,answer:h.status==='complete'?String(h.analysis||'').slice(0,i===all.length-1?8000:2000):undefined}));
   return {question:evidence.question,selectedCode:evidence.selectedCode||'',capture:evidence.capture,
     judgment:evidence.judgment||{status:'unknown'},runtimeAssociation:evidence.runtimeAssociation||'uncertain',history:recent,...(evidence.purpose==='solution'?{purpose:'solution',question:SOLUTION_REQUEST,previousSolution:evidence.previousSolution||null}:{})};
 }

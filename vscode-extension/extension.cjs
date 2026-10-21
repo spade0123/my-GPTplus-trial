@@ -1,12 +1,13 @@
 const vscode=require('vscode'),fs=require('node:fs/promises'),path=require('node:path'),{randomUUID}=require('node:crypto'),{execFile}=require('node:child_process'),{promisify}=require('node:util');
 const {RpcClient}=require('./rpc-client.cjs');
+const {openHistory:makeHistory}=require('./history-view.cjs');
 const {ProblemView}=require('./problem-view.cjs');
 const {ProblemNavigation}=require('./problem-navigation.cjs');
 const {planDateOrganization,applyDateOrganization}=require('./date-organizer.cjs');
 const isCpp=document=>document?.languageId==='cpp'&&!document.isClosed;
 const escape=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function activate(context){
-  let rpc,opening,lastSource;const panels=new Map(),judgePanels=new Map(),buttons=[];
+  let rpc,opening,lastSource,historyPanel;const panels=new Map(),judgePanels=new Map(),buttons=[];
   const output=vscode.window.createOutputChannel('编程网格 学习教练');context.subscriptions.push(output);
   const statementView=new ProblemView(context);
   statementView.navigation=new ProblemNavigation({context,backend,currentEditor:()=>vscode.window.activeTextEditor?.document.languageId==='cpp'?vscode.window.activeTextEditor:lastSource,display:()=>statementView.latest});
@@ -119,7 +120,7 @@ function activate(context){
     template=template.replace(/<script nonce="[^"]+" src="[^"]*vendor\/marked\/marked\.umd\.js"/,`<script nonce="${nonce}" src="${uri('webview-adapter.js')}"></script>$&`);
     // Insert before the first shared script without changing the shared renderer.
     if(!template.includes('webview-adapter.js'))template=template.replace(/(<script nonce=)/,`<script nonce="${nonce}" src="${uri('webview-adapter.js')}"></script>$1`);
-    template=template.replace('</body>',`<footer class="coach-footer"><details id="bindingControls"><summary>题目连接与保存位置</summary><button id="bindProblem">关联/更换题目</button><button id="showRecords">本机记录与报告</button></details>${contextText}${header}</footer></body>`);
+    template=template.replace('</body>',`<footer class="coach-footer"><details id="bindingControls"><summary>题目连接与保存位置</summary><button id="bindProblem">关联/更换题目</button><button id="openHistory">对话历史</button><button id="showRecords">本机记录与报告</button></details>${contextText}${header}</footer></body>`);
     return template;
   }
   async function judgeHtml(webview){
@@ -143,6 +144,7 @@ function activate(context){
         state.panel.dispose();const doc=vscode.workspace.textDocuments.find(d=>d.uri.toString()===state.uri);
         if(doc)await vscode.window.showTextDocument(doc,{viewColumn:state.sourceColumn,preserveFocus:false});return;
       }
+      if(message.type==='open_history')return openHistory();
       if(message.type==='open_settings')return vscode.commands.executeCommand('workbench.action.openSettings','@ext:local-coach.pku-grid-cpp-coach');
       if(message.type==='judge_ready')await reply({type:'judge_settings',settings:verdictSettings()});
       const client=await backend();
@@ -201,6 +203,7 @@ function activate(context){
     }
     if(saving){const saved=await saving;if(saved.error)throw saved.error;vscode.window.setStatusBarMessage(saved.result.warning?'当前代码已保存；网页评测未更新，请查看连接。':saved.result.workerError?'当前代码已保存；后台启动失败，请查看 编程网格 输出。':'当前代码已自动保存，后台继续分析；上次对话保留。',3500);}
   }
+  function openHistory(){if(historyPanel){historyPanel.reveal();return;}historyPanel=makeHistory({context,backend});historyPanel.onDidDispose(()=>historyPanel=null);}
   async function openJudge(){
     const source=sourceFor(),selected=await ensureBinding(source);if(!selected)return;
     let state=judgePanels.get(source.uri);
@@ -218,7 +221,7 @@ function activate(context){
     vscode.window.setStatusBarMessage(result.workerError?'源码已保存；后台启动失败，请查看 编程网格 输出。':source.name+' 已保存，后台继续分析。',3500);
   }
   const safe=fn=>async()=>{try{return await fn();}catch(e){output.appendLine(e.message);void vscode.window.showErrorMessage(e.message);}};
-  for(const [label,command,fn,priority]of [['网格·保存','quickSave',quickSave,1004],['网格·评测','judge',openJudge,1003],['网格·提示','hint',()=>open('hint'),1002],['网格·交流','discussion',()=>open('discussion'),1001]]){
+  for(const [label,command,fn,priority]of [['网格·保存','quickSave',quickSave,1004],['网格·评测','judge',openJudge,1003],['网格·提示','hint',()=>open('hint'),1002],['网格·交流','discussion',()=>open('discussion'),1001],['网格·历史','conversationHistory',openHistory,998]]){
     context.subscriptions.push(vscode.commands.registerCommand('gridCoach.'+command,safe(fn)));
     const button=vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right,priority);button.text=label;button.tooltip='编程网格 C++ 教练：'+label;button.command='gridCoach.'+command;button.name='编程网格 '+label;button.show();buttons.push(button);context.subscriptions.push(button);
   }

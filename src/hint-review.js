@@ -4,6 +4,8 @@ import {createHash,randomUUID} from 'node:crypto';
 import {z} from 'zod';
 import {ROOT,compilerCheck} from './core.js';
 import {dataDir,acquireLock,writeRecord,readReview,captureFromRecord,processAlive,recordAssistance,formatProblem} from './browser-review.js';
+import {conversationContext,validateConversationLink,quickConversation} from './conversation-history.js';
+import {gridUrl} from './grid-url.js';
 import {getProblem} from './problem-history.js';
 import {runHintModel,runDiscussionModel} from './model-runner.js';
 import {formatHintReport,formatStreamHint,HINT_REVISION} from './hint-format.js';
@@ -32,7 +34,7 @@ async function judgment(record,evidence){
   return {status:'unknown',source:'none',runtimeAssociation:'uncertain'};
 }
 export function hintSummary(record){
-  return {id:record.id,eventId:record.eventId,snapshotId:record.snapshotId,kind:record.kind||'hint',purpose:record.purpose,question:record.question,instantAnalysis:record.instantAnalysis,partialAnalysis:record.partialAnalysis,firstTokenAt:record.firstTokenAt,title:record.title,sourceUrl:record.sourceUrl,codeHash:record.codeHash,createdAt:record.createdAt,status:record.status,judgment:record.judgment,message:record.message,error:record.error,compiler:record.compiler,...(record.status==='complete'?{analysis:record.analysis}:{})};
+  return {id:record.id,eventId:record.eventId,snapshotId:record.snapshotId,kind:record.kind||'hint',purpose:record.purpose,conversationId:record.conversationId,parentJobId:record.parentJobId,question:record.question,instantAnalysis:record.instantAnalysis,partialAnalysis:record.partialAnalysis,firstTokenAt:record.firstTokenAt,title:record.title,sourceUrl:record.sourceUrl,codeHash:record.codeHash,createdAt:record.createdAt,status:record.status,judgment:record.judgment,message:record.message,error:record.error,compiler:record.compiler,...(record.status==='complete'?{analysis:record.analysis}:{})};
 }
 export async function queueHint(id,{judgeEvidence,eventId=randomUUID(),attemptNumber,requestedAt}={}){
   const source=await readReview(id),current=await judgment(source,judgeEvidence);
@@ -50,15 +52,18 @@ export async function queueHint(id,{judgeEvidence,eventId=randomUUID(),attemptNu
   await recordAssistance(id,{type:'hint',jobId:id,eventId,attemptNumber,requestedAt:Number.isFinite(Date.parse(requestedAt))?requestedAt:new Date().toISOString(),codeHash:source.codeHash});
   return result;
 }
-export async function queueDiscussion(snapshotId,{question,purpose='discussion',selectedCode='',eventId=randomUUID(),attemptNumber,requestedAt}={}){
+export async function queueDiscussion(snapshotId,{question,purpose='discussion',selectedCode='',eventId=randomUUID(),attemptNumber,requestedAt,conversationId,parentJobId}={}){
   if(!['discussion','solution'].includes(purpose))throw new Error('无效的问答用途。');
   if(typeof question!=='string'||!question.trim()||question.length>2000||typeof selectedCode!=='string'||selectedCode.length>8000)throw new Error('请填写 1—2000 字的问题；选中片段最多 8000 字符。');
   const source=await readReview(snapshotId),id=createHash('sha256').update(`${snapshotId}:${eventId}`).digest('hex');
+  if(!conversationId&&purpose==='discussion'&&gridUrl(source.url))conversationId=await quickConversation({problemUrl:source.url,snapshotId,problemTitle:source.title,question});
+  if(conversationId)await validateConversationLink({conversationId,parentJobId,problemUrl:source.url});
   const createdAt=Number.isFinite(Date.parse(requestedAt))?requestedAt:new Date().toISOString();
   const instantAnalysis=purpose==='solution'?'已保存本次题目与完整代码；完整参考解答将在后台生成。':globalThis.PkuInstantHints.discuss(await captureFromRecord(source),question,selectedCode).markdown;
   const result=await update(id,prior=>{
+    if(prior&&(prior.conversationId!==conversationId||prior.parentJobId!==parentJobId))throw new Error('同一问答事件不能切换对话。');
     if(prior&&(prior.purpose||'discussion')!==purpose)throw new Error('同一问答事件不能改作另一用途。');
-    return prior?(prior.status==='failed'?{...prior,status:'queued',error:undefined,queuedAt:new Date().toISOString()}:prior):{schemaVersion:1,kind:'discussion',purpose,id,snapshotId,title:source.title,sourceUrl:source.url,codeHash:source.codeHash,createdAt,queuedAt:new Date().toISOString(),eventId,question:question.trim(),selectedCode,instantAnalysis,status:'queued',judgment:{status:'unknown',runtimeAssociation:'uncertain'}};
+    return prior?(prior.status==='failed'?{...prior,status:'queued',error:undefined,queuedAt:new Date().toISOString()}:prior):{schemaVersion:1,kind:'discussion',purpose,conversationId,parentJobId,id,snapshotId,title:source.title,sourceUrl:source.url,codeHash:source.codeHash,createdAt,queuedAt:new Date().toISOString(),eventId,question:question.trim(),selectedCode,instantAnalysis,status:'queued',judgment:{status:'unknown',runtimeAssociation:'uncertain'}};
   });
   await recordAssistance(snapshotId,{type:'discussion',purpose,jobId:id,eventId,attemptNumber,requestedAt:createdAt,codeHash:source.codeHash,question:question.trim()});
   return result;
@@ -141,7 +146,7 @@ export async function processHint(id,{model=runHintModel,discussionModel=runDisc
     const evidence={task:current.kind==='discussion'?'code_discussion':'debug_hint',capture,diagnostics,...(current.kind==='discussion'?{}:{answerContext:await hintAnswerContext(capture)}),judgment:ready.judgment,runtimeAssociation:ready.judgment.runtimeAssociation};
     let result;
     if(current.kind==='discussion'){
-      const history=current.purpose==='solution'?[]:(await discussionHistory(capture.url,{beforeEventId:current.eventId,limit:6})).entries;
+      const history=current.purpose==='solution'?[]:gridUrl(capture.url)?await conversationContext(current):(await discussionHistory(capture.url,{beforeEventId:current.eventId,limit:6})).entries;
       const previousSolution=current.purpose==='solution'?await previousSolutionContext(capture,current.eventId):undefined;
       const response=await streamReply(id,onDelta=>discussionModel({...evidence,purpose:current.purpose,question:current.question,selectedCode:current.selectedCode,history,previousSolution},{onDelta,...(current.purpose==='solution'?{timeoutMs:120000}:{})}));
       const report=z.object({answer:z.string().min(1).max(15000),next_step:z.string().max(3000)}).strict().parse(response);
