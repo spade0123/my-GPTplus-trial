@@ -1,9 +1,10 @@
 (()=>{
   const $=id=>document.getElementById(id),port=chrome.runtime.connect();
   let submitJobId,submitTimer,submitRefreshes=0,submitBusy=false;
-  let testJobId,testTimer,testRefreshes=0,testBusy=false,inputInitialized=false,activeKind='',lastTest,lastSubmission;
+  let testJobId,testTimer,testRefreshes=0,testBusy=false,inputInitialized=false,activeKind='',lastTest,lastSubmission,testInputMode='platform';
   const send=(type,extra={})=>port.postMessage({type,...extra,actionId:crypto.randomUUID(),requestedAt:new Date().toISOString()});
-  const verdictName={AC:'AC',WA:'WA',CE:'CE',TLE:'TLE',RE:'RE',MLE:'MLE',PE:'PE',OLE:'OLE'};
+  const verdictName={AC:'Accepted',WA:'Wrong Answer',CE:'Compile Error',TLE:'Time Limit Exceeded',RE:'Runtime Error',MLE:'Memory Limit Exceeded',PE:'Presentation Error',OLE:'Output Limit Exceeded'};
+  const platformName={Passed:'Accepted',Accepted:'Accepted',WrongAnswer:'Wrong Answer',CompileError:'Compile Error',RuntimeError:'Runtime Error',TimeOut:'Time Out',OutOfMemory:'Out Of Memory',OutputExceeded:'Output Limit Exceeded',EmptyOutput:'Empty Output'};
   function block(parent,label,text){
     const box=document.createElement('div'),h=document.createElement('h4'),pre=document.createElement('pre'),code=document.createElement('code');
     box.className='execution-block';h.textContent=label;code.textContent=String(text||'（空）');pre.append(code);box.append(h,pre);parent.append(box);
@@ -12,22 +13,28 @@
     if(activeKind!==kind)return;
     const submission=value.submission,reply=submission?.websiteReplyRaw||value.websiteReplyRaw;
     const raw=submission?.runtime?.text||reply||value.error||value.message||(value.browserStage?value.browserStage+'，等待编程网格返回原文…':'请求已发出，等待编程网格返回原文…');
-    const verdict=verdictName[submission?.verdict?.status]||'';
+    const verdictCode=submission?.verdict?.status,verdict=platformName[submission?.platformResult]||verdictName[verdictCode]||'';
     $('priorityPanel').hidden=false;$('priorityVerdict').hidden=!verdict;$('priorityVerdict').textContent=verdict;
-    $('priorityVerdict').className='priority-verdict'+(verdict?' verdict-'+verdict.toLowerCase():'');
-    const label=(kind==='test'?'网站测试 · ':'正式提交 · ')+(submission?.runtime?.text?'输出与提示原文':reply?'接口原文':value.error||value.status==='uncertain'?'连接未确认':value.message&&value.status==='rejected'?'网站未接受请求':'等待网站回复');
+    $('priorityVerdict').className='priority-verdict'+(verdictName[verdictCode]?' verdict-'+verdictCode.toLowerCase():'');
+    const label=(kind==='test'?(testInputMode==='manual'?'手工输入测试 · ':'测试代码 · '):'正式提交 · ')+(submission?.runtime?.text?'输出与提示原文':reply?'接口原文':value.error||value.status==='uncertain'?'连接未确认':value.message&&value.status==='rejected'?'网站未接受请求':'等待网站回复');
     $('priorityLabel').textContent=label+(Number.isFinite(value.responseMs)?` · 首次回复 ${value.responseMs} ms`:'');
     $('priorityRaw').textContent=raw;
   }
   $('webTestInput').addEventListener('input',()=>{inputInitialized=true;});
+  $('useManualInput').onchange=()=>{
+    $('webTestInput').disabled=!$('useManualInput').checked;
+    $('gridTest').textContent=$('useManualInput').checked?'手工输入测试':'测试代码 · 网格判题';
+  };
   $('gridTest').onclick=()=>{
     if(testBusy)return;
     activeKind='test';
+    const input=$('useManualInput').checked?$('webTestInput').value:'';
+    testInputMode=input.length?'manual':'platform';
     testBusy=true;$('gridTest').disabled=true;$('webTestPanel').hidden=false;$('refreshGridTest').disabled=true;
     $('webTestState').textContent='正在保存当前 VS Code 代码并请求编程网格网站测试执行…';
     $('webTestResults').replaceChildren();testJobId=null;testRefreshes=0;clearTimeout(testTimer);
     priority('test',{message:'请求已发出，等待编程网格返回原文…'});
-    send('grid_test',{input:$('webTestInput').value});
+    send('grid_test',{input});
   };
   const refreshTest=()=>{if(!testJobId)return;$('refreshGridTest').disabled=true;send('grid_test_refresh',{id:testJobId});};
   $('refreshGridTest').onclick=refreshTest;
@@ -57,6 +64,8 @@
     if(value.type==='grid_test_result'){
       if(testJobId&&value.id!==testJobId)return;
       lastTest=value;
+      if(typeof value.input==='string')testInputMode=value.input.length?'manual':'platform';
+      $('testPanelTitle').textContent=testInputMode==='manual'?'手工输入测试':'测试代码 · 网格判题';
       testJobId=value.id;const s=value.submission,sending=['prepared','sending'].includes(value.status),pending=sending||value.status==='pending';
       testBusy=pending;$('gridTest').disabled=testBusy;$('webTestPanel').hidden=false;$('refreshGridTest').disabled=!value.receipt?.solutionId;
       $('webTestState').textContent=value.status==='uncertain'?value.message:s?`网站测试 ${s.submissionId}：${s.platformResult||s.verdict?.status||'处理中'} · 源码 ${(value.codeHash||'').slice(0,8)}；非正式提交。`:value.error||value.message||'网站测试已发出，等待首次回复。';
@@ -67,7 +76,7 @@
       const testReply=s?.websiteReplyRaw||value.websiteReplyRaw;
       if(testReply)block($('webTestResults'),'编程网格接口完整回复（原始 JSON）',testReply);
       else if(s&&!s.runtime?.text)block($('webTestResults'),'网站返回状态',s.platformResult||s.verdict?.status);
-      if(value.input!==undefined)block($('webTestResults'),'本次测试输入',value.input);
+      if(value.input)block($('webTestResults'),'本次手工输入',value.input);
       if(value.workerError)block($('webTestResults'),'本机保存提示',value.workerError);
       if(value.receipt?.solutionUrl){const a=document.createElement('a');a.href=value.receipt.solutionUrl;a.textContent='查看网站这次测试记录';$('webTestResults').append(a);}
       clearTimeout(testTimer);

@@ -46,6 +46,70 @@ test('Grid preserves non-JSON website replies instead of dropping the raw respon
   }finally{w.close();}
 });
 
+test('Grid verdicts display complete website names and retain status colors',async()=>{
+  const html=await fs.readFile(new URL('../vscode-extension/judge-window.html',import.meta.url),'utf8');
+  const script=await fs.readFile(new URL('../vscode-extension/judge-controls.js',import.meta.url),'utf8');
+  const dom=new JSDOM(html,{url,runScripts:'outside-only'}),w=dom.window;let receive;
+  w.crypto.randomUUID=randomUUID;
+  w.chrome={runtime:{connect:()=>({postMessage(){},onMessage:{addListener:fn=>receive=fn}})}};
+  try{
+    w.eval(script);w.document.getElementById('submitOJ').click();
+    for(const [status,platformResult,name] of [['AC','Passed','Accepted'],['WA','WrongAnswer','Wrong Answer'],['CE','CompileError','Compile Error'],['TLE','TimeOut','Time Out'],['WA','EmptyOutput','Empty Output']]){
+      receive({type:'oj_result',id:'fixture',status:'submitted',receipt:{solutionId:'42'},submission:{platformResult,verdict:{status},detailLoaded:true,runtime:{text:'Case 0: Diff: 1'}}});
+      const badge=w.document.getElementById('priorityVerdict');
+      assert.equal(badge.textContent,name);
+      assert(badge.classList.contains('verdict-'+status.toLowerCase()));
+    }
+  }finally{w.close();}
+});
+
+test('Grid test defaults to empty stdin even after sample input has been populated',async()=>{
+  const html=await fs.readFile(new URL('../vscode-extension/judge-window.html',import.meta.url),'utf8');
+  const script=await fs.readFile(new URL('../vscode-extension/judge-controls.js',import.meta.url),'utf8');
+  const dom=new JSDOM(html,{url,runScripts:'outside-only'}),w=dom.window,sent=[];let receive;
+  w.crypto.randomUUID=randomUUID;
+  w.chrome={runtime:{connect:()=>({postMessage:value=>sent.push(value),onMessage:{addListener:fn=>receive=fn}})}};
+  try{
+    w.eval(script);
+    receive({type:'assist_context',capture:{problem:{sampleInput:'sample must not replace platform tests'}}});
+    w.document.getElementById('gridTest').click();
+    assert.equal(sent.find(value=>value.type==='grid_test').input,'');
+    receive({type:'error',requestType:'grid_test',error:'fixture reset'});
+    const checkbox=w.document.getElementById('useManualInput');checkbox.checked=true;checkbox.dispatchEvent(new w.Event('change'));
+    w.document.getElementById('gridTest').click();
+    assert.equal(sent.filter(value=>value.type==='grid_test').at(-1).input,'sample must not replace platform tests');
+  }finally{w.close();}
+});
+
+test('Grid native test keeps empty stdin while formal submission omits it, preserving full cloud diff',async()=>{
+  const dom=new JSDOM('',{url,runScripts:'outside-only'}),w=dom.window,forms=[];
+  const hint="Testing Input: sample\n--------\nResult: WrongAnswer\n--------\nOutput: Hello world!\n--------\nHint: WrongAnswer: in case 0.\nDifferent at line 1. Std: 'expected' Out: 'Hello world!'\n";
+  w.AbortSignal=AbortSignal;
+  w.fetch=async(target,options)=>{
+    const form=new URLSearchParams(options.body.toString());forms.push(form);
+    return response(target,{status:'OK',type:'solution',solution:{id:'a'.repeat(32),result:form.has('stdin')?'Testing':'WrongAnswer',hint}});
+  };
+  try{
+    const invoke=w.eval(`(${gridJudgeRequest.toString()})`);
+    const tested=await invoke(url,'test',{code,language:'C++',input:''});
+    await invoke(url,'submit',{code,language:'C++'});
+    assert.equal(forms[0].has('stdin'),true);assert.equal(forms[0].get('stdin'),'');
+    assert.equal(forms[1].has('stdin'),false);
+    assert.equal(tested.submission.verdict.status,'WA');
+    assert.equal(tested.submission.runtime.text,hint);
+  }finally{w.close();}
+});
+
+test('manual Testing completion never implies platform Accepted',async()=>{
+  const dom=new JSDOM('',{url,runScripts:'outside-only'}),w=dom.window;
+  w.AbortSignal=AbortSignal;
+  w.fetch=async target=>response(target,{status:'OK',type:'solution',solution:{id:'b'.repeat(32),result:'Testing',hint:'Input: sample\nResult: Complete! Please check the output by yourself.\nCase 0: Diff: 0'}});
+  try{
+    const result=await w.eval(`(${gridJudgeRequest.toString()})`)(url,'test',{code,language:'C++',input:'sample'});
+    assert.equal(result.submission.verdict.status,'tested');
+  }finally{w.close();}
+});
+
 test('Grid detail page replaces pending API status and preserves case feedback',async()=>{
   const dom=new JSDOM('',{url,runScripts:'outside-only'}),w=dom.window;
   const hint='Case  0 :  Time:  6 ms,  Memory:  356 kB,  Diff: 0\n';

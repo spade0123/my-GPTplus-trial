@@ -20,7 +20,7 @@ export async function gridJudgeRequest(problemUrl,mode,params={}){
     if(value.status!=='OK'||value.type!=='solution'||!value.solution||value.solution.id==null)return {error:String(value.text||'编程网格未确认执行。'),raw};
     return {solution:value.solution,raw};
   };
-  const statusMap={Passed:'AC',Accepted:'AC',WrongAnswer:'WA','Wrong Answer':'WA',CompileError:'CE','Compile Error':'CE',RuntimeError:'RE','Runtime Error':'RE',TimeOut:'TLE','Time Limit Exceeded':'TLE',OutOfMemory:'MLE','Memory Limit Exceeded':'MLE',OutputExceeded:'OLE','Output Limit Exceeded':'OLE',EmptyOutput:'WA',Processing:'pending',Testing:'pending',Pending:'pending',WaitTimeOut:'system_error',SystemError:'system_error',NoProblem:'system_error',NoTestData:'system_error'};
+  const statusMap={Passed:'AC',Accepted:'AC',WrongAnswer:'WA','Wrong Answer':'WA',CompileError:'CE','Compile Error':'CE',RuntimeError:'RE','Runtime Error':'RE',TimeOut:'TLE','Time Limit Exceeded':'TLE',OutOfMemory:'MLE','Memory Limit Exceeded':'MLE',OutputExceeded:'OLE','Output Limit Exceeded':'OLE',EmptyOutput:'WA',Processing:'pending',Testing:'tested',Pending:'pending',WaitTimeOut:'system_error',SystemError:'system_error',NoProblem:'system_error',NoTestData:'system_error'};
   const validId=value=>/^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/.test(value);
   const readDetail=async id=>{
     const url=`${origin}/solution/${id}/`;
@@ -71,9 +71,10 @@ export async function gridJudgeRequest(problemUrl,mode,params={}){
     else if(detail){solution={id,result:detail.result,hint:detail.hint};websiteReplyRaw=statusResult?.status==='fulfilled'?statusResult.value.raw:'';}
     else throw statusResult.status==='rejected'?statusResult.reason:new Error(statusResult.value.error);
   }else throw new Error('不支持的网站执行方式。');
-  const hint=detail?.hint|| (typeof solution.hint==='string'?solution.hint:'');
+  const hint=(typeof solution.hint==='string'?solution.hint:'')||detail?.hint||'';
   const result=detail?.result&&statusMap[detail.result]&&!['pending','unknown'].includes(statusMap[detail.result])?detail.result:solution.result;
-  const verdict={status:statusMap[result]||'unknown',text:[result,hint.slice(0,1500)].filter(Boolean).join(' · ').slice(0,2000)};
+  const testResult=result==='Testing'?hint.match(/^Result:\s*([^\r\n]+)/m)?.[1]?.trim():null;
+  const verdict={status:statusMap[testResult]||statusMap[result]||'unknown',text:[result,hint.slice(0,1500)].filter(Boolean).join(' · ').slice(0,2000)};
   const receipt={solutionId:id,solutionUrl:`${origin}/solution/${id}/`};
   return {receipt,submission:{problemMatches:true,problemUrl:problem.href,submissionId:id,url:receipt.solutionUrl,submittedCode:params.code,sourceTruncated:false,verdict,platformResult:String(result||'unknown'),websiteReplyRaw,detailLoaded:Boolean(detail),detailChecked,detailError,runtime:{text:hint,error:verdict.status==='CE'?hint:''},observedAt:new Date().toISOString()},message:verdict.text};
   }catch(error){
