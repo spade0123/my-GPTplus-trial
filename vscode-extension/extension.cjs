@@ -1,6 +1,7 @@
 const vscode=require('vscode'),fs=require('node:fs/promises'),path=require('node:path'),{randomUUID}=require('node:crypto'),{execFile}=require('node:child_process'),{promisify}=require('node:util');
 const {RpcClient}=require('./rpc-client.cjs');
 const {ProblemView}=require('./problem-view.cjs');
+const {ProblemNavigation}=require('./problem-navigation.cjs');
 const {planDateOrganization,applyDateOrganization}=require('./date-organizer.cjs');
 const isCpp=document=>document?.languageId==='cpp'&&!document.isClosed;
 const escape=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -8,6 +9,7 @@ function activate(context){
   let rpc,opening,lastSource;const panels=new Map(),judgePanels=new Map(),buttons=[];
   const output=vscode.window.createOutputChannel('编程网格 学习教练');context.subscriptions.push(output);
   const statementView=new ProblemView(context);
+  statementView.navigation=new ProblemNavigation({context,backend,currentEditor:()=>vscode.window.activeTextEditor?.document.languageId==='cpp'?vscode.window.activeTextEditor:lastSource,display:()=>statementView.latest});
   const settings=()=>vscode.workspace.getConfiguration('gridCoach');
   const aiSettings=()=>({model:settings().get('ai.model','gpt-6-luna'),effort:settings().get('ai.effort','low')});
   const verdictSettings=()=>Object.fromEntries(['AC','WA','CE','TLE','RE','MLE','PE','OLE'].map(code=>[code,{
@@ -55,12 +57,14 @@ function activate(context){
       return rpc;
     })().finally(()=>opening=null);return opening;
   }
-  function sourceFor(state){
+  function sourceFor(state,allowNavigationRecovery=false){
+    if(statementView.navigation.switching||statementView.navigation.blocked&&!allowNavigationRecovery)throw new Error('切题尚未完成。请重试选择目标题目，或执行“关联当前 C++ 文件与 Chrome 题目”后再测试/提交。');
     const active=vscode.window.activeTextEditor;
     if(active&&(!isCpp(active.document)||state&&active.document.uri.toString()!==state.uri))throw new Error('已切换源码文件，请从目标题目的三个按钮重新打开教练。');
     const visible=vscode.window.visibleTextEditors.filter(editor=>isCpp(editor.document));
     const editor=active||(isCpp(lastSource?.document)?lastSource:undefined)||(state?visible.find(editor=>editor.document.uri.toString()===state.uri):visible.length===1?visible[0]:undefined);
     if(!isCpp(editor?.document)||state&&editor.document.uri.toString()!==state.uri)throw new Error('请先打开或选中你正在写的 C++ 文件。');
+    if(!allowNavigationRecovery)statementView.navigation.assertSource(editor.document.uri.toString());
     lastSource=editor;
     const doc=editor.document;
     const diagnostics=vscode.languages.getDiagnostics(doc.uri).slice(0,25).map(d=>`第 ${d.range.start.line+1} 行：${d.message}`).join('\n').slice(0,12000);
@@ -72,6 +76,8 @@ function activate(context){
     const selected=await vscode.window.showQuickPick(tabs.filter(t=>t.kind==='problem').map(t=>({label:t.title||t.url,description:t.url,tab:t})),{placeHolder:'将当前 C++ 文件关联到 Chrome 中的编程网格 IDE 页'});
     if(!selected){if(!tabs.some(t=>t.kind==='problem'))throw new Error('请在 Chrome 打开具体题目 IDE，并点击“编程网格 · VS Code 连接”扩展图标。');return false;}
     await client.request({type:'context_bind',uri:source.uri,binding:{problemUrl:selected.tab.url,tabId:selected.tab.id}});
+    await statementView.navigation.associate(source.uri,selected.tab.url);
+    await statementView.navigation.clearBlock();
     return true;
   }
   async function ensureBinding(source){const client=await backend();let saved=await client.request({type:'context_get',uri:source.uri});if(!saved.binding){if(!await bind(source))return null;saved=await client.request({type:'context_get',uri:source.uri});}return saved;}
@@ -153,7 +159,7 @@ function activate(context){
         if(message.type==='collapse'){state.panel.dispose();const doc=vscode.workspace.textDocuments.find(d=>d.uri.toString()===state.uri);if(doc)await vscode.window.showTextDocument(doc,{viewColumn:state.sourceColumn,preserveFocus:false});}return;
       }
       if(message.type==='bind_problem'){
-        const source=sourceFor(state);if(!await bind(source))return;
+        const source=sourceFor(state,true);if(!await bind(source))return;
         if(state.kind==='judge'){
           const saved=await client.request({type:'context_get',uri:state.uri});state.problemUrl=saved.binding.problemUrl;
           return reply({type:'assist_context',capture:{problem:saved.problem?.problem}});
@@ -216,7 +222,7 @@ function activate(context){
     context.subscriptions.push(vscode.commands.registerCommand('gridCoach.'+command,safe(fn)));
     const button=vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right,priority);button.text=label;button.tooltip='编程网格 C++ 教练：'+label;button.command='gridCoach.'+command;button.name='编程网格 '+label;button.show();buttons.push(button);context.subscriptions.push(button);
   }
-  context.subscriptions.push(vscode.commands.registerCommand('gridCoach.bindProblem',safe(()=>bind(sourceFor()))),vscode.commands.registerCommand('gridCoach.showRecords',safe(showRecords)),vscode.commands.registerCommand('gridCoach.organizeProjectByDate',safe(organizeProjectByDate)));
+  context.subscriptions.push(vscode.commands.registerCommand('gridCoach.bindProblem',safe(()=>bind(sourceFor(undefined,true)))),vscode.commands.registerCommand('gridCoach.showRecords',safe(showRecords)),vscode.commands.registerCommand('gridCoach.organizeProjectByDate',safe(organizeProjectByDate)));
   const organizeButton=vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right,1000);
   organizeButton.text='$(calendar) 按日期整理';organizeButton.tooltip='将项目根目录的 C/C++ 源码按最后修改日期整理';organizeButton.command='gridCoach.organizeProjectByDate';organizeButton.name='编程网格 按日期整理';
   const showOrganizeButton=()=>vscode.workspace.workspaceFolders?.length?organizeButton.show():organizeButton.hide();

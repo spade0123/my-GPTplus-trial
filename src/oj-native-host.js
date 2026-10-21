@@ -16,7 +16,7 @@ async function scan(){
     if(!/^[-a-f0-9]{36}\.json$/.test(name))continue;
     try{
       const request=JSON.parse(await fs.readFile(path.join(dir,'requests',name),'utf8'));
-      if(request.id+'.json'!==name||request.expiresAt<Date.now()||!['tabs','capture','inspect_submit','prepare_submit','submit','refresh_submission','test','refresh_test'].includes(request.action)||pending.has(request.id))continue;
+      if(request.id+'.json'!==name||request.expiresAt<Date.now()||!['tabs','capture','inspect_submit','prepare_submit','submit','refresh_submission','test','refresh_test','list_problems','activate_problem'].includes(request.action)||pending.has(request.id))continue;
       pending.set(request.id,request.expiresAt);await progress(request.id,'已转发给 Chrome').catch(()=>{});send({type:'browser_request',...request});
     }catch{}
   }

@@ -56,7 +56,7 @@ Chrome 打开题目的 `.../probset/<题集ID>/<题目ID>/ide.do` 页面，点�
 
 3. Chrome 打开 `chrome://extensions`，开启开发者模式，加载项目的 **`extension/`** 目录。自己登录编程网格并打开具体题目 IDE，点击连接图标。
 
-4. VS Code 执行“扩展：从 VSIX 安装”，选择 [pku-grid-cpp-coach-0.2.10.vsix](dist/pku-grid-cpp-coach-0.2.10.vsix)，然后运行 **Developer: Reload Window**。
+4. VS Code 执行“扩展：从 VSIX 安装”，选择 [pku-grid-cpp-coach-0.2.11.vsix](dist/pku-grid-cpp-coach-0.2.11.vsix)，然后运行 **Developer: Reload Window**。
 
 5. 打开 C++ 文件，点击“网格·评测”。需要关联或更换题目时，使用评测页底部的“题目连接与本机记录”。
 
@@ -86,7 +86,7 @@ VS Code 读取点击时编辑器里的完整缓冲区，包括尚未写入文件
 
 - **更新 VS Code 扩展后**：安装新 VSIX，运行 Developer: Reload Window。
 - **更新 Chrome 连接代码后**：在扩展管理页重新加载连接扩展；需要时在题目页再次点击图标连接。
-- **只有 VS Code 界面或本机服务更新时**：按该次更新说明操作，无需每次都重载 Chrome。当前 VS Code/本机程序为 0.2.10，Chrome 连接清单为 0.2.7。
+- **只有 VS Code 界面或本机服务更新时**：按该次更新说明操作，无需每次都重载 Chrome。当前 VS Code/本机程序和 Chrome 连接清单均为 0.2.11。
 - **显示上次的手工测试**：顶部会标明“上次记录”；默认测试方式仍是网格判题。点击测试按钮才会发送新的测试。
 - **题目标签已关闭或切换**：打开正确题目的 IDE，重新从目标 C++ 文件打开评测页，必要时更换关联。
 - **请求超时或未确认**：先核对网站记录，再决定下一步。界面会显示最后阶段和可获得的具体错误；不要把未确认当作成功。
@@ -115,7 +115,7 @@ VS Code 读取点击时编辑器里的完整缓冲区，包括尚未写入文件
 ```powershell
 npm run build:vscode
 cd vscode-extension
-npx --yes @vscode/vsce package --no-dependencies --skip-license --out ../dist/pku-grid-cpp-coach-0.2.10.vsix
+npx --yes @vscode/vsce package --no-dependencies --skip-license --out ../dist/pku-grid-cpp-coach-0.2.11.vsix
 ```
 
 这轮维护使用以下针对网格的检查，14 项通过：
@@ -145,7 +145,7 @@ node --test test/grid-feedback.test.js test/grid-statusbar.test.js test/openjudg
 - 执行 **编程网格：打开插件设置**，或点评测页底部设置按钮，可分别修改 AC、WA、CE、TLE、RE、MLE、PE、OLE 大字头的 **文字、字号、颜色**，已打开的评测页立即更新。
 - 文字留空保留网站完整判定名；字号 0 使用原有自适应字号，其他数字按 px（最大 200）；颜色留空保留默认色，或填写 `#e87863` 等十六进制颜色。只改变大字头，网站原文保持原样。
 - 配置保存在 VS Code 用户设置，不写入共享项目。AI 配置同步到本机私有 `data/coach-model-settings.json`，工作进程每次请求前读取。独立命令行未有此文件时，可用 `PKU_MODEL`、`PKU_MODEL_EFFORT` 环境变量，最后回退 Luna / low。
-- 本次 Chrome 仍为 0.2.7，无需重新加载 Chrome。
+- 0.2.9 当时 Chrome 仍为 0.2.7；升级 0.2.11 需按下文重载 Chrome 连接。
 
 用户设置 JSON 示例（也可以直接使用设置界面的输入框）：
 
@@ -171,6 +171,24 @@ node --test test/grid-feedback.test.js test/grid-statusbar.test.js test/openjudg
 - 到时归零并显示提醒；隐藏侧栏后仍由 VS Code 扩展计时。
 - 状态存入 VS Code 当前工作区私有存储，不进入项目文件或 Git。重新加载窗口、重新打开同一工作区后按保存时间恢复；电脑休眠和关闭 VS Code 的时间也计入。VS Code 关闭期间不会弹出提醒，重新打开后补发到时提醒。
 - 当前是一组工作区计时器，切换题目不会自动归零，不是每道题独立统计用时。不同 VS Code 窗口各自运行；更改系统时钟可能影响时间差。
-- 此功能不经过浏览器、本机评测后台或 AI；本次无需重新加载 Chrome。
+- 计时器本身不经过浏览器、本机评测后台或 AI；升级 0.2.11 的题目导航需重载 Chrome 连接。
 
-题目列表识别和快速切题的可行性见[调研文档](docs/problem-navigation-research.md)。这部分目前是调研方案，尚未加入切题按钮。
+题目列表识别和快速切题的可行性见[调研文档](docs/problem-navigation-research.md)。0.2.11 已加入题单和切题入口，操作方法见下文。
+
+
+## 题目列表与快速切题（0.2.11）
+
+在题目原文侧栏，计时器下方新增 **本次作业** 区域：
+
+- 连接当前 IDE 后自动读取题单；展开“选择题目”可搜索题名/序号、查看网站顺序和当前题。
+- 点击题目，或使用“上一题 / 下一题”，同时切换网页 IDE、题面和对应源码。
+- 优先读取网站实际菜单 `ol > li[id^="li_"]`，包含没有 href 的当前题。菜单尚未加载时可在网页展开一次再点“刷新”；另有当前题集 HTML 的只读回退。只识别到一题时明确提示，不假装拿到了完整题单。
+- 网页已有目标题 IDE 时复用标签，否则新开；保留原网页编辑器的草稿。
+- 已关联的本题源码继续打开；新题在项目的 `编程网格/<题集ID>/<题目ID>.cpp` 创建独立空白文件，已有文件不覆盖。多项目时选择保存位置，没有项目时创建 C++ 未命名文档；未命名源码需自行保存。
+- 原文件保留在 VS Code 中，不自动保存、关闭或改写。只有明确关联过的文件会被当作对应题目的已有源码；首次关联可用“编程网格：关联当前 C++ 文件与 Chrome 题目”。
+- 文件映射存入当前工作区私有存储。换题不触发 AI、测试、提交，也不重置计时器。
+- 切题未完成时拦截新测试/提交；关联失败后可刷新并重选题目，或明确重新关联当前文件。中断状态在重载后仍保留，完成关联后恢复操作。
+
+**此次更新需要同时更新 Chrome 连接与 VS Code：** Chrome 扩展管理页重新加载“编程网格 · VS Code 连接”，回到 IDE 点击连接图标确认 ON；VS Code 运行 `Developer: Reload Window`。两端与本机程序版本均为 0.2.11。
+
+目前按用户提供的真实菜单 HTML 实现并完成语法检查、打包；尚未在登录后的网站做完整切题联调。首次使用请确认题单、目标题名、打开的源码三者对应。

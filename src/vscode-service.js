@@ -45,7 +45,7 @@ async function patchContext(uri,patch,problemUrl){
   }finally{await release();}
 }
 export function createVscodeService({browser=browserRequest,launchReport=async()=>{},launchHint=async()=>{},currentProblem=readProblemDisplay,sampleRunner=runSample}={}){
-  const activeExecutions=new Set(),finalizingTests=new Set();
+  const activeExecutions=new Set(),finalizingTests=new Set(),navigationLists=new Map();
   async function resolveContext(uri,expectedProblemUrl){
     const display=await currentProblem();
     if(display.connected&&display.url){
@@ -191,8 +191,31 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
   return {async handle(message){
     const type=message.type;
     if(type==='configure_ai')return {settings:await writeModelSettings(message.settings)};
-    if(type==='status')return {ready:true,dataDirectory:dataDir(),version:'0.2.10',platform:'programminggrid-vscode'};
+    if(type==='status')return {ready:true,dataDirectory:dataDir(),version:'0.2.11',platform:'programminggrid-vscode'};
     if(type==='problem_display')return currentProblem();
+    if(type==='list_problems'){
+      const display=await currentProblem(),url=message.problemUrl||display.url,parsed=gridUrl(url,{kind:'problem'});
+      if(!parsed||!display.connected||!sameProblem(url,display.url))throw new Error('请先连接并打开当前题目的 IDE。');
+      const result=await browser('list_problems',{problemUrl:url,tabId:display.tabId},12000);
+      if(!Array.isArray(result.problems)||result.problems.length>500)throw new Error('网站题目列表格式无效。');
+      const problems=result.problems.map((item,index)=>{
+        const target=gridUrl(item.url,{kind:'problem'});
+        if(!target||target.group!==parsed.group||typeof item.title!=='string'||!item.title.trim())throw new Error('题目列表含不属于当前作业的地址。');
+        return {url:target.url,title:item.title.slice(0,300),number:Number.isSafeInteger(item.number)&&item.number>0?item.number:index+1,current:sameProblem(target.url,url)};
+      });
+      navigationLists.set(parsed.group,new Set(problems.map(item=>gridUrl(item.url).key)));
+      return {type:'problem_list',problemUrl:url,problems,source:result.source,message:result.message||''};
+    }
+    if(type==='activate_problem'){
+      const from=gridUrl(message.problemUrl,{kind:'problem'}),target=gridUrl(message.targetUrl,{kind:'problem'}),display=await currentProblem();
+      if(!from||!target||from.group!==target.group||!navigationLists.get(from.group)?.has(target.key))throw new Error('请先刷新当前作业的题目列表，再选择其中的题目。');
+      if(!display.connected||!sameProblem(display.url,from.url))throw new Error('浏览器当前题目已改变，请先刷新题目列表。');
+      const result=await browser('activate_problem',{problemUrl:from.url,targetUrl:target.url,tabId:display.tabId},18000);
+      if(!result.page?.problemMatches||!sameProblem(result.page.problemUrl,target.url)||!Number.isInteger(result.tabId))throw new Error('切题后未能确认目标题面；请检查 Chrome 页面。');
+      return {type:'problem_activated',url:target.url,tabId:result.tabId,page:result.page};
+    }
+    if(type==='context_lookup')return getContext(validUri(message.uri));
+
     if(type==='judge_history'){
       const context=await getContext(validUri(message.uri),message.problemUrl);
       if(!context.binding)return {type:'judge_history'};
@@ -244,7 +267,7 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
       const uri=validUri(message.uri),b=message.binding;
       if(!b||!gridUrl(b.problemUrl,{kind:'problem'})||!Number.isInteger(b.tabId))throw new Error('请选择有效的编程网格 IDE 标签。');
       const binding={problemUrl:b.problemUrl,tabId:b.tabId,...(b.submissionTabId===undefined?{}:{submissionTabId:b.submissionTabId})};
-      const web=await browser('capture',binding);if(!web.problem?.problemMatches||!sameProblem(web.problem.problemUrl,binding.problemUrl))throw new Error('所选网页与题目不对应。');
+      const web=await browser('capture',{...binding,requireActive:message.requireActive===true});if(!web.problem?.problemMatches||!sameProblem(web.problem.problemUrl,binding.problemUrl))throw new Error('所选网页与题目不对应。');
       return patchContext(uri,{binding,problem:web.problem});
     }
     if(type==='ui_save'){
