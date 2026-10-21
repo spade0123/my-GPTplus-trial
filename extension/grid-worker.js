@@ -2,10 +2,11 @@ import {extractPage} from './extract.js';
 import {readCurrentJudgment} from './capture-actions.js';
 import {gridJudgeRequest} from './grid-submit.js';
 import {readGridProblemList} from './grid-navigation.js';
+import {readGridClosingTime} from './grid-closing.js';
 
 const patterns=['https://programming.pku.edu.cn/*'];
 let port,ready=false,sequence=0,timer;
-const sent=new Map(),navigationLists=new Map();
+const sent=new Map(),navigationLists=new Map(),assignmentDeadlines=new Map();
 let switching=false;
 const progress=(id,stage)=>{try{port?.postMessage({type:'browser_progress',id,stage});}catch{}};
 function info(value){
@@ -35,13 +36,18 @@ async function handle(request){
   if(!expected||!tab||info(tab.url)?.key!==expected.key)throw Object.assign(new Error('题目 IDE 标签已关闭或切换，请重新关联。'),{code:'PROBLEM_CHANGED'});
   progress(request.id,'已找到题目标签');
   if(request.action==='list_problems'){
-    const [reply]=await chrome.scripting.executeScript({target:{tabId:tab.id},world:'ISOLATED',func:readGridProblemList,args:[expected.url]});
+    let closesAt=p.forceDeadline?null:assignmentDeadlines.get(expected.key.split('/')[0])??null;
+    if(closesAt===null){
+      const [closing]=await chrome.scripting.executeScript({target:{tabId:tab.id},world:'MAIN',func:readGridClosingTime,args:[expected.url]});
+      closesAt=closing?.result??null;
+    }
+    const [reply]=await chrome.scripting.executeScript({target:{tabId:tab.id},world:'ISOLATED',func:readGridProblemList,args:[expected.url,closesAt]});
     const result=reply?.result;if(result?.error)throw new Error(result.error);
     if(!Array.isArray(result?.problems)||result.problems.length>500)throw new Error('未读到题目菜单，请重新加载 Chrome 连接扩展。');
     const after=await chrome.tabs.get(tab.id);if(info(after.url)?.key!==expected.key)throw new Error('读取列表时切换了题目，请重试。');
     const group=expected.key.split('/')[0],keys=new Set();
     for(const item of result.problems){const parsed=info(item.url);if(!parsed||parsed.key.split('/')[0]!==group)throw new Error('题目链接不属于当前作业。');keys.add(parsed.key);}
-    navigationLists.set(group,keys);return result;
+    navigationLists.set(group,keys);if(Number.isSafeInteger(result.closesAt))assignmentDeadlines.set(group,result.closesAt);return result;
   }
   if(request.action==='activate_problem'){
     const target=info(p.targetUrl),group=expected.key.split('/')[0];

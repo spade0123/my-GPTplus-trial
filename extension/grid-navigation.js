@@ -1,6 +1,6 @@
 // Serialized by scripting.executeScript: keep all helpers inside this function.
 // Reads ordinary links from the logged-in DOM or the current assignment's HTML.
-export async function readGridProblemList(expectedUrl){
+export async function readGridProblemList(expectedUrl,knownClosesAt=null){
   try{
     const expected=new URL(expectedUrl),pattern=/^\/(?:course\/)?probset\/([a-f0-9]{32})\/([a-f0-9]{32})\/(?:ide\.do|submit\.do)?$/i;
     const current=expected.pathname.match(pattern);
@@ -16,6 +16,57 @@ export async function readGridProblemList(expectedUrl){
       }catch{return null;}
     };
     const title=clean(document.querySelector('h1,h2')?.textContent||document.title).replace(/^题目\s*[:：-]\s*/,'');
+    // Only parse explicitly named close-time fields; never extrapolate rounded days.
+    function preciseTime(value){
+      const text=String(value||'').trim();let timestamp;
+      if(/^\d{13}$/.test(text))timestamp=Number(text);
+      else if(/^\d{10}$/.test(text))timestamp=Number(text)*1000;
+      else{
+        const match=text.match(/(?:^|[^\d])(20\d{2})[-/](\d{1,2})[-/](\d{1,2})[T\s]+(\d{1,2}):(\d{2})(?::(\d{2}))?(?:\.\d+)?(Z|[+-]\d{2}:?\d{2})?(?:$|[^\d])/);
+        if(!match)return null;
+        const [,year,month,day,hour,minute,second='0',zone]=match;
+        const calendar=new Date(Date.UTC(+year,+month-1,+day,+hour,+minute,+second));
+        if(calendar.getUTCFullYear()!==+year||calendar.getUTCMonth()!==+month-1||calendar.getUTCDate()!==+day||+hour>23||+minute>59||+second>59)return null;
+        const pad=value=>String(value).padStart(2,'0');
+        timestamp=Date.parse(`${year}-${pad(month)}-${pad(day)}T${pad(hour)}:${pad(minute)}:${pad(second)}${zone||'+08:00'}`);
+      }
+      return Number.isSafeInteger(timestamp)&&timestamp>=946684800000&&timestamp<=4102444800000?timestamp:null;
+    }
+    function readClosesAt(root){
+      const scoped=root.getElementById(group)||root;
+      const fields=[...scoped.querySelectorAll('.closeTime,#closeTime,#close_time,[data-close-time],[data-closetime]')].filter(field=>{const assignment=field.closest('.rbox[id]');return !assignment||assignment.id.toLowerCase()===group;});
+      if(scoped===root&&fields.length>1){
+        const values=new Set(fields.map(field=>preciseTime(field.getAttribute('data-close-time')||field.getAttribute('data-closetime')||field.getAttribute('datetime')||field.textContent)).filter(Number.isFinite));
+        return values.size===1?[...values][0]:null;
+      }
+      for(const field of fields){
+        const value=preciseTime(field.getAttribute('data-close-time')||field.getAttribute('data-closetime')||field.getAttribute('datetime')||field.textContent);
+        if(value!==null)return value;
+      }
+      const hint=root.getElementById('time_to_close');
+      for(const element of [hint,hint?.parentElement].filter(Boolean)){
+        for(const attribute of ['data-close-time','data-closetime','data-deadline','datetime','title']){
+          const value=preciseTime(element.getAttribute(attribute));if(value!==null)return value;
+        }
+      }
+      return null;
+    }
+    function courseUrl(root,base){
+      const urls=new Set();
+      for(const anchor of root.querySelectorAll('a[href]'))try{
+        const url=new URL(anchor.getAttribute('href'),base);
+        if(url.origin===expected.origin&&!url.username&&!url.password&&!url.search&&!url.hash&&/^\/course\/[a-f0-9]{32}\/$/i.test(url.pathname))urls.add(url.href);
+      }catch{}
+      return urls.size===1?[...urls][0]:null;
+    }
+    async function readHtml(url){
+      const response=await fetch(url,{method:'GET',credentials:'same-origin',redirect:'error',cache:'no-store',signal:AbortSignal.timeout(4000)});
+      if(!response.ok||!response.headers.get('content-type')?.includes('text/html'))return null;
+      const text=await response.text();if(text.length>2_000_000)return null;
+      const root=new DOMParser().parseFromString(text,'text/html');
+      if(root.querySelector('input[type="password"]')||/未登录|请先登录|请您登录/.test(root.querySelector('#errorMessage')?.textContent||''))return null;
+      return root;
+    }
     function read(root,base){
       // Confirmed site DOM: ol > li#li_<32 hex>.currentproblem > a without href.
       const currentRow=root.querySelector('#li_'+currentId),menu=currentRow?.closest('ol');
@@ -64,22 +115,24 @@ export async function readGridProblemList(expectedUrl){
       if(!result.some(item=>item.id===currentId))result.unshift({url:canonical(currentId),title:title||'当前题目',number:0,id:currentId});
       return result.slice(0,500).map((item,index)=>({url:item.url,title:item.title,number:item.number||index+1}));
     }
-    let problems=read(document,expected.href),source='ide-menu';
-    if(problems.length<2){
+    let problems=read(document,expected.href),source='ide-menu',closesAt=preciseTime(knownClosesAt)||readClosesAt(document),course=courseUrl(document,expected.href);
+    if(problems.length<2||(closesAt===null&&!course)){
       const assignmentUrl=`${expected.origin}/probset/${group}/`;
       try{
-        const response=await fetch(assignmentUrl,{method:'GET',credentials:'same-origin',redirect:'error',cache:'no-store',signal:AbortSignal.timeout(4000)});
-        if(response.ok&&response.headers.get('content-type')?.includes('text/html')){
-          const text=await response.text();if(text.length>2_000_000)throw new Error('题集页面过大。');
-          const parsed=new DOMParser().parseFromString(text,'text/html');
-          if(!parsed.querySelector('input[type="password"]')&&!/未登录|请先登录|请您登录/.test(parsed.querySelector('#errorMessage')?.textContent||'')){
-            const discovered=read(parsed,assignmentUrl);if(discovered.length>problems.length){problems=discovered;source='assignment-page';}
-          }
+        const parsed=await readHtml(assignmentUrl);
+        if(parsed){
+          closesAt=readClosesAt(parsed)||closesAt;course ||= courseUrl(parsed,assignmentUrl);
+          const discovered=read(parsed,assignmentUrl);if(discovered.length>problems.length){problems=discovered;source='assignment-page';}
         }
-      }catch{/* Keep the visible DOM result; never request login or guess APIs. */}
+      }catch{/* Keep the menu; a missing deadline never blocks navigation. */}
     }
+    if(closesAt===null&&course)try{
+      const parsed=await readHtml(course);
+      // A course contains many assignments. Only the exact current ID can supply a deadline.
+      if(parsed?.getElementById(group))closesAt=readClosesAt(parsed);
+    }catch{/* Read-only fallback; no periodic synchronization or login requests. */}
     if(!problems.length)problems=[{url:canonical(currentId),title:title||'当前题目',number:1}];
     if(location.pathname!==expected.pathname)throw new Error('读取列表时切换了题目，请重试。');
-    return {problems,source,message:problems.length<2?'只识别到当前题。请在网页展开一次作业菜单，然后点击刷新；仍无列表时需要核对菜单元素。':''};
+    return {problems,source,...(closesAt===null?{}:{closesAt}),message:problems.length<2?'只识别到当前题。请在网页展开一次作业菜单，然后点击刷新；仍无列表时需要核对菜单元素。':''};
   }catch(error){return {error:String(error.message||error).slice(0,1000)};}
 }

@@ -56,7 +56,7 @@ Chrome 打开题目的 `.../probset/<题集ID>/<题目ID>/ide.do` 页面，点�
 
 3. Chrome 打开 `chrome://extensions`，开启开发者模式，加载项目的 **`extension/`** 目录。自己登录编程网格并打开具体题目 IDE，点击连接图标。
 
-4. VS Code 执行“扩展：从 VSIX 安装”，选择 [pku-grid-cpp-coach-0.2.11.vsix](dist/pku-grid-cpp-coach-0.2.11.vsix)，然后运行 **Developer: Reload Window**。
+4. VS Code 执行“扩展：从 VSIX 安装”，选择 [pku-grid-cpp-coach-0.2.12.vsix](dist/pku-grid-cpp-coach-0.2.12.vsix)，然后运行 **Developer: Reload Window**。
 
 5. 打开 C++ 文件，点击“网格·评测”。需要关联或更换题目时，使用评测页底部的“题目连接与本机记录”。
 
@@ -86,7 +86,7 @@ VS Code 读取点击时编辑器里的完整缓冲区，包括尚未写入文件
 
 - **更新 VS Code 扩展后**：安装新 VSIX，运行 Developer: Reload Window。
 - **更新 Chrome 连接代码后**：在扩展管理页重新加载连接扩展；需要时在题目页再次点击图标连接。
-- **只有 VS Code 界面或本机服务更新时**：按该次更新说明操作，无需每次都重载 Chrome。当前 VS Code/本机程序和 Chrome 连接清单均为 0.2.11。
+- **只有 VS Code 界面或本机服务更新时**：按该次更新说明操作，无需每次都重载 Chrome。当前 VS Code/本机程序和 Chrome 连接清单均为 0.2.12。
 - **显示上次的手工测试**：顶部会标明“上次记录”；默认测试方式仍是网格判题。点击测试按钮才会发送新的测试。
 - **题目标签已关闭或切换**：打开正确题目的 IDE，重新从目标 C++ 文件打开评测页，必要时更换关联。
 - **请求超时或未确认**：先核对网站记录，再决定下一步。界面会显示最后阶段和可获得的具体错误；不要把未确认当作成功。
@@ -115,7 +115,7 @@ VS Code 读取点击时编辑器里的完整缓冲区，包括尚未写入文件
 ```powershell
 npm run build:vscode
 cd vscode-extension
-npx --yes @vscode/vsce package --no-dependencies --skip-license --out ../dist/pku-grid-cpp-coach-0.2.11.vsix
+npx --yes @vscode/vsce package --no-dependencies --skip-license --out ../dist/pku-grid-cpp-coach-0.2.12.vsix
 ```
 
 这轮维护使用以下针对网格的检查，14 项通过：
@@ -192,3 +192,17 @@ node --test test/grid-feedback.test.js test/grid-statusbar.test.js test/openjudg
 **此次更新需要同时更新 Chrome 连接与 VS Code：** Chrome 扩展管理页重新加载“编程网格 · VS Code 连接”，回到 IDE 点击连接图标确认 ON；VS Code 运行 `Developer: Reload Window`。两端与本机程序版本均为 0.2.11。
 
 目前按用户提供的真实菜单 HTML 实现并完成语法检查、打包；尚未在登录后的网站做完整切题联调。首次使用请确认题单、目标题名、打开的源码三者对应。
+
+
+## 题集关闭倒计时（0.2.12）
+
+“本次作业”区域显示 **x 天 x 小时 x 分钟后题集关闭**；不到一分钟时显示“不到 1 分钟后题集关闭”，到点后显示“已到题集关闭时间”。悬停可查看完整截止时刻（北京时间），剩余不足一天时突出显示。
+
+- 优先从网页自己的 `problemlist.closeTime` 一次性读取精确截止时间；该值由网站将 `problemlist.assignment.closeTime` 转换成日期而来。
+- 优先使用网站已转换的日期/时间戳，必要时读原始时间字符串；无时区的完整网站日期按北京时间解释。
+- 网站未暴露此变量时，尝试明确命名的关闭时间字段，并可通过课程链接按当前题集 ID 查找 `.closeTime`；不拿其他题集时间代替。
+- 获取后由 VS Code 本地时钟计算，每秒只重画文字，**没有定时网络同步**。同一题集切题继续共用同一截止时刻，按题集保存本机缓存。
+- 点击题单“刷新”会重新读取网页当前配置；老师改期后应先刷新网页，再刷新题单。
+- 没有精确截止时间时明确显示缺失，不用“6 天”等取整文字推算；本机时间不准会影响剩余时间，网站是否允许提交以网站为准。
+
+升级本次 0.2.12 需重新加载 Chrome 连接扩展，并在 VS Code 执行 `Developer: Reload Window`。实现依据用户提供的网站代码和 DOM；已做语法检查与打包，尚未在登录后的实际网页完整联调。

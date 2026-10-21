@@ -11,7 +11,7 @@ class ProblemNavigation{
   }
   async associate(uri,url){const target=identity(url);if(target)await this.context.workspaceState.update(MAP_KEY,{...this.context.workspaceState.get(MAP_KEY,{}),[target.key]:uri});}
   async clearBlock(){await this.context.workspaceState.update(PENDING_KEY,false);this.blocked=false;}
-  async list(url){return (await this.backend()).request({type:'list_problems',problemUrl:url});}
+  async list(url,forceDeadline=false){return (await this.backend()).request({type:'list_problems',problemUrl:url,forceDeadline});}
   async rememberCurrent(client,url){
     const editor=this.currentEditor();if(editor?.document.languageId!=='cpp'||editor.document.isClosed)return;
     const uri=editor.document.uri.toString(),saved=await client.request({type:'context_lookup',uri});

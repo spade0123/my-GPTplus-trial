@@ -191,12 +191,12 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
   return {async handle(message){
     const type=message.type;
     if(type==='configure_ai')return {settings:await writeModelSettings(message.settings)};
-    if(type==='status')return {ready:true,dataDirectory:dataDir(),version:'0.2.11',platform:'programminggrid-vscode'};
+    if(type==='status')return {ready:true,dataDirectory:dataDir(),version:'0.2.12',platform:'programminggrid-vscode'};
     if(type==='problem_display')return currentProblem();
     if(type==='list_problems'){
       const display=await currentProblem(),url=message.problemUrl||display.url,parsed=gridUrl(url,{kind:'problem'});
       if(!parsed||!display.connected||!sameProblem(url,display.url))throw new Error('请先连接并打开当前题目的 IDE。');
-      const result=await browser('list_problems',{problemUrl:url,tabId:display.tabId},12000);
+      const result=await browser('list_problems',{problemUrl:url,tabId:display.tabId,forceDeadline:message.forceDeadline===true},12000);
       if(!Array.isArray(result.problems)||result.problems.length>500)throw new Error('网站题目列表格式无效。');
       const problems=result.problems.map((item,index)=>{
         const target=gridUrl(item.url,{kind:'problem'});
@@ -204,7 +204,8 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
         return {url:target.url,title:item.title.slice(0,300),number:Number.isSafeInteger(item.number)&&item.number>0?item.number:index+1,current:sameProblem(target.url,url)};
       });
       navigationLists.set(parsed.group,new Set(problems.map(item=>gridUrl(item.url).key)));
-      return {type:'problem_list',problemUrl:url,problems,source:result.source,message:result.message||''};
+      const closesAt=result.closesAt===undefined?null:z.number().int().min(946684800000).max(4102444800000).parse(result.closesAt);
+      return {type:'problem_list',problemUrl:url,problems,closesAt,source:result.source,message:result.message||''};
     }
     if(type==='activate_problem'){
       const from=gridUrl(message.problemUrl,{kind:'problem'}),target=gridUrl(message.targetUrl,{kind:'problem'}),display=await currentProblem();

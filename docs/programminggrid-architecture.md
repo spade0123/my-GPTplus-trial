@@ -130,3 +130,19 @@ GitHub 里的代码描述“工具如何工作”，本机数据记录“使用�
 切题期间 sourceFor 拦截新测试、提交及保存分析。开始导航前持久化中断标记，源码关联和打开都完成后清除；失败后继续拦截，用户重选题目或显式关联可恢复。已关联文件若属于另一题，也要求先切题或明确关联。旧评测仍使用原题 URL、原代码和回执，切题不会重发请求；计时器保持运行。
 
 此版 Chrome、本机服务及 VS Code 均为 0.2.11，新增消息需要重新加载 Chrome 扩展。网页菜单结构依据用户提供的实际 ol/li/a；尚未在登录环境完整联调，其他题集布局、懒加载及登录重定向仍是现场核对范围。详情见 [导航实现与调研记录](problem-navigation-research.md)。
+
+
+## 精确 DDL 与本地显示（0.2.12）
+
+用户提供的网站代码确认：`problemlist.closeTime = text_to_date(problemlist.assignment.closeTime)`。Chrome 在 MAIN 执行环境中只取这一项关闭时间，不传出整个 problemlist 或账号对象。通过现有 list_problems 回复传给本机服务，校验后交给题面页。
+
+```text
+网站 assignment.closeTime → 网站转换后的 problemlist.closeTime
+  → Chrome 一次读取 → list_problems 的 closesAt（毫秒时间戳）
+  → 本机服务校验 → VS Code 按题集缓存
+  → assignment-closing.js 每秒计算 closesAt - Date.now()
+```
+
+Date 取 epoch 毫秒，原始字符串支持完整日期时间、时区或 10/13 位时间戳；无时区按 +08:00。备用读取只用明确关闭时间字段，课程页必须匹配当前题集 ID。小字 time_to_close 是舍入后的显示值，绝不用于反推截止时刻。
+
+界面每秒计算不发送请求。普通切题复用同题集缓存；手动刷新题单会重新取当前网页配置。切换题集会切换缓存，晚到的上一题集回复不能覆盖当前显示。老师改期后先刷新网站，刷新题单更新本机值。截止时刻不是手动倒计时，不会被秒表或倒计时的重置按钮影响。
