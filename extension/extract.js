@@ -92,5 +92,7 @@ export function extractPage() {
   }
   const statement=Object.entries(labels).map(([key,label])=>problem[key]?`${label}\n${problem[key]}`:'').filter(Boolean).join('\n\n');
   const missingSections=Object.keys(labels).filter(key=>!problem[key]);
-  return {url:location.origin+location.pathname,title:title.slice(0,300),problem,runtime,statement,statementTruncated:truncated,candidates,missingSections,needsVerification:missingSections.length>0};
+  const primaryIndex=[...document.querySelectorAll('.ace_editor')].findIndex(el=>el.id==='editor');
+  let selectedCode='';try{selectedCode=document.querySelector('#editor.ace_editor')?.env?.editor?.getSelectedText?.()?.slice(0,8000)||'';}catch{}
+  return {url:location.origin+location.pathname,title:title.slice(0,300),problem,runtime,statement,statementTruncated:truncated,candidates,primarySource:primaryIndex>=0?`ace:${primaryIndex}`:'',selectedCode,missingSections,needsVerification:missingSections.length>0};
 }

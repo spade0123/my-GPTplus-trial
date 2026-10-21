@@ -1,15 +1,16 @@
 {
-  "name": "pku-cpp-coach-mcp",
-  "version": "1.4.0",
+  "name": "programminggrid-vscode-coach-mcp",
+  "version": "0.2.8",
   "private": true,
   "type": "module",
-  "description": "个人计算概论 C++ 作业诊断与学习助手",
+  "description": "编程网格题目 IDE + VS Code C++ 学习教练",
   "engines": {
     "node": ">=22"
   },
   "scripts": {
     "start": "node src/server.js",
-    "test": "node --test test/*.test.js"
+    "test": "node --test test/*.test.js",
+    "build:vscode": "node tools/build-vscode.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.32.1",

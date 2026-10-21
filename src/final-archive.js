@@ -5,6 +5,7 @@ import {ROOT} from './core.js';
 import {Report,processAlive} from './browser-review.js';
 import {problemManifests,timeline,updateProblem,codeDiff} from './problem-history.js';
 import {runModel} from './model-runner.js';
+import {groupIdenticalAttempts} from './attempt-groups.js';
 
 export async function pendingArchives() {
   const result=[];
@@ -25,30 +26,33 @@ export async function readBundle(directory) {
 function cell(value){return String(value||'').replace(/\r?\n/g,' ').replace(/\|/g,'\\|');}
 export async function makeBundle(problem,finalization,{model=runModel,archiveRoot=process.env.PKU_ARCHIVE_DIR||path.join(ROOT,'archives')}={}) {
   const attempts=problem.attempts.filter(a=>a.number<=finalization.eventNumber),last=attempts.at(-1);
-  const problemUuid=new URL(problem.url).pathname.split('/')[3];
+  const problemUuid=new URL(problem.url).hostname==='programming.pku.edu.cn'?new URL(problem.url).pathname.split('/')[3]:problem.id;
   const directory=path.join(archiveRoot,problemUuid,finalization.id);
   try {
     const {marker}=await readBundle(directory);
     if(marker.archiveId!==finalization.id||marker.finalCodeHash!==last.codeHash)throw new Error('本地归档冲突。');
     return {directory,marker};
   }catch(e){if(e.code!=='ENOENT')throw e;}
-  const history=attempts.map((a,i)=>({number:a.number,kind:a.kind,note:a.note,codeHash:a.codeHash,savedAt:a.savedAt,verdict:a.verdict,analysisEvidence:a.record.evidence||null,reportStatus:a.record.status,diff:i?codeDiff(attempts[i-1].record.code,a.record.code).slice(0,6000):null,runtime:{input:(a.runtime.input||'').slice(0,2000),output:(a.runtime.output||'').slice(0,3000),hints:(a.runtime.hints||'').slice(0,2000),error:(a.runtime.error||'').slice(0,3000),status:a.runtime.status||''}}));
-  const selected=history.length>20?[...history.slice(0,2),...history.slice(-18)]:history;
-  const report=Report.parse(await model({task:'final_debug_retrospective',capture:{url:problem.url,title:problem.title,code:last.record.code,problem:last.record.problem,statement:last.record.statement,standard:last.record.standard,runtime:last.runtime},diagnostics:last.record.compiler||null,debugHistory:{totalAttempts:attempts.length,omittedFromModelContext:history.length-selected.length,attempts:selected},completionEvidence:finalization.verdict}));
+  const history=attempts.map((a,i)=>({id:a.id,number:a.number,contentKey:a.contentKey,kind:a.kind,note:a.note,codeHash:a.codeHash,savedAt:a.savedAt,submissionId:a.submissionId,verdict:a.verdict,analysisEvidence:a.record.evidence||null,reportStatus:a.record.status,diff:i?codeDiff(attempts[i-1].record.code,a.record.code).slice(0,6000):null,runtime:{input:(a.runtime.input||'').slice(0,2000),output:(a.runtime.output||'').slice(0,3000),hints:(a.runtime.hints||'').slice(0,2000),error:(a.runtime.error||'').slice(0,3000),status:a.runtime.status||''}}));
+  const groups=groupIdenticalAttempts(history),merged=groupIdenticalAttempts(attempts);
+  const selected=groups.length>20?[...groups.slice(0,2),...groups.slice(-18)]:groups;
+  const transitions=history.flatMap((a,i)=>i&&a.codeHash!==history[i-1].codeHash?[{from:history[i-1].number,to:a.number,diff:a.diff}]:[]).slice(-20);
+  const sequence=history.slice(-80).map(a=>({number:a.number,kind:a.kind,codeHash:a.codeHash}));
+  const report=Report.parse(await model({task:'final_debug_retrospective',capture:{url:problem.url,title:problem.title,code:last.record.code,problem:last.record.problem,statement:last.record.statement,standard:last.record.standard,runtime:last.runtime},diagnostics:last.record.compiler||null,debugHistory:{totalAttempts:attempts.length,mergedAttemptCount:groups.length,omittedFromModelContext:groups.length-selected.length,attempts:selected,sequence,omittedSequenceEvents:Math.max(0,history.length-80),transitions},completionEvidence:finalization.verdict}));
   const files={};
   files['solution.cpp']=last.record.code+'\n';
-  const table=['| 次数 | 时间（UTC） | 阶段 | 源码哈希 | 修改备注 |','| --- | --- | --- | --- | --- |'];
-  const debug=['# 代码修改与 debug 时间线','','记录仅反映已保存/已提交的快照；没有记录的中间编辑和个人推理不可还原。',''];
-  for(let i=0;i<attempts.length;i++) {
-    const a=attempts[i],kind={draft:'过程保存',submission:'提交评测',ac:'页面评测 AC',legacy:'旧版记录'}[a.kind]||a.kind;
-    table.push(`| ${a.number} | ${a.savedAt} | ${kind} | ${a.codeHash.slice(0,12)} | ${cell(a.note)} |`);
-    debug.push(`## 第 ${a.number} 次：${kind}`,'',`时间：${a.savedAt}；源码哈希：${a.codeHash}。`,'',`备注：${a.note||'未填写；不推断用户的修改意图。'}`,'');
+  const table=['| 原记录编号 | 合并次数 | 时间（UTC） | 阶段 | 源码哈希 | 修改备注 |','| --- | --- | --- | --- | --- | --- |'];
+  const debug=['# 代码修改与 debug 时间线','','完全相同的内容合并列出，保留原编号与次数；没有记录的中间编辑和个人推理不可还原。','',`实际发生顺序：${attempts.map(a=>`#${a.number}（${a.codeHash.slice(0,8)}）`).join(' → ')}。`,''];
+  for(let i=0;i<merged.length;i++) {
+    const a=merged[i],kind={draft:'过程保存',submission:'提交评测',ac:'页面评测 AC',legacy:'旧版记录'}[a.kind]||a.kind;
+    const numbers=a.numbers.join('、'),time=a.occurrenceCount>1?`${a.savedAt} → ${a.lastSavedAt}`:a.savedAt;
+    table.push(`| ${numbers} | ${a.occurrenceCount} | ${time} | ${kind} | ${a.codeHash.slice(0,12)} | ${cell(a.note)} |`);
+    debug.push(`## 原记录 ${numbers}：${kind}${a.occurrenceCount>1?`（相同内容合并 ${a.occurrenceCount} 次）`:''}`,'',`时间：${time}；源码哈希：${a.codeHash}。`,'',`备注：${a.note||'未填写；不推断用户的修改意图。'}`,'');
     if(a.verdict)debug.push(`页面评测：${a.verdict.status}（${cell(a.verdict.text)}）。`,'');
-    if(i)debug.push(a.codeHash===attempts[i-1].codeHash?'源码未变化，本次主要记录提交或运行状态。':'源码发生变化；逐行 diff 和过程源码独立保存在本地。','');
     if(a.record.evidence)debug.push(a.record.evidence,'');
   }
   files['DEBUG.md']=debug.join('\n');
-  files['README.md']=[`# ${problem.title}`,'',`题目来源：[北大课程平台](${problem.url})。`,'','完成依据：页面评测区域显示 AC，且关联的提交源码哈希与最终代码一致；不是学习教练独立重跑在线评测。','',`最终代码：[solution.cpp](solution.cpp)；修改和 debug 总结：[DEBUG.md](DEBUG.md)。过程源码和运行快照独立保存在本地。`,'',report.markdown,'','## 保存与提交记录','',...table,'','## 本地构建','',`语言标准：${last.record.standard||'c++17'}。`,'','```sh',`g++ -std=${last.record.standard||'c++17'} -Wall -Wextra solution.cpp -o solution`,'```',''].join('\n');
+  files['README.md']=[`# ${problem.title}`,'',`题目来源：[编程网格](${problem.url})。`,'','完成依据：页面评测区域显示 AC，且关联的提交源码哈希与最终代码一致；不是学习教练独立重跑在线评测。','',`最终代码：[solution.cpp](solution.cpp)；修改和 debug 总结：[DEBUG.md](DEBUG.md)。过程源码和运行快照独立保存在本地。`,'',report.markdown,'','## 保存与提交记录','',...table,'','## 本地构建','',`语言标准：${last.record.standard||'c++17'}。`,'','```sh',`g++ -std=${last.record.standard||'c++17'} -Wall -Wextra solution.cpp -o solution`,'```',''].join('\n');
   const entries=Object.entries(files).sort(([a],[b])=>a.localeCompare(b)).map(([name,content])=>({path:name,sha256:sha(content)}));
   const marker={schemaVersion:1,archiveId:finalization.id,problemUuid,sourceUrl:problem.url,finalCodeHash:last.codeHash,bundleHash:sha(JSON.stringify(entries)),files:entries};
   files['.pku-coach.json']=JSON.stringify(marker,null,2)+'\n';
@@ -61,7 +65,7 @@ export async function processArchives({model=runModel,archiveRoot}={}) {
   const observed=[],processed=[];
   for(const item of await pendingArchives()) {
     observed.push(item.id);
-    const problem=await timeline(item.url,{throughNumber:item.eventNumber});
+    const problem=await timeline(item.url,{throughNumber:item.eventNumber,mergeDuplicates:false});
     if(problem.attempts.some(a=>['queued','pending','running'].includes(a.record.status))){await patchFinal(item.url,item.id,{status:'waiting_reports'});continue;}
     try {
       await patchFinal(item.url,item.id,{status:'building',workerPid:process.pid,error:null});

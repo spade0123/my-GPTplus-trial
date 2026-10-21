@@ -1,159 +1,137 @@
-# 北大计算概论 C++ 学习教练 MCP
+# 北大编程网格 · VS Code C++ 学习教练
 
-个人用的 C++ 作业学习工具，包含 MCP 服务、Chrome 扩展和 Windows 本机连接程序。在北大编程平台 IDE 页面保存自己的代码，后台分析缺点、优化方向和需要补学的知识，并比较同题多次修改和 debug 过程。
+在 **VS Code 写 C++**，通过已登录的 **Chrome 连接编程网格**，直接测试、提交并查看网站返回原文；需要学习辅助时，再打开独立的 AI 提示或交流页面。
 
-**作业源码、修改历史、运行记录、分析报告和 AC 最终归档全部保存在本机。本项目没有 GitHub 作业上传功能。GitHub 仓库只用于发布工具程序与文档。**
+当前适配的是 `https://programming.pku.edu.cn` 的具体题目 IDE，面向 Windows 桌面版 VS Code + Chrome。项目最初计划适配 `programminggrid.pku.edu.cn`，实际核对与使用的接口位于前者。
 
-## 使用流程
+**仓库发布工具与文档；个人题目、作业源码、对话、评测记录和报告保存在各自电脑。AI 分析会使用各自配置的模型服务与额度。**
 
-1. 在 Chrome 打开北大题目 IDE：`https://programming.pku.edu.cn/probset/<题集ID>/<题目ID>/ide.do`。
-2. 点击右下角“保存并后台分析”，首次核对题目描述、关于输入、关于输出、例子输入、例子输出和完整 C++ 代码。
-3. 可填写本次修改或 debug 备注，点击“保存过程版本”。保存成功即可继续修改、保存其他代码或切换题目，无需等待报告。
-4. 点击平台自己的“提交程序”时，扩展独立记录本次提交的代码。识别到与该提交对应的 AC 后，在本机生成最终代码、README 和 debug 总结。
-5. 在面板查看本题修改时间线、后台报告和本机最终归档状态。报告失败可以重试，源码仍然保留。
+## 日常使用
 
-过程保存和最终归档是两条独立流程。AC 到达时，即使编辑器已改成下一版，也只归档当时提交的代码。后台生成报告不会占住保存按钮；最后归档也不会覆盖过程记录。
+Chrome 打开题目的 `.../probset/<题集ID>/<题目ID>/ide.do` 页面，点击“编程网格 · VS Code 连接”扩展图标；`ON` 表示本机连接已建立。VS Code 打开正在编写的 `.cpp` 文件。
 
-## 分析内容
+| 状态栏入口 | 用途 |
+| --- | --- |
+| 网格·评测 | 打开独立的测试、正式提交与网站原文页面。 |
+| 网格·保存 | 保存点击时的代码快照及题目记录，安排后台分析。 |
+| 网格·提示 | 获取简短的概念、算法方向与下一步学习建议。 |
+| 网格·交流 | 围绕当前题目和代码继续提问。 |
+| 按日期整理 | 预览后，将当前项目根目录的 C/C++ 源码按最后修改日期整理。 |
 
-- 正确性：行号、触发条件、反例和边界验证建议；区分已确认问题和待验证风险。
-- 优化：算法复杂度、输入约束、空间和可读性，以及优化成立的前提。
-- 学习：最多三个优先补学主题、练习和掌握标准。
-- 版本比较：相邻保存源码的 diff、修改备注和已记录的运行/评测证据。
-- 最终复盘：最终算法、关键修复、debug 时间线及进一步补学内容。不虚构没有记录的编辑或个人思考。
+四个“网格”按钮固定可见。操作时会核对当前 C++ 文件；若有多个源码来源且焦点在面板，请先点击目标 `.cpp` 文件。网站判题页面不显示 AI 答复，便于专注独立解题。
 
-保存次数与源码内容分别记录：同一源码可以保存多次以记录不同阶段，重复快照复用已有分析。A → B → A 的修改过程不会被简单去重丢掉。
+### 测试代码、手工输入和正式提交
+
+| 操作 | 发给网站的输入参数 | 返回内容 |
+| --- | --- | --- |
+| **测试代码 · 网格判题** | 包含 `stdin` 字段，值为空 | 与网页“测试代码”的请求一致，由网格返回测试判定及提示。 |
+| 手工输入测试 | 包含 `stdin` 字段，值为填写的内容 | 云端运行该输入，输出由使用者自行核对。 |
+| **正式提交到编程网格** | 省略 `stdin` 字段 | 独立的正式提交与平台评测。 |
+
+“手工输入”入口就在两个操作按钮下方，默认关闭。样例即使填入可选输入框，也不会自动改变默认判题模式。
+
+顶部优先显示**网站原文**，包括网站实际提供的 `Testing Input`、`Result`、`Output`、`Hint`、`Std/Out`、编译信息和用例差异；不会补造网站未提供的内容。判定使用大字完整名称和颜色，例如 Accepted、Wrong Answer、Compile Error、Time Out。页面不展示原始接口 JSON。
+
+刷新只读取本次编号的结果，不再次上传代码。重新打开页面只恢复上次记录，不自动查询。当前操作收到结束判定和原文后停止自动查询；发送状态不确定时不会自动重发。
 
 ## 安装
 
-当前浏览器连接面向 **Windows + Google Chrome**。需要 Node.js 22+、npm、支持 GNU 参数的 g++（例如 w64devkit），以及已安装并登录的 Codex CLI。浏览器报告使用现有 Codex 登录与额度，无需独立模型 API key。
+准备 Node.js 22+、npm、`g++`、已登录的 Codex 可执行程序，以及 VS Code、Chrome 和自己的编程网格账号。
 
-在项目根目录执行：
-
-```powershell
-npm ci --ignore-scripts
-./install-codex.ps1
-./install-browser.ps1
-```
-
-脚本会注册 MCP，编译本机连接程序，并为当前 Windows 用户登记 Chrome Native Messaging。若已有同名 MCP 或另一位置的本机连接，会要求先核对配置，避免直接覆盖。
-
-在 Chrome 地址栏打开 `chrome://extensions`，开启开发者模式，加载本项目的 `extension` 目录，然后刷新北大 IDE 页面。扩展是本地源码版本，尚未发布到 Chrome 商店。
-
-## 让其他人安装
-
-任何人都可以从公开仓库取得 MCP 和扩展。**每位使用者都需要在自己的 Windows 电脑上完成安装，并使用自己的 Codex 登录和额度。**仓库只发布工具程序和说明，不包含你的题目、代码、调试记录、报告、账号信息或本机连接配置。
-
-### 使用者需要准备
-
-- Windows、Google Chrome，以及能够登录北大编程平台的账号。
-- Node.js 22 或更新版本（包含 npm）。
-- 支持 GNU 参数的 `g++`，例如 w64devkit，并确保 `node`、`npm`、`g++` 和 `codex` 可以在 PowerShell 中找到。
-- 已安装并登录 Codex CLI 的 Codex。分析调用该使用者自己的 Codex 会话和额度。
-
-### 安装步骤
-
-1. 打开 [MCP GitHub 仓库](https://github.com/spade0123/my-GPTplus-trial)，点击 **Code → Download ZIP** 并解压；也可以用 Git 克隆：
+1. 克隆主仓库，进入项目根目录：
 
    ```powershell
    git clone https://github.com/spade0123/my-GPTplus-trial.git
    cd my-GPTplus-trial
+   npm ci --ignore-scripts
    ```
 
-   如果下载了 ZIP，请在 PowerShell 进入解压后包含 `package.json` 的项目根目录。
-
-2. 在该目录打开 PowerShell，按顺序运行：
+2. 注册独立的网格本机连接：
 
    ```powershell
-   npm ci --ignore-scripts
-   ./install-codex.ps1
-   ./install-browser.ps1
+   .\install-grid.ps1
    ```
 
-   如果 Windows 阻止脚本运行，请从 PowerShell 当前用户的执行策略设置中允许本地脚本，再重试；不要从陌生网页复制执行策略命令。安装脚本会把 MCP 注册到本机 Codex，为当前 Windows 用户登记 Chrome 本机连接，并编译连接程序。
+   需要时传入 `-NodePath`、`-CodexPath`、`-CompilerPath`，使用各程序的真实绝对路径。Codex 参数应指向已经登录的 `codex.exe`。连接名称为 `edu.pku.grid_vscode_coach`，安装位置需要保持可用。
 
-3. 在 Chrome 地址栏打开 `chrome://extensions`，开启右上角的**开发者模式**，选择**加载已解压的扩展程序**，选中刚下载或克隆的项目里的 `extension` 文件夹。不要选项目根目录。
+3. Chrome 打开 `chrome://extensions`，开启开发者模式，加载项目的 **`extension/`** 目录。自己登录编程网格并打开具体题目 IDE，点击连接图标。
 
-4. 刷新北大编程平台的题目 IDE 页面。确认右下角出现“保存并后台分析”面板后，登录平台并选择自己的 C++ 作业代码；首次分析前检查题面各栏和代码，再保存。
+4. VS Code 执行“扩展：从 VSIX 安装”，选择 [pku-grid-cpp-coach-0.2.8.vsix](dist/pku-grid-cpp-coach-0.2.8.vsix)，然后运行 **Developer: Reload Window**。
 
-5. 在 Codex 中开始新聊天（或重启 Codex），即可使用已注册的 MCP 工具。以后更新版本时，在扩展管理页重新加载扩展，再刷新 IDE；需要时在项目目录更新仓库并重新运行安装脚本。
+5. 打开 C++ 文件，点击“网格·评测”。需要关联或更换题目时，使用评测页底部的“题目连接与本机记录”。
 
-### 每位使用者的数据与分享方式
+本机配置、路径和扩展身份由安装脚本生成，每位同学需要在自己的电脑安装；不要复制他人的 `native/paths.json`、连接清单或登录配置。安装脚本遇到同名连接已注册到另一目录时会停止并说明。
 
-每个人的题面、源码快照、提交和运行记录、分析报告及 AC 归档都写在自己电脑上的安装目录中。分析时，当前题面和代码会发送给该使用者自己的 Codex 模型；这会使用其账号额度。其他人无法通过这个 GitHub 仓库看到这些本地记录，仓库也不会自动接收作业代码。
+## 它怎样运行
 
-如果要分享改进后的 MCP 程序，请只提交程序源文件和文档。不要提交 `data/`、`archives/`、`reports/`、个人作业文件、生成的 `native/paths.json`、`native/node-path.txt`、`launcher.exe` 或个人 Codex 配置。个人数据目录已由 `.gitignore` 排除，但提交前仍应检查变更列表。
+```text
+VS Code 当前 C++ 代码
+        │ 点击测试或提交
+        ▼
+本机连接程序 ── Chrome 已登录会话 ── 编程网格云端
+        ▲                              │
+        └──── 网站判定与原文 ──────────┘
+        │
+        ├── VS Code 独立评测页面
+        └── 本机记录
 
-目前扩展通过 Chrome 的“加载已解压的扩展程序”安装，需要每位使用者自行开启开发者模式；项目尚未发布到 Chrome 网上应用店。当前安装脚本只支持 Windows + Google Chrome，macOS、Linux、其他浏览器和 Chrome 商店一键安装暂未提供。
-
-更新代码后，在扩展管理页面点击“重新加载”，再刷新 IDE 即可。若本机 Node/Codex/编译器路径改变，重新运行浏览器安装脚本。Codex 中的新 MCP 工具可能需要新建聊天或重启应用才能出现。
-
-## 题面与运行信息
-
-题面五部分独立保存，样例保留空格与换行。平台的题目提示如含约束，会明确标注后保留在题目描述中。
-
-运行界面单独保存：输入、执行输出、运行提示、错误、状态和原始界面文本。部分页面把执行输出与提示合在同一个区域；此时保留带标记的原始合并文本，不猜测它们的分界，更不会把它并入例子输出。
-
-自动 AC 识别使用平台判题区域及本次提交关联，忽略样例中的 AC、测试执行输出和旧提交历史。网站布局变化或无法匹配时，不会猜测通过。提交后需保持页面打开到结果被记录；普通过程版本确认保存后可以关闭页面。
-
-## 数据保存
-
-| 目录 | 内容 | 是否发布到 GitHub |
-| --- | --- | --- |
-| `data/` | 原始题面、源码快照、诊断、分析报告及单题时间线 | 否 |
-| `data/run-snapshots/` | 独立运行信息及提交评测结果 | 否 |
-| `archives/` | 每次 AC 对应的最终代码、README、DEBUG.md 和校验标记 | 否 |
-| `reports/` | 周报等个人学习总结 | 否 |
-| `submissions/` | 用户自己放置的本地 C++ 文件 | 否 |
-
-这些目录及本机路径配置均在 `.gitignore` 中排除。保留它们即可备份个人学习记录；克隆本仓库不会获得任何人的作业或登录信息。
-
-源码和题面会交给 Codex 模型分析。“本地保存”不代表模型推理离线。扩展不导出密码或 Cookie，不自动提交作业。模型进程使用只读沙箱并禁用 shell、应用、插件和网页搜索；编译器只做语法检查，不运行学生程序。编译通过和模型判断均不能替代在线评测 AC。
-
-## MCP 工具
-
-| 名称 | 作用 |
-| --- | --- |
-| `list_assignments` | 读取默认课程的公开作业列表与截止时间 |
-| `read_course_page` | 读取允许访问的课程、题集或题目页，识别登录要求 |
-| `list_local_cpp` | 列出本地作业目录的 C++ 文件 |
-| `analyze_cpp` | 获取代码行号、编译器诊断和审阅框架 |
-| `save_review` | 保存已讨论的复盘摘要 |
-| `learning_plan` | 按历史记录整理补学主题和练习 |
-| `review_history` | 按时间读取分析状态与报告，默认不返回源码 |
-| `problem_timeline` | 查看单题修改、提交、判题及本机归档时间线 |
-| `coach_status` | 检查配置和编译器 |
-
-另提供 `review_homework` prompt。可对 Codex 说：“使用 pku-cpp-coach 分析这段代码，先给缺点和局部修改建议”，或“对比这道题的历史版本，解释修复证据和补学重点”。
-
-网页工具仅访问白名单内的北大公开页面；登录后题面由扩展从当前页面读取，不导出登录态。默认课程位于 `src/core.js` 的 `COURSE`，可按个人课程修改。
-
-## 后台任务与周报
-
-Native Messaging 连接负责快速保存和查询，独立隐藏进程逐份检查和生成报告。状态包括 `queued`、`running`、`failed`、`complete`，只有 `complete` 才表示报告完成。进程异常退出后，下次打开 IDE 或保存时会恢复未完成任务。电脑关机期间不运行。
-
-可以在 Codex 单独设置每周日北京时间 20:00 的总结任务，读取本项目记录、区分保存版本与完成报告、比较前后变化，并将 Markdown 周报存入 `reports/`。没有新增记录时保持安静。MCP 安装脚本本身不创建应用定时任务。
-
-## 配置与开发
-
-| 环境变量 | 作用 |
-| --- | --- |
-| `PKU_CODE_ROOT` | 本地作业目录，默认 `submissions/` |
-| `PKU_DATA_DIR` | 个人数据目录，默认 `data/` |
-| `PKU_ARCHIVE_DIR` | AC 本机归档目录，默认 `archives/` |
-| `PKU_CXX` | 编译器路径，默认 `g++` |
-| `PKU_CODEX` | 浏览器后台使用的 Codex CLI 路径 |
-
-安装脚本生成的 `native/paths.json`、`native/node-path.txt`、本机连接清单、`launcher.exe` 和个人 `codex-config.toml` 不进入仓库。
-
-```powershell
-npm test
-npm start
+提示/交流页面 ── 本机分析进程 ── 模型服务
 ```
 
-`npm start` 启动 stdio MCP 服务并等待客户端输入。常规测试使用临时目录和模拟模型，覆盖真实 MCP 握手、编译器诊断、页面分区、并发保存、后台恢复、版本比较和 AC 关联，不上传作业。`node test/model-check.js` 是显式的真实模型测试，会使用额度。
+VS Code 读取点击时编辑器里的完整缓冲区，包括尚未写入文件的修改。Chrome 核对题目并通过自己的登录会话访问网站。本站的执行编号按字符串保存，支持实际返回的 32 位十六进制编号。
 
-目前只处理单文件 C++ 作业。网页改版、尚未适配的编辑器、未被保存的中间修改及页面关闭后的判题结果均不能保证捕获。真实网站结构已经核对，但尚未替用户提交一次真实作业来验证完整 AC 流程。
+网站原文先返回界面，快照整理与报告处理在后台继续。测试和正式提交通过网格运行；AI 服务不承担判题。请求经过哪些阶段、结果怎样关联源码，见 [架构与数据流](docs/programminggrid-architecture.md)。
 
-参考：[MCP TypeScript SDK](https://ts.sdk.modelcontextprotocol.io/server)、[Codex MCP 配置](https://learn.chatgpt.com/docs/extend/mcp?surface=cli)。
+## 更新与排查
 
+- **更新 VS Code 扩展后**：安装新 VSIX，运行 Developer: Reload Window。
+- **更新 Chrome 连接代码后**：在扩展管理页重新加载连接扩展；需要时在题目页再次点击图标连接。
+- **只有 VS Code 界面或本机服务更新时**：按该次更新说明操作，无需每次都重载 Chrome。当前 VS Code/本机程序为 0.2.8，Chrome 连接清单为 0.2.7。
+- **显示上次的手工测试**：顶部会标明“上次记录”；默认测试方式仍是网格判题。点击测试按钮才会发送新的测试。
+- **题目标签已关闭或切换**：打开正确题目的 IDE，重新从目标 C++ 文件打开评测页，必要时更换关联。
+- **请求超时或未确认**：先核对网站记录，再决定下一步。界面会显示最后阶段和可获得的具体错误；不要把未确认当作成功。
+- **只有手工输出、没有标准答案差异**：确认“手工输入”未勾选。非空 `stdin` 会启用网站手工输入模式。
+
+最终原文到达时间取决于网站评测和连接状态，不保证所有题目都在 1.5 秒内完成。“首次回复”表示首次网站回执耗时，不等于最终评测耗时。
+
+## 数据与协作
+
+| 位置 | 内容 |
+| --- | --- |
+| `data/grid-tests/` | 每次网站测试的代码快照、输入、编号与反馈。 |
+| `data/oj-submissions/` | 正式提交记录；目录名沿用既有实现。 |
+| `data/vscode-context/` | 文件与题目关联、对话草稿。 |
+| `data/problems/`、`data/hints/`、`data/assistance/` | 题目时间线、提示与交流记录。 |
+| `archives/`、`reports/` | 本机完成归档与学习报告。 |
+
+这些个人目录、本机路径配置与凭据均由 `.gitignore` 排除。协作时只提交程序、文档和明确发布的安装包；不要上传个人作业或记录。Chrome 登录由网站处理，工具不导出 Cookie 或密码。
+
+按日期整理需要先预览并确认，仅移动当前项目根目录的 `.c`、`.cc`、`.cpp`、`.cxx`，按本机最后修改日期放入 `按日期整理/YYYY-MM-DD/`。依赖旧路径的编译任务可能需要自行更新。
+
+## 开发与验证
+
+修改 `vscode-extension/` 控制 VS Code 界面；修改 `extension/grid-worker.js`、`extension/grid-submit.js` 控制浏览器连接和网站请求；修改 `src/vscode-service.js` 控制本机任务、记录和回传。
+
+```powershell
+npm run build:vscode
+cd vscode-extension
+npx --yes @vscode/vsce package --no-dependencies --skip-license --out ../dist/pku-grid-cpp-coach-0.2.8.vsix
+```
+
+这轮维护使用以下针对网格的检查，14 项通过：
+
+```powershell
+node --test test/grid-feedback.test.js test/grid-statusbar.test.js test/openjudge-native.test.js
+```
+
+检查覆盖请求参数、原文与完整判定、异常回传、结果停止查询、恢复历史、隐藏 JSON、状态栏按钮及隔离本机连接。原生连接检查需要 Windows 和已完成的本机安装。用户手动核对过网站回传；本地模拟检查不能替代每次真实网站结果。仓库保留其他版本的历史测试，本轮结果不代表整个历史测试集全部通过。
+
+## 文档与其他版本
+
+- [VS Code 使用说明](vscode-extension/README.md)
+- [架构、请求参数与结果生命周期](docs/programminggrid-architecture.md)
+- [更新日志](CHANGELOG.md)
+- [定期报告说明](docs/periodic-reports.md)：个人日程不随仓库安装。
+- [OpenJudge 独立版本](https://github.com/spade0123/my-GPTplus-trial/tree/openjudge-vscode)
+- [旧版网页集成历史说明](docs/browser-legacy-1.6.2.md)
+- [Naiwa 宠物资料与使用教程](naiwa/README.md)

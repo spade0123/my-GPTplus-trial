@@ -32,18 +32,18 @@ export async function drainQueue(options={}) {
   }finally{await release();}
   return {busy:false,processed,attempted:[...attempted]};
 }
-export async function ensureWorker({workerFile=path.join(ROOT,'src/queue-worker.js')}={}) {
-  const dir=dataDir();await fs.mkdir(dir,{recursive:true});
+export async function ensureWorker({workerFile=path.join(ROOT,'src/queue-worker.js'),workerArgs=[],queueDir=dataDir()}={}) {
+  const dir=queueDir;await fs.mkdir(dir,{recursive:true});
   try{const lock=JSON.parse(await fs.readFile(path.join(dir,'queue-worker.lock'),'utf8'));if(processAlive(lock.pid))return {started:false};}catch{}
   const launch=path.join(dir,'queue-worker.launch');
   try{await fs.writeFile(launch,String(Date.now()),{flag:'wx'});}catch(e){
     if(e.code!=='EEXIST')throw e;
     if(Date.now()-(await fs.stat(launch)).mtimeMs<10000)return {started:false};
-    await fs.unlink(launch).catch(()=>{});return ensureWorker({workerFile});
+    await fs.unlink(launch).catch(()=>{});return ensureWorker({workerFile,workerArgs,queueDir});
   }
   try {
     await new Promise((resolve,reject)=>{
-      const child=spawn(process.execPath,[workerFile],{cwd:ROOT,env:{...process.env},detached:true,stdio:'ignore',windowsHide:true,shell:false});
+      const child=spawn(process.execPath,[workerFile,...workerArgs],{cwd:ROOT,env:{...process.env},detached:true,stdio:'ignore',windowsHide:true,shell:false});
       child.once('error',reject);child.once('spawn',()=>{child.unref();resolve();});
     });
     return {started:true};

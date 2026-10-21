@@ -1,0 +1,79 @@
+{
+  "name": "pku-grid-cpp-coach",
+  "displayName": "北大编程网格 · C++ 学习教练",
+  "description": "Chrome 连接编程网格，VS Code 读取当前 C++ 并提供保存、提示、交流、网站测试与正式提交。",
+  "publisher": "local-coach",
+  "version": "0.2.8",
+  "license": "UNLICENSED",
+  "engines": {
+    "vscode": "^1.96.0"
+  },
+  "categories": [
+    "Education"
+  ],
+  "extensionKind": [
+    "ui"
+  ],
+  "main": "./extension.cjs",
+  "activationEvents": [
+    "onStartupFinished",
+    "onLanguage:cpp",
+    "onWebviewPanel:gridCoach",
+    "onWebviewPanel:gridCoachJudge"
+  ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": false
+    },
+    "virtualWorkspaces": {
+      "supported": false
+    }
+  },
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [{"id":"gridCoachProblems","title":"编程网格题目","icon":"problem-icon.svg"}]
+    },
+    "views": {
+      "gridCoachProblems": [{"type":"webview","id":"gridCoach.problemStatement","name":"当前题目信息"}]
+    },
+    "commands": [
+      {
+        "command": "gridCoach.quickSave",
+        "title": "编程网格：快捷保存"
+      },
+      {
+        "command": "gridCoach.hint",
+        "title": "编程网格：提示"
+      },
+      {
+        "command": "gridCoach.judge",
+        "title": "编程网格：网站测试与正式提交"
+      },
+      {
+        "command": "gridCoach.discussion",
+        "title": "编程网格：交流"
+      },
+      {
+        "command": "gridCoach.bindProblem",
+        "title": "编程网格：关联当前 C++ 文件与 Chrome 题目"
+      },
+      {
+        "command": "gridCoach.configureBackend",
+        "title": "编程网格：选择本机程序目录"
+      },
+      {
+        "command": "gridCoach.showRecords",
+        "title": "编程网格：打开保存记录与报告目录"
+      },
+      {
+        "command": "gridCoach.organizeProjectByDate",
+        "title": "编程网格：按日期整理项目源码"
+      }
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/spade0123/my-GPTplus-trial.git",
+    "directory": "vscode-extension"
+  }
+}
