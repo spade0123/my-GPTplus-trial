@@ -1,5 +1,6 @@
 (()=>{
   const api=acquireVsCodeApi(),title=document.getElementById('title'),state=document.getElementById('state'),sections=document.getElementById('sections'),open=document.getElementById('openProblem');
+  globalThis.gridProblemApi=api;
   const labels={description:'题目描述',input:'关于输入',output:'关于输出',sampleInput:'例子输入',sampleOutput:'例子输出'};
   window.addEventListener('message',event=>{
     const value=event.data;if(value?.type!=='problem_display')return;

@@ -56,7 +56,7 @@ Chrome 打开题目的 `.../probset/<题集ID>/<题目ID>/ide.do` 页面，点�
 
 3. Chrome 打开 `chrome://extensions`，开启开发者模式，加载项目的 **`extension/`** 目录。自己登录编程网格并打开具体题目 IDE，点击连接图标。
 
-4. VS Code 执行“扩展：从 VSIX 安装”，选择 [pku-grid-cpp-coach-0.2.9.vsix](dist/pku-grid-cpp-coach-0.2.9.vsix)，然后运行 **Developer: Reload Window**。
+4. VS Code 执行“扩展：从 VSIX 安装”，选择 [pku-grid-cpp-coach-0.2.10.vsix](dist/pku-grid-cpp-coach-0.2.10.vsix)，然后运行 **Developer: Reload Window**。
 
 5. 打开 C++ 文件，点击“网格·评测”。需要关联或更换题目时，使用评测页底部的“题目连接与本机记录”。
 
@@ -86,7 +86,7 @@ VS Code 读取点击时编辑器里的完整缓冲区，包括尚未写入文件
 
 - **更新 VS Code 扩展后**：安装新 VSIX，运行 Developer: Reload Window。
 - **更新 Chrome 连接代码后**：在扩展管理页重新加载连接扩展；需要时在题目页再次点击图标连接。
-- **只有 VS Code 界面或本机服务更新时**：按该次更新说明操作，无需每次都重载 Chrome。当前 VS Code/本机程序为 0.2.9，Chrome 连接清单为 0.2.7。
+- **只有 VS Code 界面或本机服务更新时**：按该次更新说明操作，无需每次都重载 Chrome。当前 VS Code/本机程序为 0.2.10，Chrome 连接清单为 0.2.7。
 - **显示上次的手工测试**：顶部会标明“上次记录”；默认测试方式仍是网格判题。点击测试按钮才会发送新的测试。
 - **题目标签已关闭或切换**：打开正确题目的 IDE，重新从目标 C++ 文件打开评测页，必要时更换关联。
 - **请求超时或未确认**：先核对网站记录，再决定下一步。界面会显示最后阶段和可获得的具体错误；不要把未确认当作成功。
@@ -115,7 +115,7 @@ VS Code 读取点击时编辑器里的完整缓冲区，包括尚未写入文件
 ```powershell
 npm run build:vscode
 cd vscode-extension
-npx --yes @vscode/vsce package --no-dependencies --skip-license --out ../dist/pku-grid-cpp-coach-0.2.9.vsix
+npx --yes @vscode/vsce package --no-dependencies --skip-license --out ../dist/pku-grid-cpp-coach-0.2.10.vsix
 ```
 
 这轮维护使用以下针对网格的检查，14 项通过：
@@ -160,3 +160,17 @@ node --test test/grid-feedback.test.js test/grid-statusbar.test.js test/openjudg
 ```
 
 本次未进行真实模型测速，不承诺固定额度节省比例。模型 ID 参考 [OpenAI 官方模型目录](https://developers.openai.com/api/docs/models)。
+
+
+## 题目原文里的计时器（0.2.10）
+
+侧边栏“当前题目信息”的题目原文上方集成 **秒表 / 倒计时**，两者独立保存，可以同时运行，切换标签不会暂停另一项。
+
+- 秒表：开始、暂停、继续、归零。
+- 倒计时：输入分钟和秒，点击开始应用时长；可暂停、继续、重置，默认 25 分钟，最多 7 天。修改时长后点击开始，会按新时长重新计时。
+- 到时归零并显示提醒；隐藏侧栏后仍由 VS Code 扩展计时。
+- 状态存入 VS Code 当前工作区私有存储，不进入项目文件或 Git。重新加载窗口、重新打开同一工作区后按保存时间恢复；电脑休眠和关闭 VS Code 的时间也计入。VS Code 关闭期间不会弹出提醒，重新打开后补发到时提醒。
+- 当前是一组工作区计时器，切换题目不会自动归零，不是每道题独立统计用时。不同 VS Code 窗口各自运行；更改系统时钟可能影响时间差。
+- 此功能不经过浏览器、本机评测后台或 AI；本次无需重新加载 Chrome。
+
+题目列表识别和快速切题的可行性见[调研文档](docs/problem-navigation-research.md)。这部分目前是调研方案，尚未加入切题按钮。

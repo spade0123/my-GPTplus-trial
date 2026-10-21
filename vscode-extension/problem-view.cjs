@@ -1,6 +1,8 @@
 const vscode=require('vscode'),fs=require('node:fs/promises'),{randomUUID}=require('node:crypto');
+const {StudyTimer}=require('./study-timer.cjs');
 class ProblemView{
   constructor(context){
+    this.timer=new StudyTimer(context,state=>this.view?.webview.postMessage({type:'timer_state',state}));
     this.context=context;this.latest={status:'waiting',connected:false};
     context.subscriptions.push(vscode.window.registerWebviewViewProvider('gridCoach.problemStatement',this));
   }
@@ -8,13 +10,19 @@ class ProblemView{
     this.view=view;const nonce=randomUUID().replaceAll('-',''),webview=view.webview;
     const uri=file=>webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri,file)).toString();
     webview.options={enableScripts:true,localResourceRoots:[this.context.extensionUri]};
-    const scripts=['media/vendor/marked/marked.umd.js','media/vendor/katex/katex.min.js','media/report-renderer.js','problem-view.js'];
+    const scripts=['media/vendor/marked/marked.umd.js','media/vendor/katex/katex.min.js','media/report-renderer.js','problem-view.js','study-timer.js'];
     webview.html='<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'+
       `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}'; style-src ${webview.cspSource} 'unsafe-inline'; font-src ${webview.cspSource}; img-src data:; connect-src 'none';">`+
       `<link rel="stylesheet" href="${uri('media/vendor/katex/katex.min.css')}"><link rel="stylesheet" href="${uri('problem-view.css')}"></head><body>`+
+      '<section class="study-timer" aria-label="做题计时"><div class="timer-tabs"><button id="timerStopwatch" aria-pressed="true">秒表</button><button id="timerCountdown" aria-pressed="false">倒计时</button></div><div id="timerDisplay" class="timer-display" role="timer" aria-live="off">00:00:00</div><div id="timerDuration" class="timer-duration" hidden><label>分钟 <input id="timerMinutes" type="number" min="0" max="10080" step="1" value="25"></label><label>秒 <input id="timerSeconds" type="number" min="0" max="59" step="1" value="0"></label></div><div class="timer-actions"><button id="timerStart" disabled>开始</button><button id="timerReset" disabled>归零 / 重置</button></div><p id="timerStatus" role="status">正在恢复计时器…</p></section>'+
       '<header><span class="eyebrow">编程网格 · 题面</span><h1 id="title">等待浏览器打开题目</h1><p id="state" role="status">Chrome 打开编程网格具体题目的 IDE 后，这里会自动显示。</p><button id="openProblem" hidden>在浏览器查看原题</button></header><main id="sections"></main><footer>题面自动显示；状态栏可打开网格·评测、提示与交流。</footer>'+
       scripts.map(file=>`<script nonce="${nonce}" src="${uri(file)}"></script>`).join('')+'</body></html>';
     this.context.subscriptions.push(view.onDidDispose(()=>{if(this.view===view)this.view=null;}),webview.onDidReceiveMessage(async message=>{
+      if(message.type==='timer_ready')return webview.postMessage({type:'timer_state',state:this.timer.snapshot()});
+      if(message.type==='timer_action'){
+        try{await this.timer.handle(message);}catch(error){await webview.postMessage({type:'timer_error',error:error.message});}
+        return;
+      }
       if(message.type==='ready')return webview.postMessage(this.latest);
       if(message.type==='open_problem'&&this.latest.url)return vscode.env.openExternal(vscode.Uri.parse(this.latest.url));
       if(message.type==='copy_sample'&&typeof message.text==='string'&&message.text.length<=20000)await vscode.env.clipboard.writeText(message.text);

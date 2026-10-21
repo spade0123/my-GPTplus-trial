@@ -191,7 +191,7 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
   return {async handle(message){
     const type=message.type;
     if(type==='configure_ai')return {settings:await writeModelSettings(message.settings)};
-    if(type==='status')return {ready:true,dataDirectory:dataDir(),version:'0.2.9',platform:'programminggrid-vscode'};
+    if(type==='status')return {ready:true,dataDirectory:dataDir(),version:'0.2.10',platform:'programminggrid-vscode'};
     if(type==='problem_display')return currentProblem();
     if(type==='judge_history'){
       const context=await getContext(validUri(message.uri),message.problemUrl);
