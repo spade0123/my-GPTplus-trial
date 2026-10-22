@@ -1,18 +1,20 @@
 const vscode=require('vscode'),fs=require('node:fs/promises'),path=require('node:path'),{randomUUID}=require('node:crypto'),{execFile}=require('node:child_process'),{promisify}=require('node:util');
 const {RpcClient}=require('./rpc-client.cjs');
 const {openHistory:makeHistory}=require('./history-view.cjs');
+const {editTemplate,previewTemplate,isTemplateDocument}=require('./template-settings.cjs');
 const {ProblemView}=require('./problem-view.cjs');
 const {ProblemNavigation}=require('./problem-navigation.cjs');
 const {planDateOrganization,applyDateOrganization}=require('./date-organizer.cjs');
-const isCpp=document=>document?.languageId==='cpp'&&!document.isClosed;
+const isCpp=document=>document?.languageId==='cpp'&&!document.isClosed&&!isTemplateDocument(document);
 const escape=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function activate(context){
   let rpc,opening,lastSource,historyPanel;const panels=new Map(),judgePanels=new Map(),buttons=[];
   const output=vscode.window.createOutputChannel('编程网格 学习教练');context.subscriptions.push(output);
   const statementView=new ProblemView(context);
-  statementView.navigation=new ProblemNavigation({context,backend,currentEditor:()=>vscode.window.activeTextEditor?.document.languageId==='cpp'?vscode.window.activeTextEditor:lastSource,display:()=>statementView.latest});
+  statementView.navigation=new ProblemNavigation({context,backend,currentEditor:()=>isCpp(vscode.window.activeTextEditor?.document)?vscode.window.activeTextEditor:lastSource,display:()=>statementView.latest});
   const settings=()=>vscode.workspace.getConfiguration('gridCoach');
   const aiSettings=()=>({model:settings().get('ai.model','gpt-6-luna'),effort:settings().get('ai.effort','low')});
+  const feedbackSettings=()=>({showComparison:settings().get('feedback.showComparison',true),visibleWhitespace:settings().get('feedback.visibleWhitespace',true)});
   const verdictSettings=()=>Object.fromEntries(['AC','WA','CE','TLE','RE','MLE','PE','OLE'].map(code=>[code,{
     text:settings().get(`verdicts.${code}.text`,''),fontSize:settings().get(`verdicts.${code}.fontSize`,0),color:settings().get(`verdicts.${code}.color`,'')
   }]));
@@ -144,9 +146,11 @@ function activate(context){
         state.panel.dispose();const doc=vscode.workspace.textDocuments.find(d=>d.uri.toString()===state.uri);
         if(doc)await vscode.window.showTextDocument(doc,{viewColumn:state.sourceColumn,preserveFocus:false});return;
       }
+      if(message.type==='open_keybindings')return openKeybindings();
+      if(message.type==='edit_source_template')return editTemplate(context);
       if(message.type==='open_history')return openHistory();
       if(message.type==='open_settings')return vscode.commands.executeCommand('workbench.action.openSettings','@ext:local-coach.pku-grid-cpp-coach');
-      if(message.type==='judge_ready')await reply({type:'judge_settings',settings:verdictSettings()});
+      if(message.type==='judge_ready')await reply({type:'judge_settings',settings:verdictSettings(),feedback:feedbackSettings()});
       const client=await backend();
       if(message.type==='judge_ready'){
         const [saved,history]=await Promise.all([
@@ -154,7 +158,8 @@ function activate(context){
           client.request({type:'judge_history',uri:state.uri,problemUrl:state.problemUrl})
         ]);
         await reply({type:'assist_context',capture:{problem:saved.problem?.problem}});
-        return reply(history);
+        await reply(history);state.ready=true;
+        if(state.pendingAction){const action=state.pendingAction;state.pendingAction=null;await reply({type:'judge_action',action});}return;
       }
       if(message.type==='draft'||message.type==='collapse'){
         await client.request({type:'ui_save',uri:state.uri,problemUrl:state.problemUrl,ui:message.ui,uiStamp:{session:state.uiSession,startedAt:state.startedAt,revision:++state.uiRevision}});
@@ -204,13 +209,13 @@ function activate(context){
     if(saving){const saved=await saving;if(saved.error)throw saved.error;vscode.window.setStatusBarMessage(saved.result.warning?'当前代码已保存；网页评测未更新，请查看连接。':saved.result.workerError?'当前代码已保存；后台启动失败，请查看 编程网格 输出。':'当前代码已自动保存，后台继续分析；上次对话保留。',3500);}
   }
   function openHistory(){if(historyPanel){historyPanel.reveal();return;}historyPanel=makeHistory({context,backend});historyPanel.onDidDispose(()=>historyPanel=null);}
-  async function openJudge(){
+  async function openJudge(action){
     const source=sourceFor(),selected=await ensureBinding(source);if(!selected)return;
     let state=judgePanels.get(source.uri);
     if(state&&state.problemUrl!==selected.binding.problemUrl){state.panel.dispose();state=null;}
-    if(state){state.panel.reveal(state.panel.viewColumn);return;}
+    if(state){state.panel.reveal(state.panel.viewColumn);if(action){if(state.ready)await state.panel.webview.postMessage({type:'judge_action',action});else state.pendingAction=state.pendingAction||action;}return;}
     const panel=vscode.window.createWebviewPanel('gridCoachJudge','编程网格 · 测试与提交 · '+source.name,vscode.ViewColumn.Beside,{enableScripts:true,retainContextWhenHidden:true,localResourceRoots:[context.extensionUri]});
-    state={kind:'judge',panel,uri:source.uri,problemUrl:selected.binding.problemUrl,sourceColumn:lastSource?.viewColumn||vscode.ViewColumn.One};judgePanels.set(source.uri,state);
+    state={kind:'judge',panel,ready:false,pendingAction:action,uri:source.uri,problemUrl:selected.binding.problemUrl,sourceColumn:lastSource?.viewColumn||vscode.ViewColumn.One};judgePanels.set(source.uri,state);
     context.subscriptions.push(panel.onDidDispose(()=>judgePanels.delete(source.uri)),panel.webview.onDidReceiveMessage(message=>{void panelMessage(state,message);}));
     panel.webview.html=await judgeHtml(panel.webview);
   }
@@ -221,11 +226,22 @@ function activate(context){
     vscode.window.setStatusBarMessage(result.workerError?'源码已保存；后台启动失败，请查看 编程网格 输出。':source.name+' 已保存，后台继续分析。',3500);
   }
   const safe=fn=>async()=>{try{return await fn();}catch(e){output.appendLine(e.message);void vscode.window.showErrorMessage(e.message);}};
-  for(const [label,command,fn,priority]of [['网格·保存','quickSave',quickSave,1004],['网格·评测','judge',openJudge,1003],['网格·提示','hint',()=>open('hint'),1002],['网格·交流','discussion',()=>open('discussion'),1001],['网格·历史','conversationHistory',openHistory,998]]){
+  for(const [label,command,fn,priority]of [['网格·保存','quickSave',quickSave,1004],['网格·评测','judge',()=>openJudge(),1003],['网格·提示','hint',()=>open('hint'),1002],['网格·交流','discussion',()=>open('discussion'),1001],['网格·历史','conversationHistory',openHistory,998]]){
     context.subscriptions.push(vscode.commands.registerCommand('gridCoach.'+command,safe(fn)));
     const button=vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right,priority);button.text=label;button.tooltip='编程网格 C++ 教练：'+label;button.command='gridCoach.'+command;button.name='编程网格 '+label;button.show();buttons.push(button);context.subscriptions.push(button);
   }
   context.subscriptions.push(vscode.commands.registerCommand('gridCoach.bindProblem',safe(()=>bind(sourceFor(undefined,true)))),vscode.commands.registerCommand('gridCoach.showRecords',safe(showRecords)),vscode.commands.registerCommand('gridCoach.organizeProjectByDate',safe(organizeProjectByDate)));
+  function openKeybindings(){return vscode.commands.executeCommand('workbench.action.openGlobalKeybindings','@ext:local-coach.pku-grid-cpp-coach');}
+  context.subscriptions.push(
+    vscode.commands.registerCommand('gridCoach.testCode',safe(()=>openJudge('test'))),
+    vscode.commands.registerCommand('gridCoach.submitCode',safe(()=>openJudge('submit'))),
+    vscode.commands.registerCommand('gridCoach.openKeyboardShortcuts',safe(openKeybindings)),
+    vscode.commands.registerCommand('gridCoach.editSourceTemplate',safe(()=>editTemplate(context))),
+    vscode.commands.registerCommand('gridCoach.previewSourceTemplate',safe(()=>previewTemplate(context,{problemTitle:statementView.latest.page?.title||'示例题目',problemId:statementView.latest.url?.match(/([a-f0-9]{32})\/ide\.do$/i)?.[1]||'',problemNumber:statementView.navigationState.problems.find(item=>item.url===statementView.latest.url)?.number||''}))),
+    vscode.commands.registerCommand('gridCoach.problemStatement',safe(()=>statementView.show())),
+    vscode.commands.registerCommand('gridCoach.previousProblem',safe(()=>statementView.adjacent(-1))),
+    vscode.commands.registerCommand('gridCoach.nextProblem',safe(()=>statementView.adjacent(1)))
+  );
   const organizeButton=vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right,1000);
   organizeButton.text='$(calendar) 按日期整理';organizeButton.tooltip='将项目根目录的 C/C++ 源码按最后修改日期整理';organizeButton.command='gridCoach.organizeProjectByDate';organizeButton.name='编程网格 按日期整理';
   const showOrganizeButton=()=>vscode.workspace.workspaceFolders?.length?organizeButton.show():organizeButton.hide();
@@ -242,7 +258,7 @@ function activate(context){
   let configTimer;
   context.subscriptions.push(modelButton,vscode.workspace.onDidChangeConfiguration(event=>{
     if(!event.affectsConfiguration('gridCoach'))return;
-    for(const state of judgePanels.values())void state.panel.webview.postMessage({type:'judge_settings',settings:verdictSettings()});
+    if(event.affectsConfiguration('gridCoach.verdicts')||event.affectsConfiguration('gridCoach.feedback'))for(const state of judgePanels.values())void state.panel.webview.postMessage({type:'judge_settings',settings:verdictSettings(),feedback:feedbackSettings()});
     updateModelButton();
     if(event.affectsConfiguration('gridCoach.ai')){
       clearTimeout(configTimer);configTimer=setTimeout(()=>{void safe(async()=>{await (await backend()).request({type:'configure_ai',settings:aiSettings()});})();},200);

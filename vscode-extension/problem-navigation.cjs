@@ -1,5 +1,6 @@
 const vscode=require('vscode');
-const {sourceStem,cppTemplate}=require('./source-template.cjs');
+const {sourceStem}=require('./source-template.cjs');
+const {sourceTemplate}=require('./template-settings.cjs');
 const CREATED_KEY='gridCoach.createdProblemFiles.v1';
 const MAP_KEY='gridCoach.problemFiles.v1',PENDING_KEY='gridCoach.navigationPending.v1';
 function identity(value){
@@ -43,8 +44,8 @@ class ProblemNavigation{
       return choice?.document;
     }
     const folders=vscode.workspace.workspaceFolders||[];
-    const template=cppTemplate(this.context.extension.packageJSON.version);
-    if(!folders.length)return vscode.workspace.openTextDocument({language:'cpp',content:template});
+    const render=fileName=>sourceTemplate(this.context,{problemTitle:problem.title,problemId:target.id,problemNumber:problem.number,fileName});
+    if(!folders.length)return vscode.workspace.openTextDocument({language:'cpp',content:await render(sourceStem(problem.title,problem.number)+'.cpp')});
     const activeUri=this.currentEditor()?.document.uri;
     let folder=folders.length===1?folders[0]:activeUri?vscode.workspace.getWorkspaceFolder(activeUri):undefined;
     if(!folder){const chosen=await vscode.window.showQuickPick(folders.map(item=>({label:item.name,folder:item})),{placeHolder:'选择新题源码的项目文件夹'});if(!chosen)return;folder=chosen.folder;}
@@ -58,6 +59,7 @@ class ProblemNavigation{
     for(let suffix=0;suffix<100;suffix++){
       const uri=vscode.Uri.joinPath(directory,stem+(suffix?'-'+suffix:'')+'.cpp');
       if(await exists(uri))continue;
+      const template=await render(uri.path.split('/').at(-1));
       const edit=new vscode.WorkspaceEdit();edit.createFile(uri,{overwrite:false,ignoreIfExists:false});edit.insert(uri,new vscode.Position(0,0),template);
       if(!await vscode.workspace.applyEdit(edit))throw new Error('未能创建本题源码文件；已有文件未被覆盖。');
       await this.context.workspaceState.update(CREATED_KEY,{...this.context.workspaceState.get(CREATED_KEY,{}),[target.key]:uri.toString()});
@@ -89,4 +91,4 @@ class ProblemNavigation{
     finally{this.switching=false;}
   }
 }
-module.exports={ProblemNavigation};
+module.exports={ProblemNavigation,identity};

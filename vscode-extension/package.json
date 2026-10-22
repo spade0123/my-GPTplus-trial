@@ -3,7 +3,7 @@
   "displayName": "北大编程网格 · C++ 学习教练",
   "description": "Chrome 连接编程网格，VS Code 读取当前 C++ 并提供保存、提示、交流、网站测试与正式提交。",
   "publisher": "local-coach",
-  "version": "0.2.14",
+  "version": "0.2.15",
   "license": "UNLICENSED",
   "engines": {
     "vscode": "^1.96.0"
@@ -92,6 +92,38 @@
       {
         "command": "gridCoach.conversationHistory",
         "title": "编程网格：对话历史"
+      },
+      {
+        "command": "gridCoach.testCode",
+        "title": "编程网格：测试代码（网格判题）"
+      },
+      {
+        "command": "gridCoach.submitCode",
+        "title": "编程网格：正式提交当前代码"
+      },
+      {
+        "command": "gridCoach.openKeyboardShortcuts",
+        "title": "编程网格：自定义快捷键"
+      },
+      {
+        "command": "gridCoach.editSourceTemplate",
+        "title": "编程网格：编辑源码模板"
+      },
+      {
+        "command": "gridCoach.previewSourceTemplate",
+        "title": "编程网格：预览源码模板"
+      },
+      {
+        "command": "gridCoach.problemStatement",
+        "title": "编程网格：打开题目原文"
+      },
+      {
+        "command": "gridCoach.previousProblem",
+        "title": "编程网格：上一题"
+      },
+      {
+        "command": "gridCoach.nextProblem",
+        "title": "编程网格：下一题"
       }
     ],
     "configuration": [
@@ -345,6 +377,100 @@
             "scope": "application"
           }
         }
+      },
+      {
+        "title": "编程网格 · 反馈显示",
+        "properties": {
+          "gridCoach.feedback.showComparison": {
+            "type": "boolean",
+            "default": true,
+            "description": "在完整网格原文下方显示网站明确给出的 Std/Out 差异片段或标准/实际输出段落。网站未提供时不生成对照。",
+            "scope": "application"
+          },
+          "gridCoach.feedback.visibleWhitespace": {
+            "type": "boolean",
+            "default": true,
+            "description": "在辅助输出对照中显示空格、制表符、换行等标记；不会改动网格原文。",
+            "scope": "application"
+          }
+        }
+      },
+      {
+        "title": "编程网格 · 新题源码模板",
+        "properties": {
+          "gridCoach.source.template": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "maxItems": 2000,
+            "default": [
+              "//Powered by Grid-Code connector plugin v${pluginVersion}!",
+              "#include <iostream>",
+              "",
+              "using namespace std;",
+              "",
+              "int main(){",
+              "",
+              "    return 0;",
+              "}"
+            ],
+            "markdownDescription": "新建题目源码时使用的模板，每项一行。支持 `${pluginVersion}`、`${problemTitle}`、`${problemId}`、`${problemNumber}`、`${fileName}`、`${date}`（北京时间日期）。不修改已有源码。设置了模板文件时，优先读取文件。",
+            "scope": "window"
+          },
+          "gridCoach.source.templateFile": {
+            "type": "string",
+            "default": "",
+            "maxLength": 3000,
+            "markdownDescription": "可选：本机 UTF-8 模板文件的绝对路径，优先于文本行模板。执行“编程网格：编辑源码模板”可自动创建并配置一个可直接编辑的模板文件；修改后先保存。清空此项恢复使用文本行模板。",
+            "scope": "application"
+          }
+        }
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "gridCoach.testCode",
+        "key": "ctrl+alt+g t",
+        "mac": "cmd+alt+g t",
+        "when": "isWorkspaceTrusted && (editorLangId == cpp || activeWebviewPanelId == gridCoachJudge)"
+      },
+      {
+        "command": "gridCoach.submitCode",
+        "key": "ctrl+alt+g s",
+        "mac": "cmd+alt+g s",
+        "when": "isWorkspaceTrusted && (editorLangId == cpp || activeWebviewPanelId == gridCoachJudge)"
+      },
+      {
+        "command": "gridCoach.judge",
+        "key": "ctrl+alt+g j",
+        "mac": "cmd+alt+g j",
+        "when": "isWorkspaceTrusted && (editorLangId == cpp || activeWebviewPanelId == gridCoachJudge)"
+      },
+      {
+        "command": "gridCoach.problemStatement",
+        "key": "ctrl+alt+g p",
+        "mac": "cmd+alt+g p",
+        "when": "isWorkspaceTrusted"
+      },
+      {
+        "command": "gridCoach.conversationHistory",
+        "key": "ctrl+alt+g h",
+        "mac": "cmd+alt+g h",
+        "when": "isWorkspaceTrusted"
+      },
+      {
+        "command": "gridCoach.previousProblem",
+        "key": "ctrl+alt+g left",
+        "mac": "cmd+alt+g left",
+        "when": "isWorkspaceTrusted"
+      },
+      {
+        "command": "gridCoach.nextProblem",
+        "key": "ctrl+alt+g right",
+        "mac": "cmd+alt+g right",
+        "when": "isWorkspaceTrusted"
       }
     ]
   },

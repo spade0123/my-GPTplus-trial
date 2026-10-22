@@ -1,4 +1,5 @@
 const vscode=require('vscode'),fs=require('node:fs/promises'),{randomUUID}=require('node:crypto');
+const {identity}=require('./problem-navigation.cjs');
 const {ProblemTimers}=require('./problem-timers.cjs');
 class ProblemView{
   constructor(context){
@@ -29,16 +30,8 @@ class ProblemView{
       }
       if(message.type==='refresh_problems'){if(message.problemUrl===this.latest.url)await this.refreshNavigation({forceDeadline:true});else await this.postNavigation({busy:false,message:'当前题目已更新，请再次刷新。'});return;}
       if(message.type==='switch_problem'){
-        if(!this.navigation||this.navigation.switching||this.navigationState.busy)return;
-        if(message.problemUrl!==this.latest.url||!this.navigationState.problems.some(item=>item.url===message.targetUrl)){await this.postNavigation({busy:false,message:'列表已过期，请刷新后选题。'});return;}
-        ++this.navigationSequence;await this.postNavigation({busy:true,message:'正在切换题目与源码…'});
-        try{
-          const result=await this.navigation.activate(message.problemUrl,message.targetUrl,this.navigationState.problems.find(item=>item.url===message.targetUrl));
-          if(result.cancelled){await this.postNavigation({busy:false,message:'已取消切题。'});return;}
-          this.listedUrl=result.url;
-          await this.accept({type:'problem_display',connected:true,status:'ready',url:result.url,tabId:result.tabId,page:result.page,revision:randomUUID()});
-          await this.postNavigation({busy:false,message:'已切换题目并打开对应源码。'});
-        }catch(error){await this.postNavigation({busy:false,message:error.message});}
+        if(this.navigation?.switching||this.navigationState.busy)return;
+        try{await this.switchProblem(message.problemUrl,message.targetUrl);}catch(error){await this.postNavigation({message:error.message});}
         return;
       }
       if(message.type==='progress_ready'){await webview.postMessage(this.progress);return webview.postMessage(this.timers.timeSnapshot());}
@@ -51,6 +44,25 @@ class ProblemView{
       if(message.type==='open_problem'&&this.latest.url)return vscode.env.openExternal(vscode.Uri.parse(this.latest.url));
       if(message.type==='copy_sample'&&typeof message.text==='string'&&message.text.length<=20000)await vscode.env.clipboard.writeText(message.text);
     }));
+  }
+  async switchProblem(problemUrl,targetUrl){
+    if(!this.navigation||this.navigation.switching||this.navigationState.busy)throw new Error('正在读取或切换题目，请稍候。');
+    if(problemUrl!==this.latest.url||!this.navigationState.problems.some(item=>item.url===targetUrl))throw new Error('列表已过期，请刷新后选题。');
+    ++this.navigationSequence;await this.postNavigation({busy:true,message:'正在切换题目与源码…'});
+    try{
+      const result=await this.navigation.activate(problemUrl,targetUrl,this.navigationState.problems.find(item=>item.url===targetUrl));
+      if(result.cancelled){await this.postNavigation({busy:false,message:'已取消切题。'});return;}
+      this.listedUrl=result.url;
+      await this.accept({type:'problem_display',connected:true,status:'ready',url:result.url,tabId:result.tabId,page:result.page,revision:randomUUID()});
+      await this.postNavigation({busy:false,message:'已切换题目并打开对应源码。'});
+    }catch(error){await this.postNavigation({busy:false,message:error.message});throw error;}
+  }
+  async adjacent(direction){
+    if(!this.latest.connected||this.latest.status!=='ready')throw new Error('请先连接编程网格 IDE。');
+    if(this.navigationState.problemUrl!==this.latest.url||!this.navigationState.problems.length)await this.refreshNavigation();
+    const problems=this.navigationState.problems,index=problems.findIndex(item=>identity(item.url)?.key===identity(this.latest.url)?.key),target=problems[index+direction];
+    if(index<0||!target)throw new Error(index<0?'当前题目不在列表中，请刷新题单。':direction<0?'已经是第一题。':'已经是最后一题。');
+    return this.switchProblem(this.latest.url,target.url);
   }
   async acceptProgress(value){this.progress=value;if(this.view)await this.view.webview.postMessage(value);}
   async accept(value){

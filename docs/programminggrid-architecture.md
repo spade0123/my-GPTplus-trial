@@ -170,3 +170,12 @@ Date 取 epoch 毫秒，原始字符串支持完整日期时间、时区或 10/1
 conversationContext 最多沿父消息取 6 条已完成回答；旧的无父消息历史保留按时间取前文的兼容行为。discussionContext 对最新回答保留 8000 字符、其他每条 2000 字符，避免将整个历史无限送给模型。显示端的完整原文不因这个预算截断。用户可查看每条消息的代码快照；导出范围明确为当前已加载记录。
 
 历史页使用固定资源 URI/CSP、文本节点与现有安全 Markdown 渲染器。复制通过 VS Code 剪贴板接口。归档只隐藏记录，恢复不生成 AI 请求；生成中任务继续运行。草稿保存在 Webview state，旧的快捷问答状态不受影响。当前页仅查询本机已保存历史，不聚合其他设备或 ChatGPT 网站。
+
+
+## 反馈展示、快捷键与模板（0.2.15）
+
+output-feedback.js 只在 VS Code Webview 内处理已有 runtime.text，不调用 AI 或网站。若网站回复包含 Output/Hint 分区，优先从 Hint 区提取对照，避免把用户程序输出当成标准答案。解析明确的引号 Std/Out，或非省略的 Standard Output/Your Output 段落；找不到时不显示对照。按共同前缀/后缀定位差异区段，线性处理字符，不做大矩阵 diff。字段作为文本节点写入 DOM，网格原文独立放在 priorityRaw，复制也使用原始字符串。
+
+package.json 的 contributes.keybindings 声明默认两段式按键，用户自定义交给 VS Code 原生键盘设置。testCode/submitCode 先打开或找到对应源码的评测 Webview，等待 judge_ready 后发 judge_action，界面调用同一测试/提交按钮。页面未准备好时保留一个待执行动作，忙碌检查继续有效。上一题/下一题与网页侧栏点击复用 ProblemView.switchProblem，不复制关联、创建源码和浏览器切题流程。
+
+模板由 source-template.cjs 做纯文本占位符替换；template-settings.cjs 负责从 VS Code 设置文本行或本机 UTF-8 文件读取。优先使用 templateFile。创建文件时读取已保存的模板并按实际文件名展开，已有文件恢复路径直接返回，不套用模板。编辑命令将个人模板放在扩展 globalStorage 并配置用户路径；预览只打开未保存文档。占位符来自当前题目/文件/插件版本，日期固定为北京时间；无脚本执行、无 AI 调用。

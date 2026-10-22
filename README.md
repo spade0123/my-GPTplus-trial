@@ -56,7 +56,7 @@ Chrome 打开题目的 `.../probset/<题集ID>/<题目ID>/ide.do` 页面，点�
 
 3. Chrome 打开 `chrome://extensions`，开启开发者模式，加载项目的 **`extension/`** 目录。自己登录编程网格并打开具体题目 IDE，点击连接图标。
 
-4. VS Code 执行“扩展：从 VSIX 安装”，选择 [pku-grid-cpp-coach-0.2.14.vsix](dist/pku-grid-cpp-coach-0.2.14.vsix)，然后运行 **Developer: Reload Window**。
+4. VS Code 执行“扩展：从 VSIX 安装”，选择 [pku-grid-cpp-coach-0.2.15.vsix](dist/pku-grid-cpp-coach-0.2.15.vsix)，然后运行 **Developer: Reload Window**。
 
 5. 打开 C++ 文件，点击“网格·评测”。需要关联或更换题目时，使用评测页底部的“题目连接与本机记录”。
 
@@ -86,7 +86,7 @@ VS Code 读取点击时编辑器里的完整缓冲区，包括尚未写入文件
 
 - **更新 VS Code 扩展后**：安装新 VSIX，运行 Developer: Reload Window。
 - **更新 Chrome 连接代码后**：在扩展管理页重新加载连接扩展；需要时在题目页再次点击图标连接。
-- **只有 VS Code 界面或本机服务更新时**：按该次更新说明操作，无需每次都重载 Chrome。当前 VS Code/本机程序为 0.2.14，Chrome 连接清单为 0.2.12。
+- **只有 VS Code 界面或本机服务更新时**：按该次更新说明操作，无需每次都重载 Chrome。当前 VS Code/本机程序为 0.2.15，Chrome 连接清单为 0.2.12。
 - **显示上次的手工测试**：顶部会标明“上次记录”；默认测试方式仍是网格判题。点击测试按钮才会发送新的测试。
 - **题目标签已关闭或切换**：打开正确题目的 IDE，重新从目标 C++ 文件打开评测页，必要时更换关联。
 - **请求超时或未确认**：先核对网站记录，再决定下一步。界面会显示最后阶段和可获得的具体错误；不要把未确认当作成功。
@@ -115,7 +115,7 @@ VS Code 读取点击时编辑器里的完整缓冲区，包括尚未写入文件
 ```powershell
 npm run build:vscode
 cd vscode-extension
-npx --yes @vscode/vsce package --no-dependencies --skip-license --out ../dist/pku-grid-cpp-coach-0.2.14.vsix
+npx --yes @vscode/vsce package --no-dependencies --skip-license --out ../dist/pku-grid-cpp-coach-0.2.15.vsix
 ```
 
 这轮维护使用以下针对网格的检查，14 项通过：
@@ -264,3 +264,70 @@ int main(){
 历史数据来自本机插件，不导入 ChatGPT 网站聊天。对话元信息保存在私有 data/conversations，原始回答仍在 data/hints。为控制上下文大小，追问最多携带沿父消息链最近 6 条已完成回答，最新回答最多 8000 字符，其他每条最多 2000 字符；完整原文仍可在历史页阅读。
 
 本次 VS Code/本机程序为 **0.2.14**，Chrome 仍为 0.2.12。安装新版 VSIX 后执行 Developer: Reload Window 即可，无需重新加载 Chrome。完成语法与差异格式检查、打包安装；未新增或运行测试，尚未进行实际 VS Code 界面联调。
+
+
+## 反馈对照、自定义快捷键与源码模板（0.2.15）
+
+### 反馈显示
+
+“网格·评测”顶部保留网站完整原文，并新增“复制网格原文”。下方辅助对照读取网格明确给出的 Std/Out 差异片段，或 Standard Output / Your Output 段落；前者标注 Case/行号（网站提供时）与片段范围。
+
+- 标准输出与实际输出并排展示；窄窗口上下排列。
+- 空格显示为 ·，制表符为 ⇥，换行为 ↵，回车为 ␍，不换行空格为 ⍽；只影响辅助视图。
+- 标色范围为首尾相同文本之间的差异区段，不是新的判题结果。
+- 网站只提供片段时不补全输出；省略号形式的标准输出段落不生成对照。输出段落中的排版换行可能来自网页，仍以网格原文为准。
+- 每次最多展示 20 组对照，每栏最多 12000 字符，原文独立保留。没有可靠对照字段时直接阅读上方原文。
+- 页面可临时关闭对照或空白字符标记；默认值在设置的 gridCoach.feedback.showComparison / visibleWhitespace 中修改。
+
+### 自定义快捷键
+
+执行“编程网格：自定义快捷键”，或点击评测页底部同名按钮，打开已筛选本扩展命令的 VS Code 键盘快捷方式页。双击命令录入按键，可查看冲突，也可删除默认绑定。现有保存、提示、交流、历史等命令同样可以绑定。
+
+默认按键采用两段式：先按 Ctrl+Alt+G，松开后按下表第二个键；macOS 为 Cmd+Alt+G。
+
+| 第二个键 | 操作 |
+|---|---|
+| T | 测试代码：网格判题，使用默认空 stdin 模式 |
+| S | 正式提交当前代码 |
+| J | 打开测试与提交页 |
+| P | 打开题目原文 |
+| H | 打开对话历史 |
+| ← / → | 上一题 / 下一题 |
+
+测试、提交和打开评测的默认快捷键只在 C++ 编辑器或网格评测页生效；其他默认快捷键在可信工作区生效。执行命令仍会检查题目关联和源码。测试/提交复用页面按钮流程与忙碌检查，不通过另一套接口，也不运行本机判题。快捷键中的 T 固定使用网格判题；需要手工输入时使用页面选项与按钮。
+
+### 自定义源码模板
+
+最方便的方式：执行“编程网格：编辑源码模板”，或点击评测页底部“编辑源码模板”。首次会在 VS Code 扩展私有目录创建可编辑的 source-template.cpp，并把绝对路径写入用户设置 gridCoach.source.templateFile。编辑后 Ctrl+S 保存，新题源码就会使用保存的内容。
+
+也可以清空 templateFile，改用 gridCoach.source.template 设置中的文本行数组（每项一行）。模板文件非空时优先读取文件；已有源码和已关联题目不会被覆盖。文件必须是 UTF-8 文本。模板有误或无法读取时会提示并停止创建，修好后重试切题。
+
+支持的占位符：
+
+| 占位符 | 内容 |
+|---|---|
+| ${pluginVersion} | 已安装的扩展版本 |
+| ${problemTitle} | 题名 |
+| ${problemId} | 完整题目 ID |
+| ${problemNumber} | 当前题单序号 |
+| ${fileName} | 实际创建的源码文件名 |
+| ${date} | 北京时间 YYYY-MM-DD 日期 |
+
+示例模板文件：
+
+~~~cpp
+//Powered by Grid-Code connector plugin v${pluginVersion}!
+// ${problemTitle} | ${date} | ${fileName}
+#include <iostream>
+
+using namespace std;
+
+int main(){
+
+    return 0;
+}
+~~~
+
+“编程网格：预览源码模板”会打开一份未保存的预览，使用当前题目信息和 preview.cpp 作为示例文件名，不创建题目项目文件。占位符仅做文本替换，不执行代码或脚本；未知占位符保持原样。题名建议放在注释内。
+
+VS Code/本机程序为 0.2.15，Chrome 仍为 0.2.12；安装 VSIX 后执行 Developer: Reload Window。本次完成语法、差异格式检查和打包安装；未新增或运行测试，尚未在登录环境进行实际界面联调。

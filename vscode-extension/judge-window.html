@@ -13,8 +13,10 @@
     <section id="priorityPanel" class="priority-panel" aria-live="polite">
       <div id="priorityVerdict" class="priority-verdict" hidden></div>
       <div id="priorityLabel" class="priority-label">编程网格原文</div>
+      <div class="feedback-tools"><button id="copyGridRaw" disabled>复制网格原文</button><label><input id="feedbackShowComparison" type="checkbox" checked>输出对照</label><label><input id="feedbackWhitespace" type="checkbox" checked>显示空白字符</label><span id="copyRawState" role="status"></span></div>
       <pre id="priorityRaw">点击下方“测试代码”或“正式提交”，这里会优先显示网站返回。</pre>
     </section>
+    <div id="priorityFeedback" class="output-feedback" hidden></div>
     <div class="judge-actions">
       <button id="gridTest" class="primary">测试代码 · 网格判题</button>
       <button id="submitOJ">正式提交到编程网格</button>
@@ -38,7 +40,7 @@
     </section>
   </main>
   <footer class="coach-footer">
-    <button id="judgeSettings">设置判定文字、字号与颜色</button>
+    <button id="judgeSettings">反馈显示与判定设置</button><button id="judgeKeybindings">自定义快捷键</button><button id="judgeTemplate">编辑源码模板</button>
     <details>
       <summary>题目连接与本机记录</summary>
       <button id="bindProblem">关联/更换题目</button>
@@ -50,6 +52,7 @@
     <p>重新打开时只显示上次记录，不自动查询。</p>
   </footer>
   <script src="webview-adapter.js"></script>
+  <script src="output-feedback.js"></script>
   <script src="judge-controls.js"></script>
 </body>
 </html>
