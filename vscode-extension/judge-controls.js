@@ -9,16 +9,27 @@
     const box=document.createElement('div'),h=document.createElement('h4'),pre=document.createElement('pre'),code=document.createElement('code');
     box.className='execution-block';h.textContent=label;code.textContent=String(text||'（空）');pre.append(code);box.append(h,pre);parent.append(box);
   }
+  let appearance={},lastPriority,feedbackPreferences={visibleWhitespace:true,showComparison:true};
+  function feedback(raw){GridOutputFeedback.render($('priorityFeedback'),raw,feedbackPreferences);}
+  $('feedbackShowComparison').onchange=()=>{feedbackPreferences.showComparison=$('feedbackShowComparison').checked;if(lastPriority)feedback(lastPriority.value.submission?.runtime?.text||'');};
+  $('feedbackWhitespace').onchange=()=>{feedbackPreferences.visibleWhitespace=$('feedbackWhitespace').checked;if(lastPriority)feedback(lastPriority.value.submission?.runtime?.text||'');};
+  $('copyGridRaw').onclick=async()=>{try{await navigator.clipboard.writeText(lastPriority?.value.submission?.runtime?.text||'');$('copyRawState').textContent='已复制原文';}catch{$('copyRawState').textContent='复制失败，请选择原文复制';}};
   function priority(kind,value){
     if(activeKind!==kind)return;
+    lastPriority={kind,value};
     const submission=value.submission;
     const raw=submission?.runtime?.text||value.error||value.message||(value.browserStage?value.browserStage+'，等待编程网格返回原文…':'等待编程网格返回判题原文…');
-    const verdictCode=submission?.verdict?.status,verdict=platformName[submission?.platformResult]||verdictName[verdictCode]||'';
+    const verdictCode=submission?.verdict?.status,original=platformName[submission?.platformResult]||verdictName[verdictCode]||'',custom=appearance[verdictCode]||{},verdict=original&&(typeof custom.text==='string'&&custom.text.trim()?custom.text.slice(0,120):original);
     $('priorityPanel').hidden=false;$('priorityVerdict').hidden=!verdict;$('priorityVerdict').textContent=verdict;
     $('priorityVerdict').className='priority-verdict'+(verdictName[verdictCode]?' verdict-'+verdictCode.toLowerCase():'');
+    const badge=$('priorityVerdict');
+    badge.style.fontSize=Number.isFinite(custom.fontSize)&&custom.fontSize>0&&custom.fontSize<=200?custom.fontSize+'px':'';
+    badge.style.color=typeof custom.color==='string'&&/^#(?:[0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(custom.color)?custom.color:'';
     const label=(value.restored?'上次记录 · ':'')+(kind==='test'?(testInputMode==='manual'?'手工输入测试 · ':'测试代码 · '):'正式提交 · ')+(submission?.runtime?.text?'输出与提示原文':value.error||value.status==='uncertain'?'连接提示':value.message&&value.status==='rejected'?'网站未接受请求':'等待网站原文');
     $('priorityLabel').textContent=label+(Number.isFinite(value.responseMs)?` · 首次回复 ${value.responseMs} ms`:'');
-    $('priorityRaw').textContent=raw;
+    const changed=$('priorityRaw').textContent!==raw;$('priorityRaw').textContent=raw;
+    $('copyGridRaw').disabled=!submission?.runtime?.text;if(changed)$('copyRawState').textContent='';
+    feedback(submission?.runtime?.text||'');
   }
   $('webTestInput').addEventListener('input',()=>{inputInitialized=true;});
   $('useManualInput').onchange=()=>{
@@ -49,6 +60,8 @@
   const refreshSubmit=()=>{if(!submitJobId)return;$('refreshOJ').disabled=true;send('oj_refresh',{id:submitJobId});};
   $('refreshOJ').onclick=refreshSubmit;
   function handleMessage(value){
+    if(value.type==='judge_action'){if(value.action==='test'){if(testBusy)return;$('useManualInput').checked=false;$('useManualInput').onchange();$('gridTest').click();}else if(value.action==='submit')$('submitOJ').click();return;}
+    if(value.type==='judge_settings'){appearance=value.settings||{};if(value.feedback){feedbackPreferences={...feedbackPreferences,...value.feedback};$('feedbackShowComparison').checked=feedbackPreferences.showComparison;$('feedbackWhitespace').checked=feedbackPreferences.visibleWhitespace;}if(lastPriority)priority(lastPriority.kind,lastPriority.value);return;}
     if(value.type==='judge_history'){
       if(activeKind)return;
       const latest=value.test&&value.submission?String(value.test.createdAt)>String(value.submission.createdAt)?'test':'submit':value.test?'test':value.submission?'submit':'';
@@ -108,6 +121,9 @@
       else{submitBusy=false;$('submitOJ').disabled=false;$('refreshOJ').disabled=!submitJobId;$('ojState').textContent=value.error;if(activeKind==='submit'&&!(value.requestType==='oj_refresh'&&lastSubmission?.submission))priority('submit',{error:value.error});}
     }
   }
+  $('judgeKeybindings').onclick=()=>send('open_keybindings');
+  $('judgeTemplate').onclick=()=>send('edit_source_template');
+  $('judgeSettings').onclick=()=>send('open_settings');
   port.onMessage.addListener(handleMessage);
   send('judge_ready');
 })();

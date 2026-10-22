@@ -16,6 +16,7 @@
   document.getElementById('closeCoach').onclick=()=>api.postMessage({type:'collapse',ui:state()});
   document.getElementById('bindProblem').onclick=()=>api.postMessage({type:'bind_problem'});
   document.getElementById('showRecords').onclick=()=>api.postMessage({type:'show_records'});
+  document.getElementById('openHistory')?.addEventListener('click',()=>api.postMessage({type:'open_history'}));
   let timer;
   document.getElementById('question')?.addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(()=>api.postMessage({type:'draft',ui:state()}),150);});
 })();

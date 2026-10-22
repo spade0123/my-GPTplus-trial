@@ -93,3 +93,89 @@ GitHub 里的代码描述“工具如何工作”，本机数据记录“使用�
 针对网格的 14 项检查覆盖请求参数、原文保留、完整判定名称、编号、异常回传、停止查询、恢复旧记录、状态栏与本机连接。模拟检查不使用个人账号、不调用真实模型、不向网站提交作业。
 
 使用者在真实网站核对过请求表单与回传；网站布局、登录状态和服务负载仍可能影响结果。适配目标是 Windows 桌面 VS Code 与 Chrome，当前读代码操作以 C++ 文档为入口，不保证其他语言、站点别名和远程环境的完整行为。
+
+
+## 模型和样式配置如何传递（0.2.9）
+
+模型选择/插件设置 → VS Code 用户配置 → configure_ai 本机消息 → 私有 data/coach-model-settings.json → 工作进程每次请求开始读取 → 同一会话和生成使用相同模型与强度。
+
+默认 Luna / low，原先报告的 Sol / xhigh 也统一替换。预热会话记录模型和强度，配置改变后不用旧预热会话发新请求；正在生成的请求继续使用原配置。不自动换模型重试。
+
+判定外观走另一条链路：用户设置 → judge_settings 页面消息 → 大字头文本和样式。颜色只接受十六进制、字号限制 0–200 px、文字通过 textContent 显示；网站原文及评测状态均保持不变。修改设置只重画标题，不触发提交或刷新。
+
+
+## 题面计时器（0.2.10）
+
+计时器与 AI、浏览器桥接无关。`study-timer.cjs` 在 VS Code 扩展进程中维护秒表和倒计时；`problem-view.cjs` 将状态传给题面页，`study-timer.js` 根据时间戳绘制数字、发送开始/暂停/重置操作。
+
+状态存入 `ExtensionContext.workspaceState`，只在操作和到时转换时写入，不每秒写磁盘。秒表保存累计时长和开始时间，倒计时保存剩余时长和截止时间；即使题面页被销毁，重新打开仍可从宿主取回状态。扩展每秒检查倒计时是否到期，到时持久化并通知；关闭 VS Code 后无法发通知，再次启动才补发。电脑休眠和 VS Code 关闭期间也计入时间，系统时间调整可能影响计时。
+
+两种计时独立运行，按当前工作区而非每道题保存；切换题面不自动归零。题目导航方案另见 [题目列表与快速切题调研](problem-navigation-research.md)。
+
+
+## 题单和快速切题（0.2.11）
+
+```text
+当前 IDE 的 ol/li_题目ID 菜单
+  → readGridProblemList（只读 DOM，当前题无 href 也能识别）
+  → list_problems 浏览器消息 → Native Messaging → 本机服务
+  → 题面页的题单、搜索、上一题/下一题
+  → 用户点击 → 创建/选择本题源码（先不改原文件）
+  → activate_problem → 复用或新开 IDE → 目标题面校验
+  → context_bind 显式关联源码 → 打开该文件
+```
+
+两端各校验一次同题集和已发现的目标列表。文件映射存于 VS Code 的 workspaceState；新建文件路径由经校验的题集/题目 ID 构成，不把题名拼成磁盘路径。WorkspaceEdit 的 ignoreIfExists 保证不覆盖已有文件。关联记录的读取使用 context_lookup，不触发随浏览器题目改变的自动关联。
+
+切题期间 sourceFor 拦截新测试、提交及保存分析。开始导航前持久化中断标记，源码关联和打开都完成后清除；失败后继续拦截，用户重选题目或显式关联可恢复。已关联文件若属于另一题，也要求先切题或明确关联。旧评测仍使用原题 URL、原代码和回执，切题不会重发请求；计时器保持运行。
+
+此版 Chrome、本机服务及 VS Code 均为 0.2.11，新增消息需要重新加载 Chrome 扩展。网页菜单结构依据用户提供的实际 ol/li/a；尚未在登录环境完整联调，其他题集布局、懒加载及登录重定向仍是现场核对范围。详情见 [导航实现与调研记录](problem-navigation-research.md)。
+
+
+## 精确 DDL 与本地显示（0.2.12）
+
+用户提供的网站代码确认：`problemlist.closeTime = text_to_date(problemlist.assignment.closeTime)`。Chrome 在 MAIN 执行环境中只取这一项关闭时间，不传出整个 problemlist 或账号对象。通过现有 list_problems 回复传给本机服务，校验后交给题面页。
+
+```text
+网站 assignment.closeTime → 网站转换后的 problemlist.closeTime
+  → Chrome 一次读取 → list_problems 的 closesAt（毫秒时间戳）
+  → 本机服务校验 → VS Code 按题集缓存
+  → assignment-closing.js 每秒计算 closesAt - Date.now()
+```
+
+Date 取 epoch 毫秒，原始字符串支持完整日期时间、时区或 10/13 位时间戳；无时区按 +08:00。备用读取只用明确关闭时间字段，课程页必须匹配当前题集 ID。小字 time_to_close 是舍入后的显示值，绝不用于反推截止时刻。
+
+界面每秒计算不发送请求。普通切题复用同题集缓存；手动刷新题单会重新取当前网页配置。切换题集会切换缓存，晚到的上一题集回复不能覆盖当前显示。老师改期后先刷新网站，刷新题单更新本机值。截止时刻不是手动倒计时，不会被秒表或倒计时的重置按钮影响。
+
+
+## 题单进度与分题计时（0.2.13）
+
+`src/problem-progress.js` 从 grid-tests/oj-submissions 摘取每题最新尝试摘要，缓存文件修改时间和大小，避免每次反复解析未变的源码记录。判断最近使用 createdAt，不用更新回执的 updatedAt。只输出题目、状态、来源和时间，不向侧栏发送源码。vscode-host 监听两个目录并去抖推送 problem_progress；没有逐题查询网站的新流程。
+
+`StudyTimer` 增加可指定存储 key 和累计活动时长，秒表/倒计时同时运行只算一次。`ProblemTimers` 按题目/题集复用这些实例，切题暂停旧题，整套运行时启动新题；本题累计用时通过 problem_timing 传给题单，页面自己绘制增长的秒数，不每秒写磁盘。缓存保存在 workspaceState；没有从历史快照反推过去的用时。
+
+整套计时是独立时钟，不是全局限制或 AI 开关。本题/整套可由悬浮条设置菜单切换查看；累计用时独立于显示重置。计时采用墙上时钟，所以运行中休眠/关闭程序的时间也可能计入，不代表纯键盘操作时长。
+
+`source-template.cjs` 本地生成受限字符的英文短名和模板，版本来自扩展清单；不调用模型。文件名用短题号作为后缀，遇到未知同名文件另选后缀。WorkspaceEdit 的创建和模板插入作为一次编辑，不覆盖旧文件；创建后记入私有索引，再保存新文档。旧 ID 文件和已有映射继续优先使用。
+
+
+## 对话历史与追问（0.2.14）
+
+原有快捷界面保持独立。history-view.cjs 创建专用 Webview，history.js 负责题目列表、题内会话、逐批消息、草稿和追问。Webview 不直接访问磁盘或模型：它把请求交给 VS Code，后者通过现有 RPC 发给本机 vscode-service。
+
+数据流：data/hints 原始任务 → conversation-history.js 的轻量元信息索引 → 两栏历史页。旧记录按规范化题目地址和提示/交流/解答类别派生稳定会话编号；重命名/归档只写 data/conversations 的覆盖元信息。新会话使用独立随机编号，旧原文无需迁移。元信息索引缓存文件修改时间和大小，分页时才加载所选回答正文。
+
+发送追问：验证会话/父消息/题目一致 → 读取父消息的已保存题目和代码 → saveAttempt 保留事件 → queueDiscussion 记录 conversationId 与 parentJobId → 原 discussion worker → 原模型服务 → 回答写回 data/hints → 历史页本地读取增量。没有网页自动提交、没有浏览器轮询，也不会把当前另一个题目的代码带入历史追问。旧快捷交流流被归档后，新的快捷问题自动建立新的快捷流。
+
+conversationContext 最多沿父消息取 6 条已完成回答；旧的无父消息历史保留按时间取前文的兼容行为。discussionContext 对最新回答保留 8000 字符、其他每条 2000 字符，避免将整个历史无限送给模型。显示端的完整原文不因这个预算截断。用户可查看每条消息的代码快照；导出范围明确为当前已加载记录。
+
+历史页使用固定资源 URI/CSP、文本节点与现有安全 Markdown 渲染器。复制通过 VS Code 剪贴板接口。归档只隐藏记录，恢复不生成 AI 请求；生成中任务继续运行。草稿保存在 Webview state，旧的快捷问答状态不受影响。当前页仅查询本机已保存历史，不聚合其他设备或 ChatGPT 网站。
+
+
+## 反馈展示、快捷键与模板（0.2.15）
+
+output-feedback.js 只在 VS Code Webview 内处理已有 runtime.text，不调用 AI 或网站。若网站回复包含 Output/Hint 分区，优先从 Hint 区提取对照，避免把用户程序输出当成标准答案。解析明确的引号 Std/Out，或非省略的 Standard Output/Your Output 段落；找不到时不显示对照。按共同前缀/后缀定位差异区段，线性处理字符，不做大矩阵 diff。字段作为文本节点写入 DOM，网格原文独立放在 priorityRaw，复制也使用原始字符串。
+
+package.json 的 contributes.keybindings 声明默认两段式按键，用户自定义交给 VS Code 原生键盘设置。testCode/submitCode 先打开或找到对应源码的评测 Webview，等待 judge_ready 后发 judge_action，界面调用同一测试/提交按钮。页面未准备好时保留一个待执行动作，忙碌检查继续有效。上一题/下一题与网页侧栏点击复用 ProblemView.switchProblem，不复制关联、创建源码和浏览器切题流程。
+
+模板由 source-template.cjs 做纯文本占位符替换；template-settings.cjs 负责从 VS Code 设置文本行或本机 UTF-8 文件读取。优先使用 templateFile。创建文件时读取已保存的模板并按实际文件名展开，已有文件恢复路径直接返回，不套用模板。编辑命令将个人模板放在扩展 globalStorage 并配置用户路径；预览只打开未保存文档。占位符来自当前题目/文件/插件版本，日期固定为北京时间；无脚本执行、无 AI 调用。

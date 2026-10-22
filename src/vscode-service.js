@@ -1,11 +1,14 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import {createHash} from 'node:crypto';
+import {createHash,randomUUID} from 'node:crypto';
 import {z} from 'zod';
-import {dataDir,writeRecord,acquireLock,Capture,reviewSummary} from './browser-review.js';
+import {dataDir,writeRecord,acquireLock,Capture,reviewSummary,readReview,captureFromRecord} from './browser-review.js';
 import {saveAttempt,recordVerdict,getProblem} from './problem-history.js';
+import {conversationSnapshot,listConversations,readConversation,createConversation,updateConversation,validateConversationLink} from './conversation-history.js';
 import {queueHint,queueDiscussion,readHint,hintSummary,assistHistory} from './hint-review.js';
 import {browserRequest} from './browser-mailbox.js';
+import {readProblemProgress} from './problem-progress.js';
+import {writeModelSettings} from './model-settings.js';
 import {gridUrl,sameProblem} from './grid-url.js';
 import {readProblemDisplay} from './problem-display.js';
 import {runSample,latestSample,saveSampleRequest,finishSample} from './sample-runner.js';
@@ -44,7 +47,7 @@ async function patchContext(uri,patch,problemUrl){
   }finally{await release();}
 }
 export function createVscodeService({browser=browserRequest,launchReport=async()=>{},launchHint=async()=>{},currentProblem=readProblemDisplay,sampleRunner=runSample}={}){
-  const activeExecutions=new Set(),finalizingTests=new Set();
+  const activeExecutions=new Set(),finalizingTests=new Set(),navigationLists=new Map();
   async function resolveContext(uri,expectedProblemUrl){
     const display=await currentProblem();
     if(display.connected&&display.url){
@@ -189,8 +192,34 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
   }
   return {async handle(message){
     const type=message.type;
-    if(type==='status')return {ready:true,dataDirectory:dataDir(),version:'0.2.8',platform:'programminggrid-vscode'};
+    if(type==='configure_ai')return {settings:await writeModelSettings(message.settings)};
+    if(type==='status')return {ready:true,dataDirectory:dataDir(),version:'0.2.15',platform:'programminggrid-vscode'};
     if(type==='problem_display')return currentProblem();
+    if(type==='problem_progress'){const target=gridUrl(message.problemUrl,{kind:'problem'});if(!target)throw new Error('题目地址无效。');return readProblemProgress({group:target.group});}
+    if(type==='list_problems'){
+      const display=await currentProblem(),url=message.problemUrl||display.url,parsed=gridUrl(url,{kind:'problem'});
+      if(!parsed||!display.connected||!sameProblem(url,display.url))throw new Error('请先连接并打开当前题目的 IDE。');
+      const result=await browser('list_problems',{problemUrl:url,tabId:display.tabId,forceDeadline:message.forceDeadline===true},12000);
+      if(!Array.isArray(result.problems)||result.problems.length>500)throw new Error('网站题目列表格式无效。');
+      const problems=result.problems.map((item,index)=>{
+        const target=gridUrl(item.url,{kind:'problem'});
+        if(!target||target.group!==parsed.group||typeof item.title!=='string'||!item.title.trim())throw new Error('题目列表含不属于当前作业的地址。');
+        return {url:target.url,title:item.title.slice(0,300),number:Number.isSafeInteger(item.number)&&item.number>0?item.number:index+1,current:sameProblem(target.url,url)};
+      });
+      navigationLists.set(parsed.group,new Set(problems.map(item=>gridUrl(item.url).key)));
+      const closesAt=result.closesAt===undefined?null:z.number().int().min(946684800000).max(4102444800000).parse(result.closesAt);
+      return {type:'problem_list',problemUrl:url,problems,closesAt,source:result.source,message:result.message||''};
+    }
+    if(type==='activate_problem'){
+      const from=gridUrl(message.problemUrl,{kind:'problem'}),target=gridUrl(message.targetUrl,{kind:'problem'}),display=await currentProblem();
+      if(!from||!target||from.group!==target.group||!navigationLists.get(from.group)?.has(target.key))throw new Error('请先刷新当前作业的题目列表，再选择其中的题目。');
+      if(!display.connected||!sameProblem(display.url,from.url))throw new Error('浏览器当前题目已改变，请先刷新题目列表。');
+      const result=await browser('activate_problem',{problemUrl:from.url,targetUrl:target.url,tabId:display.tabId},18000);
+      if(!result.page?.problemMatches||!sameProblem(result.page.problemUrl,target.url)||!Number.isInteger(result.tabId))throw new Error('切题后未能确认目标题面；请检查 Chrome 页面。');
+      return {type:'problem_activated',url:target.url,tabId:result.tabId,page:result.page};
+    }
+    if(type==='context_lookup')return getContext(validUri(message.uri));
+
     if(type==='judge_history'){
       const context=await getContext(validUri(message.uri),message.problemUrl);
       if(!context.binding)return {type:'judge_history'};
@@ -242,13 +271,34 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
       const uri=validUri(message.uri),b=message.binding;
       if(!b||!gridUrl(b.problemUrl,{kind:'problem'})||!Number.isInteger(b.tabId))throw new Error('请选择有效的编程网格 IDE 标签。');
       const binding={problemUrl:b.problemUrl,tabId:b.tabId,...(b.submissionTabId===undefined?{}:{submissionTabId:b.submissionTabId})};
-      const web=await browser('capture',binding);if(!web.problem?.problemMatches||!sameProblem(web.problem.problemUrl,binding.problemUrl))throw new Error('所选网页与题目不对应。');
+      const web=await browser('capture',{...binding,requireActive:message.requireActive===true});if(!web.problem?.problemMatches||!sameProblem(web.problem.problemUrl,binding.problemUrl))throw new Error('所选网页与题目不对应。');
       return patchContext(uri,{binding,problem:web.problem});
     }
     if(type==='ui_save'){
       const ui=z.object({question:z.string().max(2000),chatOpen:z.boolean()}).strict().parse(message.ui);
       const uiStamp=message.uiStamp===undefined?undefined:z.object({session:z.string().uuid(),startedAt:z.number().int().nonnegative(),revision:z.number().int().positive()}).strict().parse(message.uiStamp);
       await patchContext(validUri(message.uri),{ui,...(uiStamp?{uiStamp}:{})},message.problemUrl);return {saved:true};
+    }
+    if(type==='conversation_snapshot')return conversationSnapshot(message.id,message.jobId);
+    if(type==='conversation_topics')return listConversations({includeArchived:message.includeArchived===true});
+    if(type==='conversation_detail')return readConversation(z.string().regex(/^[a-f0-9]{64}$/).parse(message.id),{before:message.before===undefined?undefined:z.string().regex(/^[a-f0-9]{64}$/).parse(message.before)});
+    if(type==='conversation_create'){
+      const snapshot=await readReview(z.string().regex(/^[a-f0-9]{64}$/).parse(message.snapshotId));
+      return createConversation({problemUrl:snapshot.url,problemTitle:snapshot.title,snapshotId:snapshot.id});
+    }
+    if(type==='conversation_update')return updateConversation(message.id,{title:message.title,archived:message.archived});
+    if(type==='conversation_followup'){
+      const question=z.string().trim().min(1).max(2000).parse(message.question);
+      const detail=await readConversation(message.id),parentJobId=message.parentJobId||detail.latestJobId||undefined;
+      const thread=await validateConversationLink({conversationId:message.id,parentJobId,problemUrl:detail.problemUrl});
+      if(thread.jobs.some(job=>['queued','running'].includes(job.status)))throw new Error('这段对话还有回答正在生成，请等待完成后再追问。');
+      const parent=parentJobId?await readHint(parentJobId):null;
+      const snapshot=await readReview(parent?.snapshotId||detail.snapshotId),capture=await captureFromRecord(snapshot);
+      const eventId=z.string().uuid().parse(message.actionId||randomUUID());
+      const saved=await saveAttempt(capture,{eventId,origin:'discussion',note:'从对话历史继续追问；沿用所选消息的已保存代码快照'});
+      const job=await queueDiscussion(saved.id,{question,eventId:saved.eventId,attemptNumber:saved.attemptNumber,conversationId:message.id,parentJobId});
+      let workerError;try{if(job.status==='queued')await launchHint('discussion');}catch(error){workerError=error.message;}
+      return {type:'conversation_sent',id:message.id,jobId:job.id,workerError};
     }
     if(type==='hint_status'){if(!/^[a-f0-9]{64}$/.test(message.id||''))throw new Error('任务编号无效。');return {type:'hint_status',...hintSummary(await readHint(message.id))};}
     if(!['quick_save','hint_open','hint','discuss','assist_history','run_sample','grid_test','oj_submit'].includes(type))throw new Error('不支持的 VS Code 操作。');

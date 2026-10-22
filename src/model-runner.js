@@ -6,6 +6,7 @@ import { ROOT, REVIEW_GUIDE } from './core.js';
 import { formatModelReport } from './report-format.js';
 import {HINT_STREAM_GUIDE,hintModelContext} from './hint-format.js';
 import {DiscussionStream} from './discussion-stream.js';
+import {readModelSettings} from './model-settings.js';
 
 export async function runModel(evidence) {
   evidence={...evidence,runtimeFieldGuide:'编程网格网页的输出与提示混在同一区域，原文保存在 runtime.text；网页输入框的当前内容保存在 runtime.input，但不保证已用于那次运行。网站测试执行的快照带测试编号、当前代码指纹和测试输入，返回原文仍保存在 runtime.text；网站测试通过不等于正式提交 AC。runtime.output 仅在有本机样例测试时记录其实际输出；此时 runtime.input 也是本机样例输入，网页输入另存于 runtime.text。runtime.error 可能含 VS Code 静态诊断、网页错误或本机编译信息，按字段内标签区分来源。网页运行区不保证对应当前 VS Code 代码；只有标明源码匹配的正式提交评测才能作为本轮评测证据。problem.sampleOutput 是题目例子输出，不能与实际输出或提示信息混合。'};
@@ -38,10 +39,11 @@ export async function resolveCodexCommand(configured=process.env.PKU_CODEX){
 }
 
 async function invokeModel(prompt,schema,{interactive=false}={}){
+  const settings=await readModelSettings();
   const cwd=await fs.mkdtemp(path.join(os.tmpdir(),'pku-cpp-model-'));
   const output=path.join(cwd,'report.json'),command=await resolveCodexCommand();
   const args=['exec','--ignore-user-config','--ephemeral','--skip-git-repo-check','--sandbox','read-only','--disable','shell_tool','--disable','apps','--disable','plugins','-c','web_search="disabled"','--output-schema',path.join(ROOT,'src',schema),'--output-last-message',output,'--cd',cwd,'-'];
-  args.splice(1,0,'-m',process.env.PKU_MODEL||'gpt-6.1-sol','-c',`model_reasoning_effort="${interactive?'low':'xhigh'}"`);
+  args.splice(1,0,'-m',settings.model,'-c',`model_reasoning_effort="${settings.effort}"`);
   try {
     await new Promise((resolve,reject)=>{
       const child=spawn(command,args,{cwd,windowsHide:true,shell:false});

@@ -3,7 +3,7 @@
   "displayName": "北大编程网格 · C++ 学习教练",
   "description": "Chrome 连接编程网格，VS Code 读取当前 C++ 并提供保存、提示、交流、网站测试与正式提交。",
   "publisher": "local-coach",
-  "version": "0.2.8",
+  "version": "0.2.15",
   "license": "UNLICENSED",
   "engines": {
     "vscode": "^1.96.0"
@@ -31,10 +31,22 @@
   },
   "contributes": {
     "viewsContainers": {
-      "activitybar": [{"id":"gridCoachProblems","title":"编程网格题目","icon":"problem-icon.svg"}]
+      "activitybar": [
+        {
+          "id": "gridCoachProblems",
+          "title": "编程网格题目",
+          "icon": "problem-icon.svg"
+        }
+      ]
     },
     "views": {
-      "gridCoachProblems": [{"type":"webview","id":"gridCoach.problemStatement","name":"当前题目信息"}]
+      "gridCoachProblems": [
+        {
+          "type": "webview",
+          "id": "gridCoach.problemStatement",
+          "name": "当前题目信息"
+        }
+      ]
     },
     "commands": [
       {
@@ -68,6 +80,397 @@
       {
         "command": "gridCoach.organizeProjectByDate",
         "title": "编程网格：按日期整理项目源码"
+      },
+      {
+        "command": "gridCoach.selectModel",
+        "title": "编程网格：选择 AI 模型与推理强度"
+      },
+      {
+        "command": "gridCoach.openSettings",
+        "title": "编程网格：打开插件设置"
+      },
+      {
+        "command": "gridCoach.conversationHistory",
+        "title": "编程网格：对话历史"
+      },
+      {
+        "command": "gridCoach.testCode",
+        "title": "编程网格：测试代码（网格判题）"
+      },
+      {
+        "command": "gridCoach.submitCode",
+        "title": "编程网格：正式提交当前代码"
+      },
+      {
+        "command": "gridCoach.openKeyboardShortcuts",
+        "title": "编程网格：自定义快捷键"
+      },
+      {
+        "command": "gridCoach.editSourceTemplate",
+        "title": "编程网格：编辑源码模板"
+      },
+      {
+        "command": "gridCoach.previewSourceTemplate",
+        "title": "编程网格：预览源码模板"
+      },
+      {
+        "command": "gridCoach.problemStatement",
+        "title": "编程网格：打开题目原文"
+      },
+      {
+        "command": "gridCoach.previousProblem",
+        "title": "编程网格：上一题"
+      },
+      {
+        "command": "gridCoach.nextProblem",
+        "title": "编程网格：下一题"
+      }
+    ],
+    "configuration": [
+      {
+        "title": "编程网格 · AI 模型",
+        "properties": {
+          "gridCoach.ai.model": {
+            "type": "string",
+            "default": "gpt-6-luna",
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:/-]*$",
+            "maxLength": 120,
+            "description": "提示、交流和后台报告使用的模型。可通过“选择 AI 模型与推理强度”选择或输入自定义模型 ID。是否可用取决于当前 Codex 登录账号。",
+            "scope": "application"
+          },
+          "gridCoach.ai.effort": {
+            "type": "string",
+            "default": "low",
+            "enum": [
+              "none",
+              "low",
+              "medium",
+              "high",
+              "xhigh",
+              "max"
+            ],
+            "enumDescriptions": [
+              "不进行额外推理（仅支持此强度的模型，例如 Luna）",
+              "低：日常学习、优先速度",
+              "中：适当增加分析",
+              "高：复杂问题",
+              "很高：可能更慢、消耗更多额度",
+              "最大：可能更慢、消耗更多额度"
+            ],
+            "description": "对提示、交流和后台报告统一生效；从下一次 AI 请求开始使用。",
+            "scope": "application"
+          }
+        }
+      },
+      {
+        "title": "编程网格 · AC · Accepted",
+        "properties": {
+          "gridCoach.verdicts.AC.text": {
+            "type": "string",
+            "default": "",
+            "maxLength": 120,
+            "description": "大字头显示文字；留空保留网站判定的完整名称。只改变标题，不改动网站原文。",
+            "scope": "application"
+          },
+          "gridCoach.verdicts.AC.fontSize": {
+            "type": "number",
+            "default": 0,
+            "minimum": 0,
+            "maximum": 200,
+            "description": "大字头字号（px）；0 使用默认自适应字号，最大 200。",
+            "scope": "application"
+          },
+          "gridCoach.verdicts.AC.color": {
+            "type": "string",
+            "default": "",
+            "pattern": "^$|^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+            "description": "大字头颜色，例如 #5138ea 或 #e87863；留空使用默认颜色。",
+            "scope": "application"
+          }
+        }
+      },
+      {
+        "title": "编程网格 · WA · Wrong Answer",
+        "properties": {
+          "gridCoach.verdicts.WA.text": {
+            "type": "string",
+            "default": "",
+            "maxLength": 120,
+            "description": "大字头显示文字；留空保留网站判定的完整名称。只改变标题，不改动网站原文。",
+            "scope": "application"
+          },
+          "gridCoach.verdicts.WA.fontSize": {
+            "type": "number",
+            "default": 0,
+            "minimum": 0,
+            "maximum": 200,
+            "description": "大字头字号（px）；0 使用默认自适应字号，最大 200。",
+            "scope": "application"
+          },
+          "gridCoach.verdicts.WA.color": {
+            "type": "string",
+            "default": "",
+            "pattern": "^$|^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+            "description": "大字头颜色，例如 #5138ea 或 #e87863；留空使用默认颜色。",
+            "scope": "application"
+          }
+        }
+      },
+      {
+        "title": "编程网格 · CE · Compile Error",
+        "properties": {
+          "gridCoach.verdicts.CE.text": {
+            "type": "string",
+            "default": "",
+            "maxLength": 120,
+            "description": "大字头显示文字；留空保留网站判定的完整名称。只改变标题，不改动网站原文。",
+            "scope": "application"
+          },
+          "gridCoach.verdicts.CE.fontSize": {
+            "type": "number",
+            "default": 0,
+            "minimum": 0,
+            "maximum": 200,
+            "description": "大字头字号（px）；0 使用默认自适应字号，最大 200。",
+            "scope": "application"
+          },
+          "gridCoach.verdicts.CE.color": {
+            "type": "string",
+            "default": "",
+            "pattern": "^$|^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+            "description": "大字头颜色，例如 #5138ea 或 #e87863；留空使用默认颜色。",
+            "scope": "application"
+          }
+        }
+      },
+      {
+        "title": "编程网格 · TLE · Time Limit Exceeded",
+        "properties": {
+          "gridCoach.verdicts.TLE.text": {
+            "type": "string",
+            "default": "",
+            "maxLength": 120,
+            "description": "大字头显示文字；留空保留网站判定的完整名称。只改变标题，不改动网站原文。",
+            "scope": "application"
+          },
+          "gridCoach.verdicts.TLE.fontSize": {
+            "type": "number",
+            "default": 0,
+            "minimum": 0,
+            "maximum": 200,
+            "description": "大字头字号（px）；0 使用默认自适应字号，最大 200。",
+            "scope": "application"
+          },
+          "gridCoach.verdicts.TLE.color": {
+            "type": "string",
+            "default": "",
+            "pattern": "^$|^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+            "description": "大字头颜色，例如 #5138ea 或 #e87863；留空使用默认颜色。",
+            "scope": "application"
+          }
+        }
+      },
+      {
+        "title": "编程网格 · RE · Runtime Error",
+        "properties": {
+          "gridCoach.verdicts.RE.text": {
+            "type": "string",
+            "default": "",
+            "maxLength": 120,
+            "description": "大字头显示文字；留空保留网站判定的完整名称。只改变标题，不改动网站原文。",
+            "scope": "application"
+          },
+          "gridCoach.verdicts.RE.fontSize": {
+            "type": "number",
+            "default": 0,
+            "minimum": 0,
+            "maximum": 200,
+            "description": "大字头字号（px）；0 使用默认自适应字号，最大 200。",
+            "scope": "application"
+          },
+          "gridCoach.verdicts.RE.color": {
+            "type": "string",
+            "default": "",
+            "pattern": "^$|^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+            "description": "大字头颜色，例如 #5138ea 或 #e87863；留空使用默认颜色。",
+            "scope": "application"
+          }
+        }
+      },
+      {
+        "title": "编程网格 · MLE · Memory Limit Exceeded",
+        "properties": {
+          "gridCoach.verdicts.MLE.text": {
+            "type": "string",
+            "default": "",
+            "maxLength": 120,
+            "description": "大字头显示文字；留空保留网站判定的完整名称。只改变标题，不改动网站原文。",
+            "scope": "application"
+          },
+          "gridCoach.verdicts.MLE.fontSize": {
+            "type": "number",
+            "default": 0,
+            "minimum": 0,
+            "maximum": 200,
+            "description": "大字头字号（px）；0 使用默认自适应字号，最大 200。",
+            "scope": "application"
+          },
+          "gridCoach.verdicts.MLE.color": {
+            "type": "string",
+            "default": "",
+            "pattern": "^$|^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+            "description": "大字头颜色，例如 #5138ea 或 #e87863；留空使用默认颜色。",
+            "scope": "application"
+          }
+        }
+      },
+      {
+        "title": "编程网格 · PE · Presentation Error",
+        "properties": {
+          "gridCoach.verdicts.PE.text": {
+            "type": "string",
+            "default": "",
+            "maxLength": 120,
+            "description": "大字头显示文字；留空保留网站判定的完整名称。只改变标题，不改动网站原文。",
+            "scope": "application"
+          },
+          "gridCoach.verdicts.PE.fontSize": {
+            "type": "number",
+            "default": 0,
+            "minimum": 0,
+            "maximum": 200,
+            "description": "大字头字号（px）；0 使用默认自适应字号，最大 200。",
+            "scope": "application"
+          },
+          "gridCoach.verdicts.PE.color": {
+            "type": "string",
+            "default": "",
+            "pattern": "^$|^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+            "description": "大字头颜色，例如 #5138ea 或 #e87863；留空使用默认颜色。",
+            "scope": "application"
+          }
+        }
+      },
+      {
+        "title": "编程网格 · OLE · Output Limit Exceeded",
+        "properties": {
+          "gridCoach.verdicts.OLE.text": {
+            "type": "string",
+            "default": "",
+            "maxLength": 120,
+            "description": "大字头显示文字；留空保留网站判定的完整名称。只改变标题，不改动网站原文。",
+            "scope": "application"
+          },
+          "gridCoach.verdicts.OLE.fontSize": {
+            "type": "number",
+            "default": 0,
+            "minimum": 0,
+            "maximum": 200,
+            "description": "大字头字号（px）；0 使用默认自适应字号，最大 200。",
+            "scope": "application"
+          },
+          "gridCoach.verdicts.OLE.color": {
+            "type": "string",
+            "default": "",
+            "pattern": "^$|^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+            "description": "大字头颜色，例如 #5138ea 或 #e87863；留空使用默认颜色。",
+            "scope": "application"
+          }
+        }
+      },
+      {
+        "title": "编程网格 · 反馈显示",
+        "properties": {
+          "gridCoach.feedback.showComparison": {
+            "type": "boolean",
+            "default": true,
+            "description": "在完整网格原文下方显示网站明确给出的 Std/Out 差异片段或标准/实际输出段落。网站未提供时不生成对照。",
+            "scope": "application"
+          },
+          "gridCoach.feedback.visibleWhitespace": {
+            "type": "boolean",
+            "default": true,
+            "description": "在辅助输出对照中显示空格、制表符、换行等标记；不会改动网格原文。",
+            "scope": "application"
+          }
+        }
+      },
+      {
+        "title": "编程网格 · 新题源码模板",
+        "properties": {
+          "gridCoach.source.template": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "maxItems": 2000,
+            "default": [
+              "//Powered by Grid-Code connector plugin v${pluginVersion}!",
+              "#include <iostream>",
+              "",
+              "using namespace std;",
+              "",
+              "int main(){",
+              "",
+              "    return 0;",
+              "}"
+            ],
+            "markdownDescription": "新建题目源码时使用的模板，每项一行。支持 `${pluginVersion}`、`${problemTitle}`、`${problemId}`、`${problemNumber}`、`${fileName}`、`${date}`（北京时间日期）。不修改已有源码。设置了模板文件时，优先读取文件。",
+            "scope": "window"
+          },
+          "gridCoach.source.templateFile": {
+            "type": "string",
+            "default": "",
+            "maxLength": 3000,
+            "markdownDescription": "可选：本机 UTF-8 模板文件的绝对路径，优先于文本行模板。执行“编程网格：编辑源码模板”可自动创建并配置一个可直接编辑的模板文件；修改后先保存。清空此项恢复使用文本行模板。",
+            "scope": "application"
+          }
+        }
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "gridCoach.testCode",
+        "key": "ctrl+alt+g t",
+        "mac": "cmd+alt+g t",
+        "when": "isWorkspaceTrusted && (editorLangId == cpp || activeWebviewPanelId == gridCoachJudge)"
+      },
+      {
+        "command": "gridCoach.submitCode",
+        "key": "ctrl+alt+g s",
+        "mac": "cmd+alt+g s",
+        "when": "isWorkspaceTrusted && (editorLangId == cpp || activeWebviewPanelId == gridCoachJudge)"
+      },
+      {
+        "command": "gridCoach.judge",
+        "key": "ctrl+alt+g j",
+        "mac": "cmd+alt+g j",
+        "when": "isWorkspaceTrusted && (editorLangId == cpp || activeWebviewPanelId == gridCoachJudge)"
+      },
+      {
+        "command": "gridCoach.problemStatement",
+        "key": "ctrl+alt+g p",
+        "mac": "cmd+alt+g p",
+        "when": "isWorkspaceTrusted"
+      },
+      {
+        "command": "gridCoach.conversationHistory",
+        "key": "ctrl+alt+g h",
+        "mac": "cmd+alt+g h",
+        "when": "isWorkspaceTrusted"
+      },
+      {
+        "command": "gridCoach.previousProblem",
+        "key": "ctrl+alt+g left",
+        "mac": "cmd+alt+g left",
+        "when": "isWorkspaceTrusted"
+      },
+      {
+        "command": "gridCoach.nextProblem",
+        "key": "ctrl+alt+g right",
+        "mac": "cmd+alt+g right",
+        "when": "isWorkspaceTrusted"
       }
     ]
   },
