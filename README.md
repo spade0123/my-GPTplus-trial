@@ -56,7 +56,7 @@ Chrome 打开题目的 `.../probset/<题集ID>/<题目ID>/ide.do` 页面，点�
 
 3. Chrome 打开 `chrome://extensions`，开启开发者模式，加载项目的 **`extension/`** 目录。自己登录编程网格并打开具体题目 IDE，点击连接图标。
 
-4. VS Code 执行“扩展：从 VSIX 安装”，选择 [pku-grid-cpp-coach-0.2.19.vsix](dist/pku-grid-cpp-coach-0.2.19.vsix)，然后运行 **Developer: Reload Window**。
+4. VS Code 执行“扩展：从 VSIX 安装”，选择 [pku-grid-cpp-coach-0.2.20.vsix](dist/pku-grid-cpp-coach-0.2.20.vsix)，然后运行 **Developer: Reload Window**。
 
 5. 打开 C++ 文件，点击“网格·评测”。需要关联或更换题目时，使用评测页底部的“题目连接与本机记录”。
 
@@ -86,7 +86,7 @@ VS Code 读取点击时编辑器里的完整缓冲区，包括尚未写入文件
 
 - **更新 VS Code 扩展后**：安装新 VSIX，运行 Developer: Reload Window。
 - **更新 Chrome 连接代码后**：在扩展管理页重新加载连接扩展；需要时在题目页再次点击图标连接。
-- **只有 VS Code 界面或本机服务更新时**：按该次更新说明操作，无需每次都重载 Chrome。当前 VS Code/本机程序为 0.2.19，Chrome 连接清单为 0.2.19。
+- **只有 VS Code 界面或本机服务更新时**：按该次更新说明操作，无需每次都重载 Chrome。当前 VS Code/本机程序为 0.2.20，Chrome 连接清单为 0.2.19。
 - **显示上次的手工测试**：顶部会标明“上次记录”；默认测试方式仍是网格判题。点击测试按钮才会发送新的测试。
 - **题目标签已关闭或切换**：打开正确题目的 IDE，重新从目标 C++ 文件打开评测页，必要时更换关联。
 - **请求超时或未确认**：先核对网站记录，再决定下一步。界面会显示最后阶段和可获得的具体错误；不要把未确认当作成功。
@@ -115,7 +115,7 @@ VS Code 读取点击时编辑器里的完整缓冲区，包括尚未写入文件
 ```powershell
 npm run build:vscode
 cd vscode-extension
-npx --yes @vscode/vsce package --no-dependencies --skip-license --out ../dist/pku-grid-cpp-coach-0.2.19.vsix
+npx --yes @vscode/vsce package --no-dependencies --skip-license --out ../dist/pku-grid-cpp-coach-0.2.20.vsix
 ```
 
 这轮维护使用以下针对网格的检查，14 项通过：
@@ -375,3 +375,13 @@ VS Code 内的题单/上一题/下一题继续执行网页导航和源码切换�
 已有插件构建任务后不自动覆盖用户修改，任务文件有未保存编辑时暂停配置。任务只在用户按构建快捷键时编译，不自动运行程序；网格云端评测不受本地构建任务影响。旧 launch.json 或自定义运行命令如果写死可执行文件路径，需要对应指向 build 内文件。
 
 更新后先在 Chrome 扩展管理页重新加载连接扩展，再执行 VS Code **Developer: Reload Window**，切换一次题目即可应用目录和任务策略。可在任务菜单选择保留的其他构建任务。此次完成语法与打包安装，未实际编译或迁移用户项目。
+
+## WSL 环境修复（0.2.20）
+
+课程项目实际位于 WSL，VS Code 通过 Remote-WSL 打开；完整约定见 [开发环境](docs/development-environment.md)。0.2.19 新增的仅本机目录判断是适配遗漏，已移除。源码整理、目录改名和关联迁移通过 VS Code 文件接口在 WSL 中执行。
+
+WSL 的 Ctrl+Shift+B 改为 /bin/sh + WSL g++，生成 build/源码名，无 exe 后缀；不依赖 Windows Node 路径，也不要求 WSL 安装 Node。首次切题自动更新插件生成的旧任务；也可执行“编程网格：配置 Ctrl+Shift+B 编译到 build”。Windows 本地工作区保留原构建方式。
+
+WSL 编译器默认 g++，可设置 gridCoach.build.wslCompiler 为 /usr/bin/g++ 等 Linux 路径，编译参数沿用 gridCoach.build.arguments。生成的 .vscode/grid-build.sh 由插件管理；非插件文件不覆盖。旧无后缀或 .out 的产物只在有对应源码且 ELF 文件头匹配时移动，文本样例输出不受影响。
+
+安装 0.2.20 后执行 **Developer: Reload Window** 并切换一次题目。Chrome 保持 0.2.19，无需因本次更新重载。尚未实际执行 WSL 构建或迁移用户课程文件。

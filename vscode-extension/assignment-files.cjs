@@ -8,9 +8,12 @@ const safeName=value=>{
 };
 async function exists(uri){try{return await vscode.workspace.fs.stat(uri);}catch(e){if(['FileNotFound','ENOENT'].includes(e.code))return null;throw e;}}
 function checkChild(base,child){
-  if(base.scheme!=='file'||child.scheme!=='file')throw new Error('题单目录整理目前仅支持本机项目文件夹。');
-  const relative=path.relative(path.resolve(base.fsPath),path.resolve(child.fsPath));
-  if(!relative||relative==='..'||relative.startsWith('..'+path.sep)||path.isAbsolute(relative))throw new Error('目录超出当前编程网格项目范围。');
+  if(base.scheme!==child.scheme||base.authority!==child.authority||base.query||child.query||base.fragment||child.fragment)throw new Error('目录不属于同一个项目文件系统。');
+  // Remote URI paths are POSIX paths even though this UI extension runs on Windows.
+  const api=base.scheme==='file'?path:path.posix;
+  const parent=base.scheme==='file'?api.resolve(base.fsPath):api.normalize(base.path),target=child.scheme==='file'?api.resolve(child.fsPath):api.normalize(child.path);
+  const relative=api.relative(parent,target);
+  if(!relative||relative==='..'||relative.startsWith('..'+api.sep)||api.isAbsolute(relative))throw new Error('目录超出当前编程网格项目范围。');
 }
 async function assignmentDirectory(folder,group,title,{beforeRename,afterRename}={}){
   const root=vscode.Uri.joinPath(folder.uri,'编程网格');await vscode.workspace.fs.createDirectory(root);
@@ -51,10 +54,17 @@ async function assignmentDirectory(folder,group,title,{beforeRename,afterRename}
   if((await vscode.workspace.fs.stat(vscode.Uri.joinPath(directory,'build'))).type&vscode.FileType.SymbolicLink)throw new Error('build 不能是符号链接，产物未移动。');
   const ignore=vscode.Uri.joinPath(directory,'build','.gitignore');
   if(!await exists(ignore))await vscode.workspace.fs.writeFile(ignore,Buffer.from('*\n!.gitignore\n'));
-  // Only clear the known compiler products from the assignment root, never sample .out files.
+  // Extensionless Linux products require both a matching source and the ELF signature.
   for(const [file,type]of await vscode.workspace.fs.readDirectory(directory)){
-    if(!(type&vscode.FileType.File)||type&vscode.FileType.SymbolicLink||! /\.(?:exe|o|obj|pdb|ilk)$/i.test(file))continue;
+    if(!(type&vscode.FileType.File)||type&vscode.FileType.SymbolicLink)continue;
     const source=vscode.Uri.joinPath(directory,file),destination=vscode.Uri.joinPath(directory,'build',file);
+    let artifact=/\.(?:exe|o|obj|pdb|ilk)$/i.test(file);
+    if(!artifact&&directory.scheme==='vscode-remote'&&/^wsl\+/i.test(directory.authority)&&(!file.includes('.')||file.endsWith('.out'))){
+      const stem=file.replace(/\.out$/,'');let paired=false;
+      for(const ext of ['.cpp','.cc','.cxx','.c'])if(await exists(vscode.Uri.joinPath(directory,stem+ext))){paired=true;break;}
+      if(paired&&(await vscode.workspace.fs.stat(source)).size<=20*1024*1024){const bytes=await vscode.workspace.fs.readFile(source);artifact=bytes[0]===0x7f&&bytes[1]===0x45&&bytes[2]===0x4c&&bytes[3]===0x46;}
+    }
+    if(!artifact)continue;
     if(await exists(destination))continue;
     checkChild(directory,source);checkChild(directory,destination);
     const edit=new vscode.WorkspaceEdit();edit.renameFile(source,destination,{overwrite:false});await vscode.workspace.applyEdit(edit);

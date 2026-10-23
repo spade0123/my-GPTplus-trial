@@ -3,7 +3,7 @@
   "displayName": "北大编程网格 · C++ 学习教练",
   "description": "Chrome 连接编程网格，VS Code 读取当前 C++ 并提供保存、提示、交流、网站测试与正式提交。",
   "publisher": "local-coach",
-  "version": "0.2.19",
+  "version": "0.2.20",
   "license": "UNLICENSED",
   "engines": {
     "vscode": "^1.96.0"
@@ -466,6 +466,17 @@
             ],
             "scope": "application",
             "description": "本机 g++ 编译参数；不含源码路径或 -o。修改后执行“配置 Ctrl+Shift+B 编译到 build”应用。"
+          }
+        }
+      },
+      {
+        "title": "编程网格 · WSL 构建",
+        "properties": {
+          "gridCoach.build.wslCompiler": {
+            "type": "string",
+            "default": "g++",
+            "scope": "application",
+            "description": "Remote-WSL 中使用的编译器命令或 Linux 绝对路径，例如 g++ 或 /usr/bin/g++。修改后执行配置构建命令应用。"
           }
         }
       }

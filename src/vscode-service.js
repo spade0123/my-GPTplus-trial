@@ -195,7 +195,7 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
     const type=message.type;
     if(type==='account_usage')return readAccountUsage();
     if(type==='configure_ai')return {settings:await writeModelSettings(message.settings)};
-    if(type==='status')return {ready:true,dataDirectory:dataDir(),version:'0.2.19',platform:'programminggrid-vscode'};
+    if(type==='status')return {ready:true,dataDirectory:dataDir(),version:'0.2.20',platform:'programminggrid-vscode'};
     if(type==='problem_display')return currentProblem();
     if(type==='problem_progress'){const target=gridUrl(message.problemUrl,{kind:'problem'});if(!target)throw new Error('题目地址无效。');return readProblemProgress({group:target.group});}
     if(type==='list_problems'){

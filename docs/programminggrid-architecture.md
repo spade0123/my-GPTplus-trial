@@ -92,7 +92,7 @@ GitHub 里的代码描述“工具如何工作”，本机数据记录“使用�
 
 针对网格的 14 项检查覆盖请求参数、原文保留、完整判定名称、编号、异常回传、停止查询、恢复旧记录、状态栏与本机连接。模拟检查不使用个人账号、不调用真实模型、不向网站提交作业。
 
-使用者在真实网站核对过请求表单与回传；网站布局、登录状态和服务负载仍可能影响结果。适配目标是 Windows 桌面 VS Code 与 Chrome，当前读代码操作以 C++ 文档为入口，不保证其他语言、站点别名和远程环境的完整行为。
+使用者在真实网站核对过请求表单与回传；网站布局、登录状态和服务负载仍可能影响结果。实际目标环境是 Windows Chrome/本机连接与 VS Code Remote-WSL，课程源码在 WSL 中。文件操作走 VS Code 远程文件接口，构建使用 WSL 编译器；其他语言、站点别名和其他远程环境仍需单独适配。
 
 
 ## 模型和样式配置如何传递（0.2.9）
@@ -197,3 +197,7 @@ problem_display ready 通知经 ProblemView.accept 更新题干与计时器后�
 Chrome list_problems 返回 assignmentName，本机限制长度后交给工作区缓存。ProblemNavigation.directoryFor 和 assignment-files.cjs 按题单 ID 查目录标记，再处理可读名字、同名序号与旧 ID 目录迁移。迁移前复制已关联上下文到新 URI，VS Code WorkspaceEdit 改名后更新 MAP/CREATED；旧上下文不删除。目录、标记及产物移动限定工作区的普通目录，不覆盖目标。
 
 build-task.cjs 用 MIT jsonc-parser 按位置修改 tasks.json，创建默认 process 任务，旧任务保留。任务调用安装的 Node 执行 local-compile.cjs，再以 shell:false 启动配置的 g++，明确 -o 为源码旁 build/可执行文件。源码切换只配置任务，不调用编译；网站评测链路完全独立。
+
+## 环境约定修正（0.2.20）
+
+实际使用环境与组件边界见 [开发环境](development-environment.md)。assignment-files 的路径判断比较 URI scheme/authority；Windows file 路径用本机规则，远程 URI 用 path.posix。WSL 构建脚本通过 workspace.fs 写入远程项目，由远程任务执行 /bin/sh；Windows UI 扩展仅负责配置，不在 Windows 启动 WSL 源码或把远程路径转为本机路径。

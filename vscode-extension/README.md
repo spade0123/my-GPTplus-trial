@@ -284,3 +284,13 @@ VS Code 内的题单/上一题/下一题继续执行网页导航和源码切换�
 已有插件构建任务后不自动覆盖用户修改，任务文件有未保存编辑时暂停配置。任务只在用户按构建快捷键时编译，不自动运行程序；网格云端评测不受本地构建任务影响。旧 launch.json 或自定义运行命令如果写死可执行文件路径，需要对应指向 build 内文件。
 
 更新后先在 Chrome 扩展管理页重新加载连接扩展，再执行 VS Code **Developer: Reload Window**，切换一次题目即可应用目录和任务策略。可在任务菜单选择保留的其他构建任务。此次完成语法与打包安装，未实际编译或迁移用户项目。
+
+## WSL 环境修复（0.2.20）
+
+课程项目实际位于 WSL，VS Code 通过 Remote-WSL 打开；完整约定见 [开发环境](../docs/development-environment.md)。0.2.19 新增的仅本机目录判断是适配遗漏，已移除。源码整理、目录改名和关联迁移通过 VS Code 文件接口在 WSL 中执行。
+
+WSL 的 Ctrl+Shift+B 改为 /bin/sh + WSL g++，生成 build/源码名，无 exe 后缀；不依赖 Windows Node 路径，也不要求 WSL 安装 Node。首次切题自动更新插件生成的旧任务；也可执行“编程网格：配置 Ctrl+Shift+B 编译到 build”。Windows 本地工作区保留原构建方式。
+
+WSL 编译器默认 g++，可设置 gridCoach.build.wslCompiler 为 /usr/bin/g++ 等 Linux 路径，编译参数沿用 gridCoach.build.arguments。生成的 .vscode/grid-build.sh 由插件管理；非插件文件不覆盖。旧无后缀或 .out 的产物只在有对应源码且 ELF 文件头匹配时移动，文本样例输出不受影响。
+
+安装 0.2.20 后执行 **Developer: Reload Window** 并切换一次题目。Chrome 保持 0.2.19，无需因本次更新重载。尚未实际执行 WSL 构建或迁移用户课程文件。
