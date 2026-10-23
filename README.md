@@ -56,7 +56,7 @@ Chrome 打开题目的 `.../probset/<题集ID>/<题目ID>/ide.do` 页面，点�
 
 3. Chrome 打开 `chrome://extensions`，开启开发者模式，加载项目的 **`extension/`** 目录。自己登录编程网格并打开具体题目 IDE，点击连接图标。
 
-4. VS Code 执行“扩展：从 VSIX 安装”，选择 [pku-grid-cpp-coach-0.2.15.vsix](dist/pku-grid-cpp-coach-0.2.15.vsix)，然后运行 **Developer: Reload Window**。
+4. VS Code 执行“扩展：从 VSIX 安装”，选择 [pku-grid-cpp-coach-0.2.16.vsix](dist/pku-grid-cpp-coach-0.2.16.vsix)，然后运行 **Developer: Reload Window**。
 
 5. 打开 C++ 文件，点击“网格·评测”。需要关联或更换题目时，使用评测页底部的“题目连接与本机记录”。
 
@@ -86,7 +86,7 @@ VS Code 读取点击时编辑器里的完整缓冲区，包括尚未写入文件
 
 - **更新 VS Code 扩展后**：安装新 VSIX，运行 Developer: Reload Window。
 - **更新 Chrome 连接代码后**：在扩展管理页重新加载连接扩展；需要时在题目页再次点击图标连接。
-- **只有 VS Code 界面或本机服务更新时**：按该次更新说明操作，无需每次都重载 Chrome。当前 VS Code/本机程序为 0.2.15，Chrome 连接清单为 0.2.12。
+- **只有 VS Code 界面或本机服务更新时**：按该次更新说明操作，无需每次都重载 Chrome。当前 VS Code/本机程序为 0.2.16，Chrome 连接清单为 0.2.12。
 - **显示上次的手工测试**：顶部会标明“上次记录”；默认测试方式仍是网格判题。点击测试按钮才会发送新的测试。
 - **题目标签已关闭或切换**：打开正确题目的 IDE，重新从目标 C++ 文件打开评测页，必要时更换关联。
 - **请求超时或未确认**：先核对网站记录，再决定下一步。界面会显示最后阶段和可获得的具体错误；不要把未确认当作成功。
@@ -115,7 +115,7 @@ VS Code 读取点击时编辑器里的完整缓冲区，包括尚未写入文件
 ```powershell
 npm run build:vscode
 cd vscode-extension
-npx --yes @vscode/vsce package --no-dependencies --skip-license --out ../dist/pku-grid-cpp-coach-0.2.15.vsix
+npx --yes @vscode/vsce package --no-dependencies --skip-license --out ../dist/pku-grid-cpp-coach-0.2.16.vsix
 ```
 
 这轮维护使用以下针对网格的检查，14 项通过：
@@ -331,3 +331,11 @@ int main(){
 “编程网格：预览源码模板”会打开一份未保存的预览，使用当前题目信息和 preview.cpp 作为示例文件名，不创建题目项目文件。占位符仅做文本替换，不执行代码或脚本；未知占位符保持原样。题名建议放在注释内。
 
 VS Code/本机程序为 0.2.15，Chrome 仍为 0.2.12；安装 VSIX 后执行 Developer: Reload Window。本次完成语法、差异格式检查和打包安装；未新增或运行测试，尚未在登录环境进行实际界面联调。
+
+## 网格回复格式修复（0.2.16）
+
+网格返回的 `strong`、`span class="highstd/highout/highin"` 和 `br` 格式标签现在会显示为加粗、差异颜色和换行；Std 为绿色、Out 为错误色，Input 使用背景突出显示。顶部原文和测试/提交详情使用同一显示逻辑。
+
+只识别上述固定格式，不执行回复中的 HTML；其他标签仍按文字显示。只解码一层常见 HTML 实体，编码过的程序输出不会再次作为标签解释。保存的返回原文不变，复制时取得去除格式标签后的可读文字；Std/Out 对照也使用这份可读文字。
+
+安装 0.2.16 后执行 **Developer: Reload Window**。Chrome 仍为 0.2.12，无需重载。尚未进行实际网页界面联调。

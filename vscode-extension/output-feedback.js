@@ -1,7 +1,39 @@
 // Display only evidence explicitly present in the website reply. Never judge locally.
 ((root)=>{
+  // Recognize only Grid's feedback markup. Never insert the reply as HTML.
+  const markup=/<strong\s*>|<\/strong\s*>|<span\s+class\s*=\s*(['"])(highstd|highout|highin)\1\s*>|<\/span\s*>|<br\s*\/?>/gi;
+  function tokens(raw){
+    const text=String(raw||''),result=[];let start=0;
+    for(const match of text.matchAll(markup)){
+      if(match.index>start)result.push({text:text.slice(start,match.index)});
+      const tag=match[0].toLowerCase();
+      result.push(tag.startsWith('<br')?{text:'\n'}:tag.startsWith('</')?{close:tag.startsWith('</strong')?'strong':'span'}:{tag:tag.startsWith('<strong')?'strong':'span',className:match[2]?.toLowerCase()});
+      start=match.index+match[0].length;
+    }
+    if(start<text.length)result.push({text:text.slice(start)});
+    return result;
+  }
+  function decodeText(text){
+    // Decode one layer of entities without parsing any surrounding user output.
+    const named={amp:'&',lt:'<',gt:'>',quot:'"',apos:"'",nbsp:'\u00a0'};
+    return text.replace(/&(#x[0-9a-f]+|#\d+|amp|lt|gt|quot|apos|nbsp);/gi,(original,key)=>{
+      if(key[0]!=='#')return named[key.toLowerCase()]??original;
+      const value=key[1].toLowerCase()==='x'?parseInt(key.slice(2),16):Number(key.slice(1));
+      return value>0&&value<=0x10ffff&&!(value>=0xd800&&value<=0xdfff)?String.fromCodePoint(value):original;
+    });
+  }
+  function plainText(raw){return tokens(raw).filter(item=>item.text!==undefined).map(item=>decodeText(item.text)).join('');}
+  function renderOriginal(container,raw){
+    container.replaceChildren();const stack=[container];
+    for(const item of tokens(raw)){
+      if(item.text!==undefined){stack.at(-1).append(document.createTextNode(decodeText(item.text)));continue;}
+      if(item.close){if(stack.length>1&&stack.at(-1).tagName.toLowerCase()===item.close)stack.pop();continue;}
+      const node=document.createElement(item.tag);if(item.className)node.className='grid-'+item.className;
+      stack.at(-1).append(node);stack.push(node);
+    }
+  }
   function extract(raw){
-    let text=String(raw||'').slice(0,100000);const pairs=[];
+    let text=plainText(String(raw||'').slice(0,100000));const pairs=[];
     const hintMarkers=[...text.matchAll(/(?:^|\n)[ \t]*Hint:[ \t]*(?:\r?\n|$)/g)];
     if(hintMarkers.length){const marker=hintMarkers.at(-1);text=text.slice(marker.index+marker[0].length);}else if(/(?:^|\n)[ \t]*Output:/.test(text))return pairs;
     const quoted=/\bStd:[ \t]*(['"])([^\r\n]*?)\1[ \t]*(?:\r?\n[ \t]*)?Out:[ \t]*(['"])([^\r\n]*?)\3(?=[ \t]*(?:\r?$|Input of|Standard Output:|Different|Case\s+\d))/gm;
@@ -50,6 +82,6 @@
     }
     if(pairs.length===20)container.append(el('p','最多显示前 20 组对照；其余内容请查看网格原文。','feedback-note'));
   }
-  const api={extract,splitDifference,visible,render};
+  const api={extract,splitDifference,visible,render,renderOriginal,plainText};
   if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.GridOutputFeedback=api;
 })(globalThis);
