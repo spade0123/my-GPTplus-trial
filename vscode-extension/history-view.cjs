@@ -15,7 +15,8 @@ function openHistory({context,backend}){
       }
       if(message?.type==='export'){
         if(typeof message.text!=='string'||message.text.length>3000000)throw new Error('导出内容过长。');
-        const target=await vscode.window.showSaveDialog({defaultUri:vscode.Uri.file('grid-conversation.md'),filters:{Markdown:['md']}});
+        const active=vscode.window.activeTextEditor?.document.uri,folder=(active&&vscode.workspace.getWorkspaceFolder(active))||vscode.workspace.workspaceFolders?.[0];
+        const target=await vscode.window.showSaveDialog({defaultUri:vscode.Uri.joinPath(folder?.uri||context.globalStorageUri,'grid-conversation.md'),filters:{Markdown:['md']}});
         if(target)await vscode.workspace.fs.writeFile(target,Buffer.from(message.text,'utf8'));
         return;
       }

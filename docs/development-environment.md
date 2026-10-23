@@ -26,6 +26,6 @@ Windows 本地工作区仍使用安装时的 Windows Node/g++ 和 build/源码�
 
 ## 当前验证边界
 
-0.2.20 完成静态语法检查、打包和 Windows 本地 VSIX 安装；没有运行用户的 WSL 编译任务或移动其作业目录。实际 WSL 行为仍需使用反馈。未经用户要求不运行测试或编译课程代码。
+0.2.21 按用户要求完成 37 项专项与相关回归验证，含真实 WSL 临时目录的自拟程序编译运行。没有运行用户课程代码或迁移其作业目录，也未自动操控编辑器 UI。详情见 [WSL 检查记录](wsl-audit.md)。未经用户要求不运行测试或编译课程代码。
 
 参考：[VS Code 远程扩展架构](https://code.visualstudio.com/api/advanced-topics/remote-extensions)、[Remote-WSL 文档](https://code.visualstudio.com/docs/remote/wsl)。

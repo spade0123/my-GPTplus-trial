@@ -1,5 +1,18 @@
 const vscode=require('vscode'),path=require('node:path');
 const marker='.grid-assignment.json';
+const validFiles=value=>Object.fromEntries(Object.entries(value&&typeof value==='object'?value:{}).filter(([id,name])=>/^[a-f0-9]{32}$/i.test(id)&&typeof name==='string'&&name.length<=240&&!/[\\/\u0000-\u001f]/.test(name)&&/\.(?:cpp|cc|cxx|c)$/i.test(name)));
+async function readSourceIndex(directory,group,id){
+  try{const data=JSON.parse(Buffer.from(await vscode.workspace.fs.readFile(vscode.Uri.joinPath(directory,marker))).toString('utf8'));return data.group===group?validFiles(data.files)[id]:undefined;}catch{return undefined;}
+}
+async function recordManagedSource(source,group,id){
+  if(!['file','vscode-remote'].includes(source.scheme))return;
+  const directory=source.with({path:path.posix.dirname(source.path),query:'',fragment:''}),uri=vscode.Uri.joinPath(directory,marker);
+  let stat;try{stat=await vscode.workspace.fs.stat(uri);}catch(error){if(['FileNotFound','ENOENT'].includes(error.code))return;throw error;}
+  if(stat.type&vscode.FileType.SymbolicLink)throw new Error('题单文件索引不能是符号链接。');
+  const data=JSON.parse(Buffer.from(await vscode.workspace.fs.readFile(uri)).toString('utf8'));if(data.group!==group)return;
+  const files={...validFiles(data.files),[id]:path.posix.basename(source.path)};
+  await vscode.workspace.fs.writeFile(uri,Buffer.from(JSON.stringify({...data,files},null,2)+'\n'));
+}
 const safeName=value=>{
   let name=String(value||'').normalize('NFC').replace(/[<>:"/\\|?*\u0000-\u001f\u007f]/g,'_').replace(/\s+/g,' ').trim().replace(/[. ]+$/g,'').slice(0,70).replace(/[. ]+$/g,'');
   if(!name||name==='.'||name==='..')return '';
@@ -49,7 +62,8 @@ async function assignmentDirectory(folder,group,title,{beforeRename,afterRename}
   }
   await vscode.workspace.fs.createDirectory(directory);
   if((await exists(vscode.Uri.joinPath(directory,marker)))?.type&vscode.FileType.SymbolicLink)throw new Error('题单目录标记不能是符号链接。');
-  await vscode.workspace.fs.writeFile(vscode.Uri.joinPath(directory,marker),Buffer.from(JSON.stringify({version:1,group,title:title||''},null,2)+'\n'));
+  let sourceFiles={};try{const saved=JSON.parse(Buffer.from(await vscode.workspace.fs.readFile(vscode.Uri.joinPath(directory,marker))).toString('utf8'));if(saved.group===group)sourceFiles=validFiles(saved.files);}catch{}
+  await vscode.workspace.fs.writeFile(vscode.Uri.joinPath(directory,marker),Buffer.from(JSON.stringify({version:1,group,title:title||'',files:sourceFiles},null,2)+'\n'));
   await vscode.workspace.fs.createDirectory(vscode.Uri.joinPath(directory,'build'));
   if((await vscode.workspace.fs.stat(vscode.Uri.joinPath(directory,'build'))).type&vscode.FileType.SymbolicLink)throw new Error('build 不能是符号链接，产物未移动。');
   const ignore=vscode.Uri.joinPath(directory,'build','.gitignore');
@@ -71,4 +85,4 @@ async function assignmentDirectory(folder,group,title,{beforeRename,afterRename}
   }
   return directory;
 }
-module.exports={assignmentDirectory,safeName};
+module.exports={assignmentDirectory,safeName,readSourceIndex,recordManagedSource};

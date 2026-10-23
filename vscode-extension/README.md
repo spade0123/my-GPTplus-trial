@@ -294,3 +294,11 @@ WSL 的 Ctrl+Shift+B 改为 /bin/sh + WSL g++，生成 build/源码名，无 exe
 WSL 编译器默认 g++，可设置 gridCoach.build.wslCompiler 为 /usr/bin/g++ 等 Linux 路径，编译参数沿用 gridCoach.build.arguments。生成的 .vscode/grid-build.sh 由插件管理；非插件文件不覆盖。旧无后缀或 .out 的产物只在有对应源码且 ELF 文件头匹配时移动，文本样例输出不受影响。
 
 安装 0.2.20 后执行 **Developer: Reload Window** 并切换一次题目。Chrome 保持 0.2.19，无需因本次更新重载。尚未实际执行 WSL 构建或迁移用户课程文件。
+
+## WSL 专项修复与验证（0.2.21）
+
+补齐改名/按日期整理后的源码关联与评测面板同步、题单文件索引恢复、WSL 模板路径和历史导出位置。WSL/远程快照会标记来源环境，不再使用 Windows 编译器进行后台语法检查，也不混入旧的 Windows 样例结果；网格云端测试与提交保持原逻辑。
+
+源码模板可填写 /home/... 等 WSL 绝对路径或完整 vscode-remote:// URI。默认共享模板仍可保存在 Windows 插件存储中。Windows 本机连接目录与 WSL 课程项目目录分别选择。
+
+37 项专项与相关回归验证通过，包含真实 WSL 临时目录构建；未访问或编译课程源码，未自动操控编辑器 UI。详见 [WSL 检查记录](../docs/wsl-audit.md)。安装 0.2.21 后执行 **Developer: Reload Window**；Chrome 保持 0.2.19，无需因本次更新重载。

@@ -2,6 +2,7 @@ const vscode=require('vscode'),fs=require('node:fs/promises'),path=require('node
 const {RpcClient}=require('./rpc-client.cjs');
 const {registerUsage}=require('./account-usage.cjs');
 const {configureBuildTask}=require('./build-task.cjs');
+const {relocatePanels}=require('./source-links.cjs');
 const {openHistory:makeHistory}=require('./history-view.cjs');
 const {editTemplate,previewTemplate,isTemplateDocument}=require('./template-settings.cjs');
 const {ProblemView}=require('./problem-view.cjs');
@@ -14,7 +15,8 @@ function activate(context){
   const output=vscode.window.createOutputChannel('编程网格 学习教练');context.subscriptions.push(output);
   const statementView=new ProblemView(context);
   const setupBuild=async document=>{try{await configureBuildTask(context,backend,document);}catch(error){output.appendLine('编译目录配置未完成：'+error.message);void vscode.window.showWarningMessage('编译目录配置未完成：'+error.message);}};
-  statementView.navigation=new ProblemNavigation({context,backend,currentEditor:()=>isCpp(vscode.window.activeTextEditor?.document)?vscode.window.activeTextEditor:lastSource,display:()=>statementView.latest,configureBuild:setupBuild});
+  statementView.navigation=new ProblemNavigation({context,backend,currentEditor:()=>isCpp(vscode.window.activeTextEditor?.document)?vscode.window.activeTextEditor:lastSource,display:()=>statementView.latest,configureBuild:setupBuild,
+    knownSourceUris:()=>[...panels.keys(),...judgePanels.keys()],onSourcesRelocated:files=>{relocatePanels(panels,files);relocatePanels(judgePanels,files);}});
   const settings=()=>vscode.workspace.getConfiguration('gridCoach');
   const aiSettings=()=>({model:settings().get('ai.model','gpt-6-luna'),effort:settings().get('ai.effort','low')});
   const feedbackSettings=()=>({showComparison:settings().get('feedback.showComparison',true),visibleWhitespace:settings().get('feedback.visibleWhitespace',true)});
@@ -64,17 +66,19 @@ function activate(context){
     })().finally(()=>opening=null);return opening;
   }
   function sourceFor(state,allowNavigationRecovery=false){
+    if(statementView.navigation.relocation)throw new Error('正在更新源码路径关联，请稍候再操作。');
     if(statementView.navigation.switching||statementView.navigation.blocked&&!allowNavigationRecovery)throw new Error('切题尚未完成。请重试选择目标题目，或执行“关联当前 C++ 文件与 Chrome 题目”后再测试/提交。');
     const active=vscode.window.activeTextEditor;
     if(active&&(!isCpp(active.document)||state&&active.document.uri.toString()!==state.uri))throw new Error('已切换源码文件，请从目标题目的三个按钮重新打开教练。');
     const visible=vscode.window.visibleTextEditors.filter(editor=>isCpp(editor.document));
-    const editor=active||(isCpp(lastSource?.document)?lastSource:undefined)||(state?visible.find(editor=>editor.document.uri.toString()===state.uri):visible.length===1?visible[0]:undefined);
+    const remembered=isCpp(lastSource?.document)&&(!state||lastSource.document.uri.toString()===state.uri)?lastSource:undefined;
+    const editor=active||(state?visible.find(editor=>editor.document.uri.toString()===state.uri)||remembered:remembered||(visible.length===1?visible[0]:undefined));
     if(!isCpp(editor?.document)||state&&editor.document.uri.toString()!==state.uri)throw new Error('请先打开或选中你正在写的 C++ 文件。');
     if(!allowNavigationRecovery)statementView.navigation.assertSource(editor.document.uri.toString());
     lastSource=editor;
     const doc=editor.document;
     const diagnostics=vscode.languages.getDiagnostics(doc.uri).slice(0,25).map(d=>`第 ${d.range.start.line+1} 行：${d.message}`).join('\n').slice(0,12000);
-    return {uri:doc.uri.toString(),name:path.basename(doc.fileName),code:doc.getText(),version:doc.version,selectedCode:editor.document.getText(editor.selection).slice(0,8000),diagnostics};
+    return {uri:doc.uri.toString(),name:doc.uri.scheme==='file'?path.basename(doc.fileName):path.posix.basename(doc.uri.path),code:doc.getText(),version:doc.version,selectedCode:editor.document.getText(editor.selection).slice(0,8000),diagnostics};
   }
   async function bind(source){
     const client=await backend(),{tabs}=await client.request({type:'browser_tabs'});
@@ -102,10 +106,12 @@ function activate(context){
     if(!moves.length){void vscode.window.showInformationMessage('项目根目录没有需要整理的 C/C++ 源码文件。');return;}
     const moveSources=new Set(moves.map(move=>move.source.toString()));
     if(vscode.workspace.textDocuments.some(document=>document.isDirty&&moveSources.has(document.uri.toString())))throw new Error('要整理的源码有未保存的改动，请先保存文件，再点击“按日期整理”。');
-    const preview=moves.slice(0,8).map(move=>`${path.basename(move.source.path)} → 按日期整理/${move.day}/`).join('\n');
+    const preview=moves.slice(0,8).map(move=>`${path.posix.basename(move.source.path)} → 按日期整理/${move.day}/`).join('\n');
     const choice=await vscode.window.showWarningMessage(`将按最后修改日期整理 ${moves.length} 个 C/C++ 源码文件`,{modal:true,detail:`项目：${folder.name}\n${preview}${moves.length>8?'\n……':''}\n文件路径会变化，依赖旧路径的编译任务可能需要更新。`},'开始整理');
     if(choice!=='开始整理')return;
+    await statementView.navigation.prepareRelocation(moves.map(move=>({oldUri:move.source,newUri:move.destination})));
     await applyDateOrganization(vscode,moves);
+    await statementView.navigation.relocateFiles(moves.map(move=>({oldUri:move.source,newUri:move.destination})));
     void vscode.window.showInformationMessage(`已整理 ${moves.length} 个源码文件到“按日期整理”文件夹。`);
   }
   async function html(webview){
@@ -251,7 +257,8 @@ function activate(context){
   const showOrganizeButton=()=>vscode.workspace.workspaceFolders?.length?organizeButton.show():organizeButton.hide();
   context.subscriptions.push(organizeButton,vscode.workspace.onDidChangeWorkspaceFolders(showOrganizeButton));showOrganizeButton();
   context.subscriptions.push(vscode.commands.registerCommand('gridCoach.configureBackend',safe(async()=>{
-    const chosen=await vscode.window.showOpenDialog({canSelectFolders:true,canSelectFiles:false,canSelectMany:false,openLabel:'选择 编程网格 新版目录'});if(!chosen)return;
+    const chosen=await vscode.window.showOpenDialog({defaultUri:context.extensionUri,canSelectFolders:true,canSelectFiles:false,canSelectMany:false,openLabel:'选择 Windows 本机连接目录'});if(!chosen)return;
+    if(chosen[0].scheme!=='file')throw new Error('Chrome 本机连接运行在 Windows，请选择 Windows 上安装的连接目录；课程源码继续放在 WSL。');
     await fs.access(path.join(chosen[0].fsPath,'src/vscode-host.js'));await fs.mkdir(context.globalStorageUri.fsPath,{recursive:true});await fs.writeFile(path.join(context.globalStorageUri.fsPath,'backend.json'),JSON.stringify({backendPath:chosen[0].fsPath}));rpc?.dispose();rpc=null;await backend();
   })));
   context.subscriptions.push(vscode.commands.registerCommand('gridCoach.selectModel',safe(selectModel)),
@@ -270,6 +277,7 @@ function activate(context){
   }),{dispose(){clearTimeout(configTimer);}});updateModelButton();
   const update=editor=>{if(isCpp(editor?.document))lastSource=editor;};
   context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(update));update(vscode.window.activeTextEditor);
+  context.subscriptions.push(vscode.workspace.onDidRenameFiles(event=>{void statementView.navigation.relocateFiles(event.files).catch(error=>{output.appendLine('源码路径关联迁移失败：'+error.message);void vscode.window.showErrorMessage('源码已改名，但题目关联迁移未完成：'+error.message);});}));
   context.subscriptions.push({dispose(){rpc?.dispose();for(const state of [...panels.values(),...judgePanels.values()])state.panel.dispose();}});
   void backend().then(client=>client.request({type:'problem_display'})).then(value=>statementView.accept(value)).catch(e=>output.appendLine(e.message));
   registerUsage(context,backend);

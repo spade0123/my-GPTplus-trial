@@ -53,7 +53,7 @@ test('Grid verdicts display complete website names and retain status colors',asy
   w.crypto.randomUUID=randomUUID;
   w.chrome={runtime:{connect:()=>({postMessage(){},onMessage:{addListener:fn=>receive=fn}})}};
   try{
-    w.eval(script);w.document.getElementById('submitOJ').click();
+    w.eval(await fs.readFile(new URL('../vscode-extension/output-feedback.js',import.meta.url),'utf8'));w.eval(script);w.document.getElementById('submitOJ').click();
     for(const [status,platformResult,name] of [['AC','Passed','Accepted'],['WA','WrongAnswer','Wrong Answer'],['CE','CompileError','Compile Error'],['TLE','TimeOut','Time Out'],['WA','EmptyOutput','Empty Output']]){
       receive({type:'oj_result',id:'fixture',status:'submitted',receipt:{solutionId:'42'},submission:{platformResult,verdict:{status},detailLoaded:true,runtime:{text:'Case 0: Diff: 1'}}});
       const badge=w.document.getElementById('priorityVerdict');
@@ -70,7 +70,7 @@ test('Grid test defaults to empty stdin even after sample input has been populat
   w.crypto.randomUUID=randomUUID;
   w.chrome={runtime:{connect:()=>({postMessage:value=>sent.push(value),onMessage:{addListener:fn=>receive=fn}})}};
   try{
-    w.eval(script);
+    w.eval(await fs.readFile(new URL('../vscode-extension/output-feedback.js',import.meta.url),'utf8'));w.eval(script);
     receive({type:'assist_context',capture:{problem:{sampleInput:'sample must not replace platform tests'}}});
     w.document.getElementById('gridTest').click();
     assert.equal(sent.find(value=>value.type==='grid_test').input,'');
@@ -88,7 +88,7 @@ test('restored Grid results stay still, completed replies stop polling, and JSON
   w.crypto.randomUUID=randomUUID;w.setTimeout=(fn,delay)=>{timers.push({fn,delay});return timers.length;};w.clearTimeout=()=>{};
   w.chrome={runtime:{connect:()=>({postMessage(){},onMessage:{addListener:fn=>receive=fn}})}};
   try{
-    w.eval(script);
+    w.eval(await fs.readFile(new URL('../vscode-extension/output-feedback.js',import.meta.url),'utf8'));w.eval(script);
     const stored={id:'old',status:'pending',receipt:{solutionId:'42'},submission:{platformResult:'Testing',verdict:{status:'pending'},runtime:{text:'Result: Complete! Please check the output by yourself.'},websiteReplyRaw:'{"internalJSONOnly":"secret-fixture"}'}};
     receive({type:'judge_history',test:stored});
     assert.equal(timers.length,0);

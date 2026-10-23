@@ -201,3 +201,9 @@ build-task.cjs 用 MIT jsonc-parser 按位置修改 tasks.json，创建默认 pr
 ## 环境约定修正（0.2.20）
 
 实际使用环境与组件边界见 [开发环境](development-environment.md)。assignment-files 的路径判断比较 URI scheme/authority；Windows file 路径用本机规则，远程 URI 用 path.posix。WSL 构建脚本通过 workspace.fs 写入远程项目，由远程任务执行 /bin/sh；Windows UI 扩展仅负责配置，不在 Windows 启动 WSL 源码或把远程路径转为本机路径。
+
+## WSL 路径与环境审计（0.2.21）
+
+source-links.cjs 统一按完整 URI 的文件系统身份及路径边界重定位，ProblemNavigation 将工作区题目映射、托管目录文件索引、后台上下文和活动面板同步。VS Code 文件改名事件与插件自己发起的移动均接入此流程；后台迁移预检所有目标并加锁，重入不覆盖目标侧新草稿。
+
+Capture 新增可选 sourceEnvironment（wsl/remote），只为远程快照加入环境指纹，本机历史 ID 不变。captureFromRecord 恢复该字段；后台提示和复盘通过 captureDiagnostics 跳过 Windows 编译器，VS Code 的远端诊断仍随 runtime 传递。样例历史/运行器对远程来源关闭，云端评测链路不变。验证边界见 [专项记录](wsl-audit.md)。

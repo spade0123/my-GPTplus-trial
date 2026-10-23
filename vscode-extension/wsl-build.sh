@@ -17,5 +17,6 @@ if [ ! -e "$directory/.gitignore" ] && [ ! -L "$directory/.gitignore" ]; then
 fi
 filename=${source_file##*/}
 output=$directory/${filename%.*}
+if [ -L "$output" ]; then printf '%s\n' 'Build output must not be a symbolic link.' >&2; exit 2; fi
 printf 'Source: %s\nOutput: %s\n' "$source_file" "$output"
 exec "$compiler" "$@" "$source_file" -o "$output"

@@ -8,6 +8,7 @@ const fs=require('node:fs/promises'),path=require('node:path'),{spawn}=require('
   if((await fs.lstat(directory)).isSymbolicLink())throw new Error('build 不能是符号链接，请使用源码目录内的普通文件夹。');
   try{await fs.writeFile(path.join(directory,'.gitignore'),'*\n!.gitignore\n',{flag:'wx'});}catch(error){if(error.code!=='EEXIST')throw error;}
   const output=path.join(directory,path.basename(source,path.extname(source))+(process.platform==='win32'?'.exe':''));
+  try{if((await fs.lstat(output)).isSymbolicLink())throw new Error('编译输出不能是符号链接。');}catch(error){if(error.code!=='ENOENT')throw error;}
   console.log('源码：'+source+'\n产物：'+output);
   const child=spawn(compiler,[...args,source,'-o',output],{cwd:path.dirname(source),shell:false,windowsHide:true,stdio:'inherit'});
   child.on('error',error=>{console.error('编译器启动失败：'+error.message);process.exitCode=1;});
