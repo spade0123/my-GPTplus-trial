@@ -1,6 +1,6 @@
 {
   "name": "openjudge-vscode-coach-mcp",
-  "version": "2.2.0",
+  "version": "2.4.1",
   "private": true,
   "type": "module",
   "description": "OpenJudge 网页 + VS Code C++ 的独立三按钮学习教练",

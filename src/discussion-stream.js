@@ -17,7 +17,7 @@ export class DiscussionStream {
   }
   async start(){
     this.cwd=await fs.mkdtemp(path.join(os.tmpdir(),'pku-cpp-chat-'));
-    const args=['app-server','--listen','stdio://','-c','mcp_servers={}','-c','model_provider="pku_coach_http"','-c','model_providers.pku_coach_http.name="OpenAI C++ Coach HTTP"','-c','model_providers.pku_coach_http.requires_openai_auth=true','-c','model_providers.pku_coach_http.wire_api="responses"','-c','model_providers.pku_coach_http.supports_websockets=false','-c','web_search="disabled"','-c','model_reasoning_effort="low"','-c','model_verbosity="low"','-c','notify=[]','-c','developer_instructions=""'];
+    const args=['app-server','--listen','stdio://','-c','mcp_servers={}','-c','model_provider="pku_coach_http"','-c','model_providers.pku_coach_http.name="OpenAI C++ Coach HTTP"','-c','model_providers.pku_coach_http.requires_openai_auth=true','-c','model_providers.pku_coach_http.wire_api="responses"','-c','model_providers.pku_coach_http.supports_websockets=false','-c','web_search="disabled"','-c','model_reasoning_effort="high"','-c','model_verbosity="low"','-c','notify=[]','-c','developer_instructions=""'];
     for(const feature of ['shell_tool','apps','plugins','browser_use','computer_use','multi_agent','skill_search'])args.push('--disable',feature);
     args.push('--enable','skip_host_skill_discovery');
     this.child=this.spawnProcess(await this.resolveCommand(),args,{cwd:this.cwd,windowsHide:true,shell:false});
@@ -71,16 +71,18 @@ export class DiscussionStream {
     if(text===active.text)return;active.text=text;
     try{const result=active.onDelta?.(text);result?.catch?.(()=>{});}catch{}
   }
-  async createThread(){
+  async createThread(profile={model:process.env.PKU_MODEL||'gpt-6.1-sol',effort:'high'}){
     await this.open();
-    const start=await this.rpc('thread/start',{model:process.env.PKU_MODEL||'gpt-6.1-sol',cwd:this.cwd,approvalPolicy:'never',sandbox:'read-only',ephemeral:true,baseInstructions:this.guide,developerInstructions:'本服务只回答用户代码问题，禁止使用任何工具。',config:{mcp_servers:this.disabledServers},serviceTier:'default'});
+    const start=await this.rpc('thread/start',{model:profile.model,cwd:this.cwd,approvalPolicy:'never',sandbox:'read-only',ephemeral:true,baseInstructions:this.guide,developerInstructions:'本服务只回答用户代码问题，禁止使用任何工具。',config:{mcp_servers:this.disabledServers},serviceTier:'default'});
     const threadId=start.thread?.id;
     if(!threadId||start.thread.ephemeral!==true||start.sandbox?.type!=='readOnly')throw new Error('交流会话未满足临时只读要求，已停止发送源码。');
     return start;
   }
-  async warm(){if(!this.prepared)this.prepared=await this.createThread();}
+  async warm(profile={model:process.env.PKU_MODEL||'gpt-6.1-sol',effort:'high'}){if(!this.prepared){this.prepared=await this.createThread(profile);this.preparedProfile=profile;}}
   async run(evidence,{onDelta,timeoutMs=this.timeoutMs}={}){
-    const start=this.prepared||await this.createThread();this.prepared=null;
+    const profile=evidence.modelConfig||{model:process.env.PKU_MODEL||'gpt-6.1-sol',effort:'high'};
+    const compatible=this.preparedProfile?.model===profile.model&&this.preparedProfile?.effort===profile.effort;
+    const start=(compatible?this.prepared:null)||await this.createThread(profile);this.prepared=null;this.preparedProfile=null;
     const threadId=start.thread.id;
     return new Promise((resolve,reject)=>{
       const timer=setTimeout(()=>{
@@ -89,7 +91,7 @@ export class DiscussionStream {
         reject(new Error(`${this.label}模型超过 ${Math.ceil(timeoutMs/1000)} 秒未完成；已生成内容、问题和源码已保存，可稍后重试。`));
       },timeoutMs);
       const active={resolve,reject,timer,onDelta,items:new Map(),text:''};this.active.set(threadId,active);
-      this.rpc('turn/start',{threadId,input:[{type:'text',text:JSON.stringify(this.context(evidence)),text_elements:[]}],model:process.env.PKU_MODEL||'gpt-6.1-sol',effort:'low',summary:'none',approvalPolicy:'never',sandboxPolicy:{type:'readOnly'},serviceTierForTurn:'default'}).then(result=>{active.turnId=result.turn?.id;},error=>{clearTimeout(timer);this.active.delete(threadId);reject(error);});
+      this.rpc('turn/start',{threadId,input:[{type:'text',text:JSON.stringify(this.context(evidence)),text_elements:[]}],model:profile.model,effort:profile.effort,summary:'none',approvalPolicy:'never',sandboxPolicy:{type:'readOnly'},serviceTierForTurn:'default'}).then(result=>{active.turnId=result.turn?.id;},error=>{clearTimeout(timer);this.active.delete(threadId);reject(error);});
     });
   }
   fail(error){

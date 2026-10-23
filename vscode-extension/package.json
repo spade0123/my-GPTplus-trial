@@ -3,7 +3,7 @@
   "displayName": "OpenJudge C++ 学习教练",
   "description": "内置 337 道经典题，支持上一题/下一题；测试运行、提示、交流三个按钮，源码和记录保存在本机。",
   "publisher": "local-coach",
-  "version": "0.3.2",
+  "version": "0.5.5",
   "license": "UNLICENSED",
   "engines": {
     "vscode": "^1.96.0"
@@ -17,8 +17,7 @@
   "main": "./extension.cjs",
   "activationEvents": [
     "onStartupFinished",
-    "onLanguage:cpp",
-    "onWebviewPanel:openjudgeCoach"
+    "onLanguage:cpp"
   ],
   "capabilities": {
     "untrustedWorkspaces": {
@@ -30,12 +29,32 @@
   },
   "contributes": {
     "viewsContainers": {
-      "activitybar": [{"id":"openjudgeCoachProblems","title":"OpenJudge 题目","icon":"problem-icon.svg"}]
+      "activitybar": [
+        {
+          "id": "openjudgeCoachProblems",
+          "title": "OpenJudge 题目",
+          "icon": "problem-icon.svg"
+        }
+      ]
     },
     "views": {
-      "openjudgeCoachProblems": [{"type":"webview","id":"openjudgeCoach.problemStatement","name":"经典题库与题面"}]
+      "openjudgeCoachProblems": [
+        {
+          "type": "webview",
+          "id": "openjudgeCoach.problemStatement",
+          "name": "经典题库与题面"
+        }
+      ]
     },
     "commands": [
+      {
+        "command": "openjudgeCoach.modelSettings",
+        "title": "OpenJudge：模型与推理强度"
+      },
+      {
+        "command": "openjudgeCoach.versionHistory",
+        "title": "OpenJudge：查看本题历史版本"
+      },
       {
         "command": "openjudgeCoach.openLibrary",
         "title": "OpenJudge：打开经典题库（337 题）"

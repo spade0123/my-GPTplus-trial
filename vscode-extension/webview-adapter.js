@@ -4,7 +4,7 @@
   window.addEventListener('message',event=>{
     const message=event.data;
     if(message.type==='copy_reply'){
-      const pending=pendingCopies.get(message.id);if(pending){pendingCopies.delete(message.id);clearTimeout(pending.timer);message.error?pending.reject(new Error(message.error)):pending.resolve();}return;
+      const pending=pendingCopies.get(message.id);if(pending){pendingCopies.delete(message.id);clearTimeout(pending.timer);message.error?pending.reject(new Error(message.error)):pending.resolve();return;}
     }
     for(const listener of listeners)listener(message);
   });

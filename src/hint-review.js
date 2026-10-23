@@ -9,6 +9,7 @@ import {runHintModel,runDiscussionModel} from './model-runner.js';
 import {formatHintReport,formatStreamHint,HINT_REVISION} from './hint-format.js';
 import {hintAnswerContext} from './hint-context.js';
 import {ensureWorker} from './review-queue.js';
+import {modelProfile,sameModelConfig} from './model-settings.js';
 import '../extension/instant-hints.js';
 
 const dir=()=>path.join(dataDir(),'hints');
@@ -32,33 +33,40 @@ async function judgment(record,evidence){
   return {status:'unknown',source:'none',runtimeAssociation:'uncertain'};
 }
 export function hintSummary(record){
-  return {id:record.id,eventId:record.eventId,snapshotId:record.snapshotId,kind:record.kind||'hint',purpose:record.purpose,question:record.question,instantAnalysis:record.instantAnalysis,partialAnalysis:record.partialAnalysis,firstTokenAt:record.firstTokenAt,title:record.title,sourceUrl:record.sourceUrl,codeHash:record.codeHash,createdAt:record.createdAt,status:record.status,judgment:record.judgment,message:record.message,error:record.error,compiler:record.compiler,...(record.status==='complete'?{analysis:record.analysis}:{})};
+  return {id:record.id,eventId:record.eventId,snapshotId:record.snapshotId,kind:record.kind||'hint',purpose:record.purpose,question:record.question,instantAnalysis:record.instantAnalysis,partialAnalysis:record.partialAnalysis,firstTokenAt:record.firstTokenAt,title:record.title,sourceUrl:record.sourceUrl,codeHash:record.codeHash,createdAt:record.createdAt,queuedAt:record.queuedAt,startedAt:record.startedAt,completedAt:record.completedAt,modelConfig:record.modelConfig,supersededBy:record.supersededBy,status:record.status,judgment:record.judgment,message:record.message,error:record.error,compiler:record.compiler,...(record.status==='complete'?{analysis:record.analysis}:{})};
 }
-export async function queueHint(id,{judgeEvidence,eventId=randomUUID(),attemptNumber,requestedAt}={}){
-  const source=await readReview(id),current=await judgment(source,judgeEvidence);
+export async function queueHint(snapshotId,{judgeEvidence,eventId=randomUUID(),attemptNumber,requestedAt,force=false}={}){
+  const profile=await modelProfile('interactive'),source=await readReview(snapshotId),current=await judgment(source,judgeEvidence);
+  await fs.mkdir(dir(),{recursive:true});let release;
+  for(let i=0;i<100&&!release;i++){release=await acquireLock(file(snapshotId)+'.route.lock');if(!release)await new Promise(r=>setTimeout(r,10));}
+  if(!release)throw new Error('提示请求正在保存，请重试。');
+  try{
+  let existing;try{existing=JSON.parse(await fs.readFile(file(snapshotId),'utf8'));}catch(error){if(error.code!=='ENOENT')throw error;}
+  const id=force?createHash('sha256').update(snapshotId+':refresh:'+eventId).digest('hex'):existing&&!sameModelConfig(existing.modelConfig,profile)?createHash('sha256').update(snapshotId+':'+HINT_REVISION+':'+profile.model+':'+profile.effort).digest('hex'):snapshotId;
   const instantAnalysis=globalThis.PkuInstantHints.generate(await captureFromRecord(source),current).markdown;
   const result=await update(id,prior=>{
-    const base=prior||{schemaVersion:1,kind:'hint',id,snapshotId:id,title:source.title,sourceUrl:source.url,codeHash:source.codeHash,instantAnalysis,createdAt:new Date().toISOString()};
+    const base=prior||{schemaVersion:1,kind:'hint',id,snapshotId,title:source.title,sourceUrl:source.url,codeHash:source.codeHash,instantAnalysis,createdAt:new Date().toISOString(),modelConfig:profile,eventId};
     if(current.status==='AC')return {...base,status:'skipped',judgment:current,message:skipped};
-    if(prior&&(['queued','running'].includes(prior.status)||(prior.status==='complete'&&prior.hintRevision===HINT_REVISION)))return prior;
+    if(prior&&sameModelConfig(prior.modelConfig,profile)&&(['queued','running'].includes(prior.status)||(prior.status==='complete'&&prior.hintRevision===HINT_REVISION)))return {...prior,lastRequestedAt:new Date().toISOString(),requestNumber:attemptNumber};
     const previousReports=prior?.status==='complete'?[...(prior.previousReports||[]),{hintRevision:prior.hintRevision||1,completedAt:prior.completedAt,report:prior.report,analysis:prior.analysis}]:prior?.previousReports;
     const previousRuns=prior?.status==='failed'?[...(prior.previousRuns||[]),{startedAt:prior.startedAt,error:prior.error,partialAnalysis:prior.partialAnalysis}]:prior?.previousRuns;
-    const result={...base,status:'queued',queuedAt:new Date().toISOString(),judgment:current,instantAnalysis,...(previousReports?{previousReports}:{}),...(previousRuns?{previousRuns}:{})};
-    for(const field of ['error','analysis','report','partialAnalysis','firstTokenAt','outputUpdatedAt','completedAt','startedAt','workerPid','compiler'])delete result[field];
+    const result={...base,status:'queued',modelConfig:profile,requestNumber:attemptNumber,queuedAt:new Date().toISOString(),lastRequestedAt:new Date().toISOString(),judgment:current,instantAnalysis,...(previousReports?{previousReports}:{}),...(previousRuns?{previousRuns}:{})};
+    for(const field of ['error','analysis','report','partialAnalysis','firstTokenAt','outputUpdatedAt','completedAt','startedAt','workerPid','compiler','supersededBy','supersededAt'])delete result[field];
     return result;
   });
-  await recordAssistance(id,{type:'hint',jobId:id,eventId,attemptNumber,requestedAt:Number.isFinite(Date.parse(requestedAt))?requestedAt:new Date().toISOString(),codeHash:source.codeHash});
+  await recordAssistance(snapshotId,{type:'hint',jobId:id,eventId,attemptNumber,requestedAt:Number.isFinite(Date.parse(requestedAt))?requestedAt:new Date().toISOString(),codeHash:source.codeHash});
   return result;
+  }finally{await release();}
 }
 export async function queueDiscussion(snapshotId,{question,purpose='discussion',selectedCode='',eventId=randomUUID(),attemptNumber,requestedAt}={}){
   if(!['discussion','solution'].includes(purpose))throw new Error('无效的问答用途。');
   if(typeof question!=='string'||!question.trim()||question.length>2000||typeof selectedCode!=='string'||selectedCode.length>8000)throw new Error('请填写 1—2000 字的问题；选中片段最多 8000 字符。');
-  const source=await readReview(snapshotId),id=createHash('sha256').update(`${snapshotId}:${eventId}`).digest('hex');
+  const profile=await modelProfile('interactive'),source=await readReview(snapshotId),id=createHash('sha256').update(`${snapshotId}:${eventId}`).digest('hex');
   const createdAt=Number.isFinite(Date.parse(requestedAt))?requestedAt:new Date().toISOString();
   const instantAnalysis=purpose==='solution'?'已保存本次题目与完整代码；完整参考解答将在后台生成。':globalThis.PkuInstantHints.discuss(await captureFromRecord(source),question,selectedCode).markdown;
   const result=await update(id,prior=>{
     if(prior&&(prior.purpose||'discussion')!==purpose)throw new Error('同一问答事件不能改作另一用途。');
-    return prior?(prior.status==='failed'?{...prior,status:'queued',error:undefined,queuedAt:new Date().toISOString()}:prior):{schemaVersion:1,kind:'discussion',purpose,id,snapshotId,title:source.title,sourceUrl:source.url,codeHash:source.codeHash,createdAt,queuedAt:new Date().toISOString(),eventId,question:question.trim(),selectedCode,instantAnalysis,status:'queued',judgment:{status:'unknown',runtimeAssociation:'uncertain'}};
+    return prior?(prior.status==='failed'?{...prior,status:'queued',error:undefined,queuedAt:new Date().toISOString()}:prior):{schemaVersion:1,kind:'discussion',purpose,id,snapshotId,title:source.title,sourceUrl:source.url,codeHash:source.codeHash,createdAt,queuedAt:new Date().toISOString(),eventId,question:question.trim(),selectedCode,instantAnalysis,modelConfig:profile,status:'queued',judgment:{status:'unknown',runtimeAssociation:'uncertain'}};
   });
   await recordAssistance(snapshotId,{type:'discussion',purpose,jobId:id,eventId,attemptNumber,requestedAt:createdAt,codeHash:source.codeHash,question:question.trim()});
   return result;
@@ -127,18 +135,19 @@ async function streamReply(id,produce){
   });}finally{await flush();}
 }
 export async function processHint(id,{model=runHintModel,discussionModel=runDiscussionModel,compile=compilerCheck}={}){
-  const initial=await readHint(id);if(['complete','skipped'].includes(initial.status))return initial;
+  const initial=await readHint(id);if(['complete','skipped','superseded'].includes(initial.status))return initial;
   const release=await acquireLock(file(id)+'.lock');if(!release)throw new Error('这份提示正在后台生成。');
   try{
-    const current=await readHint(id);if(['complete','skipped'].includes(current.status))return current;
-    await update(id,prior=>prior.status==='skipped'?prior:{...prior,status:'running',workerPid:process.pid,startedAt:new Date().toISOString()});
+    const current=await readHint(id);if(['complete','skipped','superseded'].includes(current.status))return current;
+    const profile=current.modelConfig||await modelProfile('interactive');
+    await update(id,prior=>prior.status==='skipped'?prior:{...prior,modelConfig:profile,status:'running',workerPid:process.pid,startedAt:new Date().toISOString()});
     const source=await readReview(current.snapshotId),capture=await captureFromRecord(source);
     // General discussion needs the current source, not a compiler startup and
     // a recursive review/debug evidence tree before every short question.
     const diagnostics=current.kind==='discussion'?{status:'not_requested',ranProgram:false}:await compile(capture.code,capture.standard,{timeoutMs:1500});
     await update(id,prior=>prior.status==='skipped'?prior:{...prior,compiler:diagnostics,...(current.kind==='discussion'?{}:{instantAnalysis:globalThis.PkuInstantHints.generate(capture,prior.judgment,diagnostics).markdown})});
     const ready=await readHint(id);if(ready.status==='skipped')return ready;
-    const evidence={task:current.kind==='discussion'?'code_discussion':'debug_hint',capture,diagnostics,...(current.kind==='discussion'?{}:{answerContext:await hintAnswerContext(capture)}),judgment:ready.judgment,runtimeAssociation:ready.judgment.runtimeAssociation};
+    const evidence={task:current.kind==='discussion'?'code_discussion':'debug_hint',modelConfig:profile,capture,diagnostics,...(current.kind==='discussion'?{}:{answerContext:await hintAnswerContext(capture)}),judgment:ready.judgment,runtimeAssociation:ready.judgment.runtimeAssociation};
     let result;
     if(current.kind==='discussion'){
       const history=current.purpose==='solution'?[]:(await discussionHistory(capture.url,{beforeEventId:current.eventId,limit:6})).entries;
@@ -172,7 +181,13 @@ export async function drainHints(options={}){
     if(options.onStart)await options.onStart();
     let idleSince=Date.now();
     for(;;){
-      const job=(await queuedHints()).find(j=>!attempted.has(j.id)&&(!kind||(j.kind||'hint')===kind));
+      const candidates=(await queuedHints()).filter(j=>!attempted.has(j.id)&&(!kind||(j.kind||'hint')===kind));
+      if(kind==='hint'){
+        candidates.sort((a,b)=>String(b.lastRequestedAt||b.queuedAt||b.createdAt).localeCompare(String(a.lastRequestedAt||a.queuedAt||a.createdAt))||(a.sourceUrl===b.sourceUrl?(b.requestNumber||0)-(a.requestNumber||0):0));
+        const newest=new Map();
+        for(const item of candidates){if(!newest.has(item.sourceUrl))newest.set(item.sourceUrl,item.id);else await update(item.id,prior=>prior.status==='queued'?{...prior,status:'superseded',supersededBy:newest.get(item.sourceUrl),supersededAt:new Date().toISOString(),message:'此提示尚未开始，已由同题更新的请求替代；源码和请求记录保留。'}:prior);}
+      }
+      const job=candidates[0];
       if(!job){if(Date.now()-idleSince>=idleMs)break;await new Promise(r=>setTimeout(r,250));continue;}
       attempted.add(job.id);try{await processHint(job.id,options);}catch{}idleSince=Date.now();
     }

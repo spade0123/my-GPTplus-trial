@@ -1,8 +1,8 @@
 const {randomUUID}=require('node:crypto');
 class SampleWindow{
   constructor({create,render,receive,collapse,onError=()=>{}}){Object.assign(this,{create,render,receive,collapse,onError});}
-  open(details){
-    const previous=this.state,panel=previous&&!previous.disposed?previous.panel:this.create(details);
+  open(details,providedPanel){
+    const previous=this.state,panel=providedPanel||(previous&&!previous.disposed?previous.panel:this.create(details));
     if(previous)previous.disposed=true;
     const state={...details,panel,session:randomUUID(),disposed:false,ready:false,latest:{}};this.state=state;
     if(!previous||previous.panel!==panel){
@@ -24,7 +24,7 @@ class SampleWindow{
     if(!state||state.disposed||state.panel!==panel||message.viewSession!==state.session)return;
     if(message.type==='sample_ready'){state.ready=true;this.show(state,state.latest);return;}
     if(message.type==='sample_collapse'){panel.dispose();await this.collapse(state);return;}
-    if(['oj_prepare','oj_submit','oj_refresh'].includes(message.type))await this.receive(state,message);
+    if(['oj_prepare','oj_submit','oj_refresh','open_link','run_sample','show_models','show_versions','copy_code'].includes(message.type))await this.receive(state,message);
   }
   dispose(){this.state?.panel.dispose();}
 }

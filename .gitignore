@@ -11,6 +11,7 @@
 /.env.*
 /codex-config.toml
 /native/paths.json
+/native/report-location.json
 /native/node-path.txt
 /native/edu.pku.cpp_coach.json
 /native/launcher.exe
@@ -22,3 +23,6 @@
 *.vsix
 !/dist/*.vsix
 /tmp/
+
+/test-tmp/
+/work/

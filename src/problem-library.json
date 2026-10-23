@@ -8,10 +8,14 @@
       "title": "Maya Calendar",
       "url": "http://bailian.openjudge.cn/practice/1008/",
       "topic": "模拟与输入处理",
-      "level": 2,
+      "level": 1,
       "knowledge": "循环、数组、getline、状态模拟",
       "rateLabel": "89%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 89,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1012",
@@ -20,10 +24,14 @@
       "title": "Joseph",
       "url": "http://bailian.openjudge.cn/practice/1012/",
       "topic": "模拟与输入处理",
-      "level": 2,
+      "level": 1,
       "knowledge": "循环、数组、getline、状态模拟",
       "rateLabel": "72%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 72,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1046",
@@ -32,10 +40,14 @@
       "title": "Color Me Less",
       "url": "http://bailian.openjudge.cn/practice/1046/",
       "topic": "模拟与输入处理",
-      "level": 2,
+      "level": 1,
       "knowledge": "循环、数组、getline、状态模拟",
       "rateLabel": "85%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 85,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1102",
@@ -44,10 +56,14 @@
       "title": "LC-Display",
       "url": "http://bailian.openjudge.cn/practice/1102/",
       "topic": "模拟与输入处理",
-      "level": 2,
+      "level": 1,
       "knowledge": "循环、数组、getline、状态模拟",
       "rateLabel": "86%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 86,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1250",
@@ -56,10 +72,14 @@
       "title": "Tanning Salon",
       "url": "http://bailian.openjudge.cn/practice/1250/",
       "topic": "模拟与输入处理",
-      "level": 2,
+      "level": 1,
       "knowledge": "循环、数组、getline、状态模拟",
       "rateLabel": "89%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 89,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1402",
@@ -68,10 +88,14 @@
       "title": "The Game of Master-Mind",
       "url": "http://bailian.openjudge.cn/practice/1402/",
       "topic": "模拟与输入处理",
-      "level": 2,
+      "level": 1,
       "knowledge": "循环、数组、getline、状态模拟",
       "rateLabel": "86%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 86,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1520",
@@ -80,10 +104,14 @@
       "title": "Scramble Sort",
       "url": "http://bailian.openjudge.cn/practice/1520/",
       "topic": "模拟与输入处理",
-      "level": 2,
+      "level": 1,
       "knowledge": "循环、数组、getline、状态模拟",
       "rateLabel": "81%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 81,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1666",
@@ -92,10 +120,14 @@
       "title": "Candy Sharing Game",
       "url": "http://bailian.openjudge.cn/practice/1666/",
       "topic": "模拟与输入处理",
-      "level": 2,
+      "level": 1,
       "knowledge": "循环、数组、getline、状态模拟",
       "rateLabel": "88%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 88,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1886",
@@ -104,10 +136,14 @@
       "title": "Borrowers",
       "url": "http://bailian.openjudge.cn/practice/1886/",
       "topic": "模拟与输入处理",
-      "level": 2,
+      "level": 1,
       "knowledge": "循环、数组、getline、状态模拟",
       "rateLabel": "72%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 72,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1928",
@@ -116,10 +152,14 @@
       "title": "The Peanuts",
       "url": "http://bailian.openjudge.cn/practice/1928/",
       "topic": "模拟与输入处理",
-      "level": 2,
+      "level": 1,
       "knowledge": "循环、数组、getline、状态模拟",
       "rateLabel": "85%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 85,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2081",
@@ -128,10 +168,14 @@
       "title": "Recaman's Sequence",
       "url": "http://bailian.openjudge.cn/practice/2081/",
       "topic": "模拟与输入处理",
-      "level": 2,
+      "level": 1,
       "knowledge": "循环、数组、getline、状态模拟",
       "rateLabel": "85%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 85,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2092",
@@ -140,10 +184,14 @@
       "title": "Grandpa is Famous",
       "url": "http://bailian.openjudge.cn/practice/2092/",
       "topic": "模拟与输入处理",
-      "level": 2,
+      "level": 1,
       "knowledge": "循环、数组、getline、状态模拟",
       "rateLabel": "89%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 89,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2328",
@@ -155,7 +203,11 @@
       "level": 2,
       "knowledge": "循环、数组、getline、状态模拟",
       "rateLabel": "69%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 69,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2562",
@@ -164,10 +216,14 @@
       "title": "Primary Arithmetic",
       "url": "http://bailian.openjudge.cn/practice/2562/",
       "topic": "模拟与输入处理",
-      "level": 2,
+      "level": 1,
       "knowledge": "循环、数组、getline、状态模拟",
       "rateLabel": "89%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 89,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2577",
@@ -176,10 +232,14 @@
       "title": "Interpreter",
       "url": "http://bailian.openjudge.cn/practice/2577/",
       "topic": "模拟与输入处理",
-      "level": 2,
+      "level": 1,
       "knowledge": "循环、数组、getline、状态模拟",
       "rateLabel": "88%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 88,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2632",
@@ -188,10 +248,14 @@
       "title": "Crashing Robots",
       "url": "http://bailian.openjudge.cn/practice/2632/",
       "topic": "模拟与输入处理",
-      "level": 2,
+      "level": 1,
       "knowledge": "循环、数组、getline、状态模拟",
       "rateLabel": "84%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 84,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2652",
@@ -200,10 +264,14 @@
       "title": "Ferry Loading III",
       "url": "http://bailian.openjudge.cn/practice/2652/",
       "topic": "模拟与输入处理",
-      "level": 2,
+      "level": 1,
       "knowledge": "循环、数组、getline、状态模拟",
       "rateLabel": "77%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 77,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2966",
@@ -212,10 +280,14 @@
       "title": "时区转换",
       "url": "http://bailian.openjudge.cn/practice/2966/",
       "topic": "模拟与输入处理",
-      "level": 2,
+      "level": 1,
       "knowledge": "循环、数组、getline、状态模拟",
       "rateLabel": "85%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 85,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:4019",
@@ -224,10 +296,14 @@
       "title": "黑色星期五",
       "url": "http://bailian.openjudge.cn/practice/4019/",
       "topic": "模拟与输入处理",
-      "level": 2,
+      "level": 1,
       "knowledge": "循环、数组、getline、状态模拟",
       "rateLabel": "86%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 86,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:4030",
@@ -239,7 +315,11 @@
       "level": 2,
       "knowledge": "循环、数组、getline、状态模拟",
       "rateLabel": "65%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 65,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:4087",
@@ -248,10 +328,14 @@
       "title": "数据筛选",
       "url": "http://bailian.openjudge.cn/practice/4087/",
       "topic": "模拟与输入处理",
-      "level": 2,
+      "level": 1,
       "knowledge": "循环、数组、getline、状态模拟",
       "rateLabel": "73%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 73,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1002",
@@ -260,10 +344,14 @@
       "title": "方便记忆的电话号码",
       "url": "http://bailian.openjudge.cn/practice/1002/",
       "topic": "字符串与排序",
-      "level": 2,
+      "level": 1,
       "knowledge": "string、sort、字符统计、映射、字符串匹配",
       "rateLabel": "77%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 77,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1035",
@@ -272,10 +360,14 @@
       "title": "拼写检查",
       "url": "http://bailian.openjudge.cn/practice/1035/",
       "topic": "字符串与排序",
-      "level": 2,
+      "level": 1,
       "knowledge": "string、sort、字符统计、映射、字符串匹配",
       "rateLabel": "83%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 83,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1056",
@@ -284,10 +376,14 @@
       "title": "IMMEDIATE DECODABILITY",
       "url": "http://bailian.openjudge.cn/practice/1056/",
       "topic": "字符串与排序",
-      "level": 3,
+      "level": 1,
       "knowledge": "string、sort、字符统计、映射、字符串匹配",
       "rateLabel": "89%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 89,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1146",
@@ -296,10 +392,14 @@
       "title": "ID Codes",
       "url": "http://bailian.openjudge.cn/practice/1146/",
       "topic": "字符串与排序",
-      "level": 2,
+      "level": 1,
       "knowledge": "string、sort、字符统计、映射、字符串匹配",
       "rateLabel": "84%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 84,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1256",
@@ -308,10 +408,14 @@
       "title": "Anagram",
       "url": "http://bailian.openjudge.cn/practice/1256/",
       "topic": "字符串与排序",
-      "level": 2,
+      "level": 1,
       "knowledge": "string、sort、字符统计、映射、字符串匹配",
       "rateLabel": "77%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 77,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1318",
@@ -320,10 +424,14 @@
       "title": "Word Amalgamation",
       "url": "http://bailian.openjudge.cn/practice/1318/",
       "topic": "字符串与排序",
-      "level": 2,
+      "level": 1,
       "knowledge": "string、sort、字符统计、映射、字符串匹配",
       "rateLabel": "86%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 86,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1572",
@@ -332,10 +440,14 @@
       "title": "Automatic Editing",
       "url": "http://bailian.openjudge.cn/practice/1572/",
       "topic": "字符串与排序",
-      "level": 2,
+      "level": 1,
       "knowledge": "string、sort、字符统计、映射、字符串匹配",
       "rateLabel": "87%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 87,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1590",
@@ -344,10 +456,14 @@
       "title": "Palindromes",
       "url": "http://bailian.openjudge.cn/practice/1590/",
       "topic": "字符串与排序",
-      "level": 2,
+      "level": 1,
       "knowledge": "string、sort、字符统计、映射、字符串匹配",
       "rateLabel": "71%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 71,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1936",
@@ -356,10 +472,14 @@
       "title": "全在其中",
       "url": "http://bailian.openjudge.cn/practice/1936/",
       "topic": "字符串与排序",
-      "level": 2,
+      "level": 1,
       "knowledge": "string、sort、字符统计、映射、字符串匹配",
       "rateLabel": "89%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 89,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1961",
@@ -368,10 +488,14 @@
       "title": "前缀中的周期",
       "url": "http://bailian.openjudge.cn/practice/1961/",
       "topic": "字符串与排序",
-      "level": 3,
+      "level": 1,
       "knowledge": "string、sort、字符统计、映射、字符串匹配",
       "rateLabel": "85%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 85,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2001",
@@ -380,10 +504,14 @@
       "title": "Shortest Prefixes",
       "url": "http://bailian.openjudge.cn/practice/2001/",
       "topic": "字符串与排序",
-      "level": 3,
+      "level": 1,
       "knowledge": "string、sort、字符统计、映射、字符串匹配",
       "rateLabel": "88%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 88,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2121",
@@ -392,10 +520,14 @@
       "title": "英语数字转换器",
       "url": "http://bailian.openjudge.cn/practice/2121/",
       "topic": "字符串与排序",
-      "level": 2,
+      "level": 1,
       "knowledge": "string、sort、字符统计、映射、字符串匹配",
       "rateLabel": "88%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 88,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2159",
@@ -404,10 +536,14 @@
       "title": "Ancient Cipher",
       "url": "http://bailian.openjudge.cn/practice/2159/",
       "topic": "字符串与排序",
-      "level": 2,
+      "level": 1,
       "knowledge": "string、sort、字符统计、映射、字符串匹配",
       "rateLabel": "88%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 88,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2406",
@@ -416,10 +552,14 @@
       "title": "字符串乘方",
       "url": "http://bailian.openjudge.cn/practice/2406/",
       "topic": "字符串与排序",
-      "level": 3,
+      "level": 1,
       "knowledge": "string、sort、字符统计、映射、字符串匹配",
       "rateLabel": "89%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 89,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2408",
@@ -428,10 +568,14 @@
       "title": "Anagram Groups",
       "url": "http://bailian.openjudge.cn/practice/2408/",
       "topic": "字符串与排序",
-      "level": 2,
+      "level": 1,
       "knowledge": "string、sort、字符统计、映射、字符串匹配",
       "rateLabel": "77%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 77,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2418",
@@ -440,10 +584,14 @@
       "title": "Hardwood Species",
       "url": "http://bailian.openjudge.cn/practice/2418/",
       "topic": "字符串与排序",
-      "level": 2,
+      "level": 1,
       "knowledge": "string、sort、字符统计、映射、字符串匹配",
       "rateLabel": "82%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 82,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2503",
@@ -452,10 +600,14 @@
       "title": "Babelfish",
       "url": "http://bailian.openjudge.cn/practice/2503/",
       "topic": "字符串与排序",
-      "level": 2,
+      "level": 1,
       "knowledge": "string、sort、字符统计、映射、字符串匹配",
       "rateLabel": "88%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 2,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 88,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2629",
@@ -464,10 +616,14 @@
       "title": "Common permutation",
       "url": "http://bailian.openjudge.cn/practice/2629/",
       "topic": "字符串与排序",
-      "level": 2,
+      "level": 1,
       "knowledge": "string、sort、字符统计、映射、字符串匹配",
       "rateLabel": "70%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 70,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2752",
@@ -476,10 +632,14 @@
       "title": "字符串数组排序问题",
       "url": "http://bailian.openjudge.cn/practice/2752/",
       "topic": "字符串与排序",
-      "level": 2,
+      "level": 1,
       "knowledge": "string、sort、字符统计、映射、字符串匹配",
       "rateLabel": "88%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 88,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2944",
@@ -488,10 +648,14 @@
       "title": "单词替换",
       "url": "http://bailian.openjudge.cn/practice/2944/",
       "topic": "字符串与排序",
-      "level": 2,
+      "level": 1,
       "knowledge": "string、sort、字符统计、映射、字符串匹配",
       "rateLabel": "84%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 84,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2998",
@@ -500,10 +664,14 @@
       "title": "日志排序",
       "url": "http://bailian.openjudge.cn/practice/2998/",
       "topic": "字符串与排序",
-      "level": 2,
+      "level": 1,
       "knowledge": "string、sort、字符统计、映射、字符串匹配",
       "rateLabel": "75%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 75,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:3471",
@@ -512,10 +680,14 @@
       "title": "子串计算",
       "url": "http://bailian.openjudge.cn/practice/3471/",
       "topic": "字符串与排序",
-      "level": 2,
+      "level": 1,
       "knowledge": "string、sort、字符统计、映射、字符串匹配",
       "rateLabel": "89%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 89,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:3702",
@@ -524,10 +696,14 @@
       "title": "距离排序",
       "url": "http://bailian.openjudge.cn/practice/3702/",
       "topic": "字符串与排序",
-      "level": 2,
+      "level": 1,
       "knowledge": "string、sort、字符统计、映射、字符串匹配",
       "rateLabel": "85%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 85,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:3711",
@@ -536,10 +712,14 @@
       "title": "字符串移位包含问题",
       "url": "http://bailian.openjudge.cn/practice/3711/",
       "topic": "字符串与排序",
-      "level": 2,
+      "level": 1,
       "knowledge": "string、sort、字符统计、映射、字符串匹配",
       "rateLabel": "85%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 85,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:3719",
@@ -548,10 +728,14 @@
       "title": "学生信息用qsort排序",
       "url": "http://bailian.openjudge.cn/practice/3719/",
       "topic": "字符串与排序",
-      "level": 2,
+      "level": 1,
       "knowledge": "string、sort、字符统计、映射、字符串匹配",
       "rateLabel": "84%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 84,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:3753",
@@ -560,10 +744,14 @@
       "title": "反转诗句",
       "url": "http://bailian.openjudge.cn/practice/3753/",
       "topic": "字符串与排序",
-      "level": 2,
+      "level": 1,
       "knowledge": "string、sort、字符统计、映射、字符串匹配",
       "rateLabel": "81%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 81,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:4015",
@@ -572,10 +760,14 @@
       "title": "邮箱验证",
       "url": "http://bailian.openjudge.cn/practice/4015/",
       "topic": "字符串与排序",
-      "level": 2,
+      "level": 1,
       "knowledge": "string、sort、字符统计、映射、字符串匹配",
       "rateLabel": "86%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 86,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:4067",
@@ -584,10 +776,14 @@
       "title": "回文数字（Palindrome Number）",
       "url": "http://bailian.openjudge.cn/practice/4067/",
       "topic": "字符串与排序",
-      "level": 2,
+      "level": 1,
       "knowledge": "string、sort、字符统计、映射、字符串匹配",
       "rateLabel": "87%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 87,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:4071",
@@ -596,10 +792,14 @@
       "title": "查找出现了k次的字符",
       "url": "http://bailian.openjudge.cn/practice/4071/",
       "topic": "字符串与排序",
-      "level": 2,
+      "level": 1,
       "knowledge": "string、sort、字符统计、映射、字符串匹配",
       "rateLabel": "73%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 73,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:4073",
@@ -608,10 +808,14 @@
       "title": "最长公共字符串后缀（Longest String Postfix）",
       "url": "http://bailian.openjudge.cn/practice/4073/",
       "topic": "字符串与排序",
-      "level": 2,
+      "level": 1,
       "knowledge": "string、sort、字符统计、映射、字符串匹配",
       "rateLabel": "86%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 86,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:4085",
@@ -620,10 +824,14 @@
       "title": "数组去重排序",
       "url": "http://bailian.openjudge.cn/practice/4085/",
       "topic": "字符串与排序",
-      "level": 2,
+      "level": 1,
       "knowledge": "string、sort、字符统计、映射、字符串匹配",
       "rateLabel": "81%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 81,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:4086",
@@ -632,10 +840,14 @@
       "title": "DNA排序",
       "url": "http://bailian.openjudge.cn/practice/4086/",
       "topic": "字符串与排序",
-      "level": 2,
+      "level": 1,
       "knowledge": "string、sort、字符统计、映射、字符串匹配",
       "rateLabel": "83%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 83,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:4088",
@@ -644,10 +856,14 @@
       "title": "集合运算",
       "url": "http://bailian.openjudge.cn/practice/4088/",
       "topic": "字符串与排序",
-      "level": 2,
+      "level": 1,
       "knowledge": "string、sort、字符统计、映射、字符串匹配",
       "rateLabel": "77%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 77,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:4089",
@@ -656,10 +872,14 @@
       "title": "电话号码",
       "url": "http://bailian.openjudge.cn/practice/4089/",
       "topic": "字符串与排序",
-      "level": 3,
+      "level": 2,
       "knowledge": "string、sort、字符统计、映射、字符串匹配",
       "rateLabel": "67%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 3,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 67,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:4109",
@@ -668,10 +888,14 @@
       "title": "公共朋友-Common Friends",
       "url": "http://bailian.openjudge.cn/practice/4109/",
       "topic": "字符串与排序",
-      "level": 2,
+      "level": 1,
       "knowledge": "string、sort、字符统计、映射、字符串匹配",
       "rateLabel": "85%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 85,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1028",
@@ -680,10 +904,14 @@
       "title": "Web Navigation",
       "url": "http://bailian.openjudge.cn/practice/1028/",
       "topic": "栈、队列、堆与基础树结构",
-      "level": 3,
+      "level": 1,
       "knowledge": "stack、queue、priority_queue、map/set、树遍历",
       "rateLabel": "87%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 87,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1068",
@@ -692,10 +920,14 @@
       "title": "Parencodings",
       "url": "http://bailian.openjudge.cn/practice/1068/",
       "topic": "栈、队列、堆与基础树结构",
-      "level": 3,
+      "level": 1,
       "knowledge": "stack、queue、priority_queue、map/set、树遍历",
       "rateLabel": "87%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 87,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1363",
@@ -704,10 +936,14 @@
       "title": "Rails",
       "url": "http://bailian.openjudge.cn/practice/1363/",
       "topic": "栈、队列、堆与基础树结构",
-      "level": 3,
+      "level": 1,
       "knowledge": "stack、queue、priority_queue、map/set、树遍历",
       "rateLabel": "87%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 87,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1442",
@@ -716,10 +952,14 @@
       "title": "Black Box",
       "url": "http://bailian.openjudge.cn/practice/1442/",
       "topic": "栈、队列、堆与基础树结构",
-      "level": 4,
+      "level": 1,
       "knowledge": "stack、queue、priority_queue、map/set、树遍历",
       "rateLabel": "87%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 4,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 87,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2051",
@@ -728,10 +968,14 @@
       "title": "Argus",
       "url": "http://bailian.openjudge.cn/practice/2051/",
       "topic": "栈、队列、堆与基础树结构",
-      "level": 3,
+      "level": 1,
       "knowledge": "stack、queue、priority_queue、map/set、树遍历",
       "rateLabel": "86%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 86,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2106",
@@ -740,10 +984,14 @@
       "title": "Boolean Expressions",
       "url": "http://bailian.openjudge.cn/practice/2106/",
       "topic": "栈、队列、堆与基础树结构",
-      "level": 3,
+      "level": 1,
       "knowledge": "stack、queue、priority_queue、map/set、树遍历",
       "rateLabel": "81%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 81,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2246",
@@ -752,10 +1000,14 @@
       "title": "Matrix Chain Multiplication",
       "url": "http://bailian.openjudge.cn/practice/2246/",
       "topic": "栈、队列、堆与基础树结构",
-      "level": 3,
+      "level": 1,
       "knowledge": "stack、queue、priority_queue、map/set、树遍历",
       "rateLabel": "85%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 85,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2259",
@@ -764,10 +1016,14 @@
       "title": "Team Queue",
       "url": "http://bailian.openjudge.cn/practice/2259/",
       "topic": "栈、队列、堆与基础树结构",
-      "level": 3,
+      "level": 1,
       "knowledge": "stack、queue、priority_queue、map/set、树遍历",
       "rateLabel": "83%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 83,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2442",
@@ -776,10 +1032,14 @@
       "title": "Sequence",
       "url": "http://bailian.openjudge.cn/practice/2442/",
       "topic": "栈、队列、堆与基础树结构",
-      "level": 3,
+      "level": 1,
       "knowledge": "stack、queue、priority_queue、map/set、树遍历",
       "rateLabel": "77%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 77,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2559",
@@ -788,10 +1048,14 @@
       "title": "Largest Rectangle in a Histogram",
       "url": "http://bailian.openjudge.cn/practice/2559/",
       "topic": "栈、队列、堆与基础树结构",
-      "level": 4,
+      "level": 1,
       "knowledge": "stack、queue、priority_queue、map/set、树遍历",
       "rateLabel": "74%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 4,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 74,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2788",
@@ -800,10 +1064,14 @@
       "title": "二叉树",
       "url": "http://bailian.openjudge.cn/practice/2788/",
       "topic": "栈、队列、堆与基础树结构",
-      "level": 3,
+      "level": 1,
       "knowledge": "stack、queue、priority_queue、map/set、树遍历",
       "rateLabel": "78%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 78,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:3254",
@@ -812,10 +1080,14 @@
       "title": "约瑟夫问题No.2",
       "url": "http://bailian.openjudge.cn/practice/3254/",
       "topic": "栈、队列、堆与基础树结构",
-      "level": 3,
+      "level": 1,
       "knowledge": "stack、queue、priority_queue、map/set、树遍历",
       "rateLabel": "86%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 86,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:3704",
@@ -824,10 +1096,14 @@
       "title": "扩号匹配问题",
       "url": "http://bailian.openjudge.cn/practice/3704/",
       "topic": "栈、队列、堆与基础树结构",
-      "level": 3,
+      "level": 1,
       "knowledge": "stack、queue、priority_queue、map/set、树遍历",
       "rateLabel": "89%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 89,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:3728",
@@ -836,10 +1112,14 @@
       "title": "Blah数集",
       "url": "http://bailian.openjudge.cn/practice/3728/",
       "topic": "栈、队列、堆与基础树结构",
-      "level": 3,
+      "level": 1,
       "knowledge": "stack、queue、priority_queue、map/set、树遍历",
       "rateLabel": "82%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 82,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:4066",
@@ -851,7 +1131,11 @@
       "level": 3,
       "knowledge": "stack、queue、priority_queue、map/set、树遍历",
       "rateLabel": "47%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 47,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:4074",
@@ -860,10 +1144,14 @@
       "title": "积水量",
       "url": "http://bailian.openjudge.cn/practice/4074/",
       "topic": "栈、队列、堆与基础树结构",
-      "level": 3,
+      "level": 1,
       "knowledge": "stack、queue、priority_queue、map/set、树遍历",
       "rateLabel": "77%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 77,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:4078",
@@ -872,10 +1160,14 @@
       "title": "实现堆结构",
       "url": "http://bailian.openjudge.cn/practice/4078/",
       "topic": "栈、队列、堆与基础树结构",
-      "level": 3,
+      "level": 1,
       "knowledge": "stack、queue、priority_queue、map/set、树遍历",
       "rateLabel": "86%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 86,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:4079",
@@ -884,10 +1176,14 @@
       "title": "二叉搜索树",
       "url": "http://bailian.openjudge.cn/practice/4079/",
       "topic": "栈、队列、堆与基础树结构",
-      "level": 3,
+      "level": 1,
       "knowledge": "stack、queue、priority_queue、map/set、树遍历",
       "rateLabel": "89%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 89,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:4081",
@@ -896,10 +1192,14 @@
       "title": "树的转换",
       "url": "http://bailian.openjudge.cn/practice/4081/",
       "topic": "栈、队列、堆与基础树结构",
-      "level": 3,
+      "level": 1,
       "knowledge": "stack、queue、priority_queue、map/set、树遍历",
       "rateLabel": "84%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 84,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:4082",
@@ -908,10 +1208,14 @@
       "title": "树的镜面映射",
       "url": "http://bailian.openjudge.cn/practice/4082/",
       "topic": "栈、队列、堆与基础树结构",
-      "level": 3,
+      "level": 1,
       "knowledge": "stack、queue、priority_queue、map/set、树遍历",
       "rateLabel": "86%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 86,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:4093",
@@ -920,10 +1224,14 @@
       "title": "倒排索引查询",
       "url": "http://bailian.openjudge.cn/practice/4093/",
       "topic": "栈、队列、堆与基础树结构",
-      "level": 3,
+      "level": 1,
       "knowledge": "stack、queue、priority_queue、map/set、树遍历",
       "rateLabel": "71%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 71,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:4132",
@@ -932,10 +1240,14 @@
       "title": "四则运算表达式求值",
       "url": "http://bailian.openjudge.cn/practice/4132/",
       "topic": "栈、队列、堆与基础树结构",
-      "level": 3,
+      "level": 1,
       "knowledge": "stack、queue、priority_queue、map/set、树遍历",
       "rateLabel": "81%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 81,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:4147",
@@ -944,10 +1256,14 @@
       "title": "汉诺塔问题(Tower of Hanoi)",
       "url": "http://bailian.openjudge.cn/practice/4147/",
       "topic": "栈、队列、堆与基础树结构",
-      "level": 3,
+      "level": 1,
       "knowledge": "stack、queue、priority_queue、map/set、树遍历",
       "rateLabel": "89%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 89,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1013",
@@ -956,10 +1272,14 @@
       "title": "Counterfeit Dollar",
       "url": "http://bailian.openjudge.cn/practice/1013/",
       "topic": "枚举、递归与搜索",
-      "level": 3,
+      "level": 1,
       "knowledge": "枚举、DFS、BFS、回溯、位运算",
       "rateLabel": "88%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 88,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1111",
@@ -968,10 +1288,14 @@
       "title": "Image Perimeters",
       "url": "http://bailian.openjudge.cn/practice/1111/",
       "topic": "枚举、递归与搜索",
-      "level": 3,
+      "level": 1,
       "knowledge": "枚举、DFS、BFS、回溯、位运算",
       "rateLabel": "87%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 87,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1145",
@@ -980,10 +1304,14 @@
       "title": "Tree Summing",
       "url": "http://bailian.openjudge.cn/practice/1145/",
       "topic": "枚举、递归与搜索",
-      "level": 3,
+      "level": 1,
       "knowledge": "枚举、DFS、BFS、回溯、位运算",
       "rateLabel": "85%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 85,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1564",
@@ -992,10 +1320,14 @@
       "title": "Sum It Up",
       "url": "http://bailian.openjudge.cn/practice/1564/",
       "topic": "枚举、递归与搜索",
-      "level": 3,
+      "level": 1,
       "knowledge": "枚举、DFS、BFS、回溯、位运算",
       "rateLabel": "86%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 86,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1753",
@@ -1004,10 +1336,14 @@
       "title": "Flip Game",
       "url": "http://bailian.openjudge.cn/practice/1753/",
       "topic": "枚举、递归与搜索",
-      "level": 4,
+      "level": 1,
       "knowledge": "枚举、DFS、BFS、回溯、位运算",
       "rateLabel": "89%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 4,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 89,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1840",
@@ -1016,10 +1352,14 @@
       "title": "Eqs",
       "url": "http://bailian.openjudge.cn/practice/1840/",
       "topic": "枚举、递归与搜索",
-      "level": 4,
+      "level": 1,
       "knowledge": "枚举、DFS、BFS、回溯、位运算",
       "rateLabel": "88%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 4,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 88,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1856",
@@ -1028,10 +1368,14 @@
       "title": "Sea Battle",
       "url": "http://bailian.openjudge.cn/practice/1856/",
       "topic": "枚举、递归与搜索",
-      "level": 3,
+      "level": 1,
       "knowledge": "枚举、DFS、BFS、回溯、位运算",
       "rateLabel": "89%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 89,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2002",
@@ -1040,10 +1384,14 @@
       "title": "正方形",
       "url": "http://bailian.openjudge.cn/practice/2002/",
       "topic": "枚举、递归与搜索",
-      "level": 3,
+      "level": 1,
       "knowledge": "枚举、DFS、BFS、回溯、位运算",
       "rateLabel": "79%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 79,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2196",
@@ -1052,10 +1400,14 @@
       "title": "Specialized Four-Digit Numbers",
       "url": "http://bailian.openjudge.cn/practice/2196/",
       "topic": "枚举、递归与搜索",
-      "level": 3,
+      "level": 1,
       "knowledge": "枚举、DFS、BFS、回溯、位运算",
       "rateLabel": "89%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 89,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2225",
@@ -1064,10 +1416,14 @@
       "title": "Asteroids!",
       "url": "http://bailian.openjudge.cn/practice/2225/",
       "topic": "枚举、递归与搜索",
-      "level": 3,
+      "level": 1,
       "knowledge": "枚举、DFS、BFS、回溯、位运算",
       "rateLabel": "78%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 78,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2362",
@@ -1076,10 +1432,14 @@
       "title": "Square",
       "url": "http://bailian.openjudge.cn/practice/2362/",
       "topic": "枚举、递归与搜索",
-      "level": 4,
+      "level": 1,
       "knowledge": "枚举、DFS、BFS、回溯、位运算",
       "rateLabel": "83%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 4,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 83,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2488",
@@ -1088,10 +1448,14 @@
       "title": "A Knight's Journey",
       "url": "http://bailian.openjudge.cn/practice/2488/",
       "topic": "枚举、递归与搜索",
-      "level": 4,
+      "level": 1,
       "knowledge": "枚举、DFS、BFS、回溯、位运算",
       "rateLabel": "87%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 4,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 87,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2526",
@@ -1100,10 +1464,14 @@
       "title": "Center of symmetry",
       "url": "http://bailian.openjudge.cn/practice/2526/",
       "topic": "枚举、递归与搜索",
-      "level": 3,
+      "level": 1,
       "knowledge": "枚举、DFS、BFS、回溯、位运算",
       "rateLabel": "88%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 88,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2531",
@@ -1112,10 +1480,14 @@
       "title": "Network Saboteur",
       "url": "http://bailian.openjudge.cn/practice/2531/",
       "topic": "枚举、递归与搜索",
-      "level": 3,
+      "level": 1,
       "knowledge": "枚举、DFS、BFS、回溯、位运算",
       "rateLabel": "89%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 89,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2606",
@@ -1124,10 +1496,14 @@
       "title": "Rabbit hunt",
       "url": "http://bailian.openjudge.cn/practice/2606/",
       "topic": "枚举、递归与搜索",
-      "level": 3,
+      "level": 1,
       "knowledge": "枚举、DFS、BFS、回溯、位运算",
       "rateLabel": "88%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 88,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2698",
@@ -1136,10 +1512,14 @@
       "title": "八皇后问题",
       "url": "http://bailian.openjudge.cn/practice/2698/",
       "topic": "枚举、递归与搜索",
-      "level": 3,
+      "level": 1,
       "knowledge": "枚举、DFS、BFS、回溯、位运算",
       "rateLabel": "78%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 78,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2787",
@@ -1148,10 +1528,14 @@
       "title": "算24",
       "url": "http://bailian.openjudge.cn/practice/2787/",
       "topic": "枚举、递归与搜索",
-      "level": 4,
+      "level": 1,
       "knowledge": "枚举、DFS、BFS、回溯、位运算",
       "rateLabel": "88%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 4,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 88,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2811",
@@ -1160,10 +1544,14 @@
       "title": "熄灯问题",
       "url": "http://bailian.openjudge.cn/practice/2811/",
       "topic": "枚举、递归与搜索",
-      "level": 4,
+      "level": 1,
       "knowledge": "枚举、DFS、BFS、回溯、位运算",
       "rateLabel": "87%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 4,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 87,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2813",
@@ -1172,10 +1560,14 @@
       "title": "画家问题",
       "url": "http://bailian.openjudge.cn/practice/2813/",
       "topic": "枚举、递归与搜索",
-      "level": 4,
+      "level": 1,
       "knowledge": "枚举、DFS、BFS、回溯、位运算",
       "rateLabel": "88%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 4,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 88,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2982",
@@ -1184,10 +1576,14 @@
       "title": "Sudoku",
       "url": "http://bailian.openjudge.cn/practice/2982/",
       "topic": "枚举、递归与搜索",
-      "level": 3,
+      "level": 1,
       "knowledge": "枚举、DFS、BFS、回溯、位运算",
       "rateLabel": "81%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 81,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:3404",
@@ -1196,10 +1592,14 @@
       "title": "Avoid The Lakes",
       "url": "http://bailian.openjudge.cn/practice/3404/",
       "topic": "枚举、递归与搜索",
-      "level": 3,
+      "level": 1,
       "knowledge": "枚举、DFS、BFS、回溯、位运算",
       "rateLabel": "89%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 89,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:3723",
@@ -1208,10 +1608,14 @@
       "title": "围棋",
       "url": "http://bailian.openjudge.cn/practice/3723/",
       "topic": "枚举、递归与搜索",
-      "level": 3,
+      "level": 1,
       "knowledge": "枚举、DFS、BFS、回溯、位运算",
       "rateLabel": "88%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 88,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:3726",
@@ -1220,10 +1624,14 @@
       "title": "仙岛求药",
       "url": "http://bailian.openjudge.cn/practice/3726/",
       "topic": "枚举、递归与搜索",
-      "level": 3,
+      "level": 1,
       "knowledge": "枚举、DFS、BFS、回溯、位运算",
       "rateLabel": "84%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 84,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:3865",
@@ -1232,10 +1640,14 @@
       "title": "肿瘤检测",
       "url": "http://bailian.openjudge.cn/practice/3865/",
       "topic": "枚举、递归与搜索",
-      "level": 3,
+      "level": 1,
       "knowledge": "枚举、DFS、BFS、回溯、位运算",
       "rateLabel": "89%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 89,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:4001",
@@ -1244,10 +1656,14 @@
       "title": "抓住那头牛",
       "url": "http://bailian.openjudge.cn/practice/4001/",
       "topic": "枚举、递归与搜索",
-      "level": 3,
+      "level": 1,
       "knowledge": "枚举、DFS、BFS、回溯、位运算",
       "rateLabel": "88%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 88,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:4115",
@@ -1256,10 +1672,14 @@
       "title": "鸣人和佐助",
       "url": "http://bailian.openjudge.cn/practice/4115/",
       "topic": "枚举、递归与搜索",
-      "level": 4,
+      "level": 1,
       "knowledge": "枚举、DFS、BFS、回溯、位运算",
       "rateLabel": "87%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 4,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 87,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:4116",
@@ -1268,10 +1688,14 @@
       "title": "拯救行动",
       "url": "http://bailian.openjudge.cn/practice/4116/",
       "topic": "枚举、递归与搜索",
-      "level": 4,
+      "level": 1,
       "knowledge": "枚举、DFS、BFS、回溯、位运算",
       "rateLabel": "85%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 4,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 85,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:4133",
@@ -1280,10 +1704,14 @@
       "title": "垃圾炸弹",
       "url": "http://bailian.openjudge.cn/practice/4133/",
       "topic": "枚举、递归与搜索",
-      "level": 3,
+      "level": 1,
       "knowledge": "枚举、DFS、BFS、回溯、位运算",
       "rateLabel": "89%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 89,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1064",
@@ -1292,10 +1720,14 @@
       "title": "网线主管",
       "url": "http://bailian.openjudge.cn/practice/1064/",
       "topic": "双指针、前缀和、分治与二分",
-      "level": 3,
+      "level": 1,
       "knowledge": "双指针、前缀和、归并排序、二分查找、二分答案",
       "rateLabel": "83%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 83,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1089",
@@ -1304,10 +1736,14 @@
       "title": "Intervals",
       "url": "http://bailian.openjudge.cn/practice/1089/",
       "topic": "双指针、前缀和、分治与二分",
-      "level": 3,
+      "level": 1,
       "knowledge": "双指针、前缀和、归并排序、二分查找、二分答案",
       "rateLabel": "86%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 86,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1505",
@@ -1316,10 +1752,14 @@
       "title": "Copying Books",
       "url": "http://bailian.openjudge.cn/practice/1505/",
       "topic": "双指针、前缀和、分治与二分",
-      "level": 4,
+      "level": 1,
       "knowledge": "双指针、前缀和、归并排序、二分查找、二分答案",
       "rateLabel": "87%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 4,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 87,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1804",
@@ -1331,7 +1771,11 @@
       "level": 3,
       "knowledge": "双指针、前缀和、归并排序、二分查找、二分答案",
       "rateLabel": "41%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 41,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1828",
@@ -1340,10 +1784,14 @@
       "title": "Monkeys' Pride",
       "url": "http://bailian.openjudge.cn/practice/1828/",
       "topic": "双指针、前缀和、分治与二分",
-      "level": 3,
+      "level": 1,
       "knowledge": "双指针、前缀和、归并排序、二分查找、二分答案",
       "rateLabel": "84%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 84,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2018",
@@ -1352,10 +1800,14 @@
       "title": "Best Cow Fences",
       "url": "http://bailian.openjudge.cn/practice/2018/",
       "topic": "双指针、前缀和、分治与二分",
-      "level": 4,
+      "level": 1,
       "knowledge": "双指针、前缀和、归并排序、二分查找、二分答案",
       "rateLabel": "79%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 4,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 79,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2029",
@@ -1364,10 +1816,14 @@
       "title": "Get Many Persimmon Trees",
       "url": "http://bailian.openjudge.cn/practice/2029/",
       "topic": "双指针、前缀和、分治与二分",
-      "level": 3,
+      "level": 1,
       "knowledge": "双指针、前缀和、归并排序、二分查找、二分答案",
       "rateLabel": "88%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 88,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2100",
@@ -1376,10 +1832,14 @@
       "title": "Graveyard Design",
       "url": "http://bailian.openjudge.cn/practice/2100/",
       "topic": "双指针、前缀和、分治与二分",
-      "level": 3,
+      "level": 1,
       "knowledge": "双指针、前缀和、归并排序、二分查找、二分答案",
       "rateLabel": "72%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 72,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2140",
@@ -1388,10 +1848,14 @@
       "title": "Herd Sums",
       "url": "http://bailian.openjudge.cn/practice/2140/",
       "topic": "双指针、前缀和、分治与二分",
-      "level": 3,
+      "level": 1,
       "knowledge": "双指针、前缀和、归并排序、二分查找、二分答案",
       "rateLabel": "79%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 79,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2231",
@@ -1400,10 +1864,14 @@
       "title": "Moo Volume",
       "url": "http://bailian.openjudge.cn/practice/2231/",
       "topic": "双指针、前缀和、分治与二分",
-      "level": 3,
+      "level": 1,
       "knowledge": "双指针、前缀和、归并排序、二分查找、二分答案",
       "rateLabel": "83%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 83,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2299",
@@ -1412,10 +1880,14 @@
       "title": "Ultra-QuickSort",
       "url": "http://bailian.openjudge.cn/practice/2299/",
       "topic": "双指针、前缀和、分治与二分",
-      "level": 3,
+      "level": 1,
       "knowledge": "双指针、前缀和、归并排序、二分查找、二分答案",
       "rateLabel": "84%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 84,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2356",
@@ -1424,10 +1896,14 @@
       "title": "Find a multiple",
       "url": "http://bailian.openjudge.cn/practice/2356/",
       "topic": "双指针、前缀和、分治与二分",
-      "level": 3,
+      "level": 1,
       "knowledge": "双指针、前缀和、归并排序、二分查找、二分答案",
       "rateLabel": "88%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 88,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2371",
@@ -1436,10 +1912,14 @@
       "title": "Questions and answers",
       "url": "http://bailian.openjudge.cn/practice/2371/",
       "topic": "双指针、前缀和、分治与二分",
-      "level": 3,
+      "level": 1,
       "knowledge": "双指针、前缀和、归并排序、二分查找、二分答案",
       "rateLabel": "79%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 79,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2507",
@@ -1448,10 +1928,14 @@
       "title": "Crossed ladders",
       "url": "http://bailian.openjudge.cn/practice/2507/",
       "topic": "双指针、前缀和、分治与二分",
-      "level": 3,
+      "level": 1,
       "knowledge": "双指针、前缀和、归并排序、二分查找、二分答案",
       "rateLabel": "82%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 82,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2549",
@@ -1460,10 +1944,14 @@
       "title": "Sumsets",
       "url": "http://bailian.openjudge.cn/practice/2549/",
       "topic": "双指针、前缀和、分治与二分",
-      "level": 4,
+      "level": 1,
       "knowledge": "双指针、前缀和、归并排序、二分查找、二分答案",
       "rateLabel": "79%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 4,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 79,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2620",
@@ -1472,10 +1960,14 @@
       "title": "Minimal coverage",
       "url": "http://bailian.openjudge.cn/practice/2620/",
       "topic": "双指针、前缀和、分治与二分",
-      "level": 3,
+      "level": 4,
       "knowledge": "双指针、前缀和、归并排序、二分查找、二分答案",
       "rateLabel": "14%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "较难",
+      "acceptanceRate": 14,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2623",
@@ -1484,10 +1976,14 @@
       "title": "Sequence Median",
       "url": "http://bailian.openjudge.cn/practice/2623/",
       "topic": "双指针、前缀和、分治与二分",
-      "level": 3,
+      "level": 1,
       "knowledge": "双指针、前缀和、归并排序、二分查找、二分答案",
       "rateLabel": "85%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 85,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2774",
@@ -1496,10 +1992,14 @@
       "title": "木材加工",
       "url": "http://bailian.openjudge.cn/practice/2774/",
       "topic": "双指针、前缀和、分治与二分",
-      "level": 3,
+      "level": 1,
       "knowledge": "双指针、前缀和、归并排序、二分查找、二分答案",
       "rateLabel": "87%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 87,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:3703",
@@ -1508,10 +2008,14 @@
       "title": "寻找平面上的极大点",
       "url": "http://bailian.openjudge.cn/practice/3703/",
       "topic": "双指针、前缀和、分治与二分",
-      "level": 3,
+      "level": 1,
       "knowledge": "双指针、前缀和、归并排序、二分查找、二分答案",
       "rateLabel": "89%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 89,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:4031",
@@ -1520,10 +2024,14 @@
       "title": "瑞士轮",
       "url": "http://bailian.openjudge.cn/practice/4031/",
       "topic": "双指针、前缀和、分治与二分",
-      "level": 3,
+      "level": 2,
       "knowledge": "双指针、前缀和、归并排序、二分查找、二分答案",
       "rateLabel": "69%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 69,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:4034",
@@ -1532,10 +2040,14 @@
       "title": "选择客栈",
       "url": "http://bailian.openjudge.cn/practice/4034/",
       "topic": "双指针、前缀和、分治与二分",
-      "level": 3,
+      "level": 1,
       "knowledge": "双指针、前缀和、归并排序、二分查找、二分答案",
       "rateLabel": "83%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 83,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:4037",
@@ -1544,10 +2056,14 @@
       "title": "聪明的质监员",
       "url": "http://bailian.openjudge.cn/practice/4037/",
       "topic": "双指针、前缀和、分治与二分",
-      "level": 4,
+      "level": 2,
       "knowledge": "双指针、前缀和、归并排序、二分查找、二分答案",
       "rateLabel": "64%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 4,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 64,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:4134",
@@ -1556,10 +2072,14 @@
       "title": "查找最接近的元素",
       "url": "http://bailian.openjudge.cn/practice/4134/",
       "topic": "双指针、前缀和、分治与二分",
-      "level": 3,
+      "level": 1,
       "knowledge": "双指针、前缀和、归并排序、二分查找、二分答案",
       "rateLabel": "85%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 85,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:4136",
@@ -1568,10 +2088,14 @@
       "title": "矩形分割",
       "url": "http://bailian.openjudge.cn/practice/4136/",
       "topic": "双指针、前缀和、分治与二分",
-      "level": 4,
+      "level": 1,
       "knowledge": "双指针、前缀和、归并排序、二分查找、二分答案",
       "rateLabel": "75%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 4,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 75,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:4143",
@@ -1580,10 +2104,14 @@
       "title": "和为给定数",
       "url": "http://bailian.openjudge.cn/practice/4143/",
       "topic": "双指针、前缀和、分治与二分",
-      "level": 3,
+      "level": 1,
       "knowledge": "双指针、前缀和、归并排序、二分查找、二分答案",
       "rateLabel": "86%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 86,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1017",
@@ -1592,10 +2120,14 @@
       "title": "装箱问题",
       "url": "http://bailian.openjudge.cn/practice/1017/",
       "topic": "贪心及基础图算法",
-      "level": 3,
+      "level": 1,
       "knowledge": "排序贪心、区间、堆、并查集、BFS、拓扑排序、最小生成树",
       "rateLabel": "84%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 84,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1018",
@@ -1604,10 +2136,14 @@
       "title": "Communication System",
       "url": "http://bailian.openjudge.cn/practice/1018/",
       "topic": "贪心及基础图算法",
-      "level": 3,
+      "level": 1,
       "knowledge": "排序贪心、区间、堆、并查集、BFS、拓扑排序、最小生成树",
       "rateLabel": "85%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 85,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1042",
@@ -1616,10 +2152,14 @@
       "title": "Gone Fishing",
       "url": "http://bailian.openjudge.cn/practice/1042/",
       "topic": "贪心及基础图算法",
-      "level": 4,
+      "level": 1,
       "knowledge": "排序贪心、区间、堆、并查集、BFS、拓扑排序、最小生成树",
       "rateLabel": "88%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 4,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 88,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1065",
@@ -1628,10 +2168,14 @@
       "title": "Wooden Sticks",
       "url": "http://bailian.openjudge.cn/practice/1065/",
       "topic": "贪心及基础图算法",
-      "level": 3,
+      "level": 1,
       "knowledge": "排序贪心、区间、堆、并查集、BFS、拓扑排序、最小生成树",
       "rateLabel": "82%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 82,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1083",
@@ -1640,10 +2184,14 @@
       "title": "Moving Tables",
       "url": "http://bailian.openjudge.cn/practice/1083/",
       "topic": "贪心及基础图算法",
-      "level": 3,
+      "level": 1,
       "knowledge": "排序贪心、区间、堆、并查集、BFS、拓扑排序、最小生成树",
       "rateLabel": "89%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 89,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1258",
@@ -1652,10 +2200,14 @@
       "title": "Agri-Net",
       "url": "http://bailian.openjudge.cn/practice/1258/",
       "topic": "贪心及基础图算法",
-      "level": 3,
+      "level": 1,
       "knowledge": "排序贪心、区间、堆、并查集、BFS、拓扑排序、最小生成树",
       "rateLabel": "89%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 89,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1308",
@@ -1664,10 +2216,14 @@
       "title": "Is It A Tree?",
       "url": "http://bailian.openjudge.cn/practice/1308/",
       "topic": "贪心及基础图算法",
-      "level": 3,
+      "level": 1,
       "knowledge": "排序贪心、区间、堆、并查集、BFS、拓扑排序、最小生成树",
       "rateLabel": "81%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 81,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1328",
@@ -1676,10 +2232,14 @@
       "title": "Radar Installation",
       "url": "http://bailian.openjudge.cn/practice/1328/",
       "topic": "贪心及基础图算法",
-      "level": 3,
+      "level": 1,
       "knowledge": "排序贪心、区间、堆、并查集、BFS、拓扑排序、最小生成树",
       "rateLabel": "84%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 84,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1456",
@@ -1688,10 +2248,14 @@
       "title": "Supermarket",
       "url": "http://bailian.openjudge.cn/practice/1456/",
       "topic": "贪心及基础图算法",
-      "level": 3,
+      "level": 1,
       "knowledge": "排序贪心、区间、堆、并查集、BFS、拓扑排序、最小生成树",
       "rateLabel": "73%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 73,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1716",
@@ -1700,10 +2264,14 @@
       "title": "Integer Intervals",
       "url": "http://bailian.openjudge.cn/practice/1716/",
       "topic": "贪心及基础图算法",
-      "level": 3,
+      "level": 1,
       "knowledge": "排序贪心、区间、堆、并查集、BFS、拓扑排序、最小生成树",
       "rateLabel": "73%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 73,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1723",
@@ -1712,10 +2280,14 @@
       "title": "SOLDIERS",
       "url": "http://bailian.openjudge.cn/practice/1723/",
       "topic": "贪心及基础图算法",
-      "level": 3,
+      "level": 1,
       "knowledge": "排序贪心、区间、堆、并查集、BFS、拓扑排序、最小生成树",
       "rateLabel": "87%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 87,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2370",
@@ -1724,10 +2296,14 @@
       "title": "Democracy in danger",
       "url": "http://bailian.openjudge.cn/practice/2370/",
       "topic": "贪心及基础图算法",
-      "level": 3,
+      "level": 1,
       "knowledge": "排序贪心、区间、堆、并查集、BFS、拓扑排序、最小生成树",
       "rateLabel": "89%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 89,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2376",
@@ -1736,10 +2312,14 @@
       "title": "Cleaning Shifts",
       "url": "http://bailian.openjudge.cn/practice/2376/",
       "topic": "贪心及基础图算法",
-      "level": 3,
+      "level": 1,
       "knowledge": "排序贪心、区间、堆、并查集、BFS、拓扑排序、最小生成树",
       "rateLabel": "82%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 82,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2395",
@@ -1748,10 +2328,14 @@
       "title": "Out of Hay",
       "url": "http://bailian.openjudge.cn/practice/2395/",
       "topic": "贪心及基础图算法",
-      "level": 3,
+      "level": 2,
       "knowledge": "排序贪心、区间、堆、并查集、BFS、拓扑排序、最小生成树",
       "rateLabel": "69%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 69,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2431",
@@ -1760,10 +2344,14 @@
       "title": "Expedition",
       "url": "http://bailian.openjudge.cn/practice/2431/",
       "topic": "贪心及基础图算法",
-      "level": 4,
+      "level": 1,
       "knowledge": "排序贪心、区间、堆、并查集、BFS、拓扑排序、最小生成树",
       "rateLabel": "89%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 4,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 89,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2487",
@@ -1772,10 +2360,14 @@
       "title": "Stamps",
       "url": "http://bailian.openjudge.cn/practice/2487/",
       "topic": "贪心及基础图算法",
-      "level": 3,
+      "level": 1,
       "knowledge": "排序贪心、区间、堆、并查集、BFS、拓扑排序、最小生成树",
       "rateLabel": "87%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 87,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2492",
@@ -1784,10 +2376,14 @@
       "title": "A Bug's Life",
       "url": "http://bailian.openjudge.cn/practice/2492/",
       "topic": "贪心及基础图算法",
-      "level": 3,
+      "level": 1,
       "knowledge": "排序贪心、区间、堆、并查集、BFS、拓扑排序、最小生成树",
       "rateLabel": "85%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 85,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2560",
@@ -1796,10 +2392,14 @@
       "title": "Freckles",
       "url": "http://bailian.openjudge.cn/practice/2560/",
       "topic": "贪心及基础图算法",
-      "level": 3,
+      "level": 1,
       "knowledge": "排序贪心、区间、堆、并查集、BFS、拓扑排序、最小生成树",
       "rateLabel": "87%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 87,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2778",
@@ -1808,10 +2408,14 @@
       "title": "Ride to School",
       "url": "http://bailian.openjudge.cn/practice/2778/",
       "topic": "贪心及基础图算法",
-      "level": 3,
+      "level": 1,
       "knowledge": "排序贪心、区间、堆、并查集、BFS、拓扑排序、最小生成树",
       "rateLabel": "80%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 80,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2795",
@@ -1820,10 +2424,14 @@
       "title": "金银岛",
       "url": "http://bailian.openjudge.cn/practice/2795/",
       "topic": "贪心及基础图算法",
-      "level": 3,
+      "level": 1,
       "knowledge": "排序贪心、区间、堆、并查集、BFS、拓扑排序、最小生成树",
       "rateLabel": "88%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 88,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:3151",
@@ -1832,10 +2440,14 @@
       "title": "Pots",
       "url": "http://bailian.openjudge.cn/practice/3151/",
       "topic": "贪心及基础图算法",
-      "level": 3,
+      "level": 1,
       "knowledge": "排序贪心、区间、堆、并查集、BFS、拓扑排序、最小生成树",
       "rateLabel": "87%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 87,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:3374",
@@ -1844,10 +2456,14 @@
       "title": "Sunscreen",
       "url": "http://bailian.openjudge.cn/practice/3374/",
       "topic": "贪心及基础图算法",
-      "level": 4,
+      "level": 1,
       "knowledge": "排序贪心、区间、堆、并查集、BFS、拓扑排序、最小生成树",
       "rateLabel": "89%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 4,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 89,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:4005",
@@ -1856,10 +2472,14 @@
       "title": "拼点游戏",
       "url": "http://bailian.openjudge.cn/practice/4005/",
       "topic": "贪心及基础图算法",
-      "level": 3,
+      "level": 1,
       "knowledge": "排序贪心、区间、堆、并查集、BFS、拓扑排序、最小生成树",
       "rateLabel": "77%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 77,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:4084",
@@ -1868,10 +2488,14 @@
       "title": "拓扑排序",
       "url": "http://bailian.openjudge.cn/practice/4084/",
       "topic": "贪心及基础图算法",
-      "level": 3,
+      "level": 1,
       "knowledge": "排序贪心、区间、堆、并查集、BFS、拓扑排序、最小生成树",
       "rateLabel": "84%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 84,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:4137",
@@ -1880,10 +2504,14 @@
       "title": "最小新整数",
       "url": "http://bailian.openjudge.cn/practice/4137/",
       "topic": "贪心及基础图算法",
-      "level": 3,
+      "level": 1,
       "knowledge": "排序贪心、区间、堆、并查集、BFS、拓扑排序、最小生成树",
       "rateLabel": "89%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 89,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:4144",
@@ -1892,10 +2520,14 @@
       "title": "畜栏保留问题",
       "url": "http://bailian.openjudge.cn/practice/4144/",
       "topic": "贪心及基础图算法",
-      "level": 4,
+      "level": 1,
       "knowledge": "排序贪心、区间、堆、并查集、BFS、拓扑排序、最小生成树",
       "rateLabel": "84%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 4,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 84,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:4151",
@@ -1904,10 +2536,14 @@
       "title": "电影节",
       "url": "http://bailian.openjudge.cn/practice/4151/",
       "topic": "贪心及基础图算法",
-      "level": 3,
+      "level": 1,
       "knowledge": "排序贪心、区间、堆、并查集、BFS、拓扑排序、最小生成树",
       "rateLabel": "86%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 86,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1050",
@@ -1916,10 +2552,14 @@
       "title": "To the Max",
       "url": "http://bailian.openjudge.cn/practice/1050/",
       "topic": "线性、序列与路径动态规划",
-      "level": 3,
+      "level": 1,
       "knowledge": "DP 状态与转移、LIS/LCS、最大子段、网格路径、记忆化搜索",
       "rateLabel": "79%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 79,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1159",
@@ -1928,10 +2568,14 @@
       "title": "Palindrome",
       "url": "http://bailian.openjudge.cn/practice/1159/",
       "topic": "线性、序列与路径动态规划",
-      "level": 3,
+      "level": 1,
       "knowledge": "DP 状态与转移、LIS/LCS、最大子段、网格路径、记忆化搜索",
       "rateLabel": "83%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 83,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1173",
@@ -1940,10 +2584,14 @@
       "title": "Bar Codes",
       "url": "http://bailian.openjudge.cn/practice/1173/",
       "topic": "线性、序列与路径动态规划",
-      "level": 4,
+      "level": 1,
       "knowledge": "DP 状态与转移、LIS/LCS、最大子段、网格路径、记忆化搜索",
       "rateLabel": "82%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 4,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 82,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1260",
@@ -1952,10 +2600,14 @@
       "title": "Pearls",
       "url": "http://bailian.openjudge.cn/practice/1260/",
       "topic": "线性、序列与路径动态规划",
-      "level": 3,
+      "level": 1,
       "knowledge": "DP 状态与转移、LIS/LCS、最大子段、网格路径、记忆化搜索",
       "rateLabel": "89%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 89,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1609",
@@ -1964,10 +2616,14 @@
       "title": "Tiling Up Blocks",
       "url": "http://bailian.openjudge.cn/practice/1609/",
       "topic": "线性、序列与路径动态规划",
-      "level": 3,
+      "level": 1,
       "knowledge": "DP 状态与转移、LIS/LCS、最大子段、网格路径、记忆化搜索",
       "rateLabel": "89%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 89,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1717",
@@ -1976,10 +2632,14 @@
       "title": "Dominoes",
       "url": "http://bailian.openjudge.cn/practice/1717/",
       "topic": "线性、序列与路径动态规划",
-      "level": 4,
+      "level": 1,
       "knowledge": "DP 状态与转移、LIS/LCS、最大子段、网格路径、记忆化搜索",
       "rateLabel": "81%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 4,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 81,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1745",
@@ -1988,10 +2648,14 @@
       "title": "Divisibility",
       "url": "http://bailian.openjudge.cn/practice/1745/",
       "topic": "线性、序列与路径动态规划",
-      "level": 3,
+      "level": 1,
       "knowledge": "DP 状态与转移、LIS/LCS、最大子段、网格路径、记忆化搜索",
       "rateLabel": "87%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 87,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1836",
@@ -2000,10 +2664,14 @@
       "title": "Alignment",
       "url": "http://bailian.openjudge.cn/practice/1836/",
       "topic": "线性、序列与路径动态规划",
-      "level": 3,
+      "level": 1,
       "knowledge": "DP 状态与转移、LIS/LCS、最大子段、网格路径、记忆化搜索",
       "rateLabel": "86%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 86,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1887",
@@ -2012,10 +2680,14 @@
       "title": "Testing the CATCHER",
       "url": "http://bailian.openjudge.cn/practice/1887/",
       "topic": "线性、序列与路径动态规划",
-      "level": 3,
+      "level": 1,
       "knowledge": "DP 状态与转移、LIS/LCS、最大子段、网格路径、记忆化搜索",
       "rateLabel": "89%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 89,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1949",
@@ -2024,10 +2696,14 @@
       "title": "Chores",
       "url": "http://bailian.openjudge.cn/practice/1949/",
       "topic": "线性、序列与路径动态规划",
-      "level": 3,
+      "level": 1,
       "knowledge": "DP 状态与转移、LIS/LCS、最大子段、网格路径、记忆化搜索",
       "rateLabel": "86%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 86,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1953",
@@ -2036,10 +2712,14 @@
       "title": "World Cup Noise",
       "url": "http://bailian.openjudge.cn/practice/1953/",
       "topic": "线性、序列与路径动态规划",
-      "level": 3,
+      "level": 1,
       "knowledge": "DP 状态与转移、LIS/LCS、最大子段、网格路径、记忆化搜索",
       "rateLabel": "89%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 89,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1958",
@@ -2048,10 +2728,14 @@
       "title": "Strange Towers of Hanoi",
       "url": "http://bailian.openjudge.cn/practice/1958/",
       "topic": "线性、序列与路径动态规划",
-      "level": 3,
+      "level": 1,
       "knowledge": "DP 状态与转移、LIS/LCS、最大子段、网格路径、记忆化搜索",
       "rateLabel": "85%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 85,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2033",
@@ -2060,10 +2744,14 @@
       "title": "Alphacode",
       "url": "http://bailian.openjudge.cn/practice/2033/",
       "topic": "线性、序列与路径动态规划",
-      "level": 3,
+      "level": 1,
       "knowledge": "DP 状态与转移、LIS/LCS、最大子段、网格路径、记忆化搜索",
       "rateLabel": "75%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 75,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2192",
@@ -2072,10 +2760,14 @@
       "title": "Zipper",
       "url": "http://bailian.openjudge.cn/practice/2192/",
       "topic": "线性、序列与路径动态规划",
-      "level": 3,
+      "level": 1,
       "knowledge": "DP 状态与转移、LIS/LCS、最大子段、网格路径、记忆化搜索",
       "rateLabel": "85%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 85,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2241",
@@ -2084,10 +2776,14 @@
       "title": "The Tower of Babylon",
       "url": "http://bailian.openjudge.cn/practice/2241/",
       "topic": "线性、序列与路径动态规划",
-      "level": 3,
+      "level": 1,
       "knowledge": "DP 状态与转移、LIS/LCS、最大子段、网格路径、记忆化搜索",
       "rateLabel": "87%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 87,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2264",
@@ -2096,10 +2792,14 @@
       "title": "Advanced Fruits",
       "url": "http://bailian.openjudge.cn/practice/2264/",
       "topic": "线性、序列与路径动态规划",
-      "level": 3,
+      "level": 1,
       "knowledge": "DP 状态与转移、LIS/LCS、最大子段、网格路径、记忆化搜索",
       "rateLabel": "87%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 87,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2346",
@@ -2108,10 +2808,14 @@
       "title": "Lucky tickets",
       "url": "http://bailian.openjudge.cn/practice/2346/",
       "topic": "线性、序列与路径动态规划",
-      "level": 3,
+      "level": 1,
       "knowledge": "DP 状态与转移、LIS/LCS、最大子段、网格路径、记忆化搜索",
       "rateLabel": "85%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 85,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2355",
@@ -2120,10 +2824,14 @@
       "title": "Railway tickets",
       "url": "http://bailian.openjudge.cn/practice/2355/",
       "topic": "线性、序列与路径动态规划",
-      "level": 4,
+      "level": 1,
       "knowledge": "DP 状态与转移、LIS/LCS、最大子段、网格路径、记忆化搜索",
       "rateLabel": "86%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 4,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 86,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2385",
@@ -2132,10 +2840,14 @@
       "title": "Apple Catching",
       "url": "http://bailian.openjudge.cn/practice/2385/",
       "topic": "线性、序列与路径动态规划",
-      "level": 3,
+      "level": 1,
       "knowledge": "DP 状态与转移、LIS/LCS、最大子段、网格路径、记忆化搜索",
       "rateLabel": "82%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 82,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2479",
@@ -2144,10 +2856,14 @@
       "title": "Maximum sum",
       "url": "http://bailian.openjudge.cn/practice/2479/",
       "topic": "线性、序列与路径动态规划",
-      "level": 3,
+      "level": 1,
       "knowledge": "DP 状态与转移、LIS/LCS、最大子段、网格路径、记忆化搜索",
       "rateLabel": "84%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 84,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2711",
@@ -2156,10 +2872,14 @@
       "title": "合唱队形",
       "url": "http://bailian.openjudge.cn/practice/2711/",
       "topic": "线性、序列与路径动态规划",
-      "level": 3,
+      "level": 1,
       "knowledge": "DP 状态与转移、LIS/LCS、最大子段、网格路径、记忆化搜索",
       "rateLabel": "89%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 89,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2758",
@@ -2168,10 +2888,14 @@
       "title": "菲波那契数列(2)",
       "url": "http://bailian.openjudge.cn/practice/2758/",
       "topic": "线性、序列与路径动态规划",
-      "level": 3,
+      "level": 1,
       "knowledge": "DP 状态与转移、LIS/LCS、最大子段、网格路径、记忆化搜索",
       "rateLabel": "81%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 81,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2786",
@@ -2180,10 +2904,14 @@
       "title": "Pell数列",
       "url": "http://bailian.openjudge.cn/practice/2786/",
       "topic": "线性、序列与路径动态规划",
-      "level": 3,
+      "level": 1,
       "knowledge": "DP 状态与转移、LIS/LCS、最大子段、网格路径、记忆化搜索",
       "rateLabel": "89%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 89,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2995",
@@ -2192,10 +2920,14 @@
       "title": "登山",
       "url": "http://bailian.openjudge.cn/practice/2995/",
       "topic": "线性、序列与路径动态规划",
-      "level": 3,
+      "level": 1,
       "knowledge": "DP 状态与转移、LIS/LCS、最大子段、网格路径、记忆化搜索",
       "rateLabel": "82%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 82,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:3004",
@@ -2204,10 +2936,14 @@
       "title": "Cow Pie Treasures",
       "url": "http://bailian.openjudge.cn/practice/3004/",
       "topic": "线性、序列与路径动态规划",
-      "level": 3,
+      "level": 1,
       "knowledge": "DP 状态与转移、LIS/LCS、最大子段、网格路径、记忆化搜索",
       "rateLabel": "84%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 84,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:3453",
@@ -2216,10 +2952,14 @@
       "title": "雷涛的小猫",
       "url": "http://bailian.openjudge.cn/practice/3453/",
       "topic": "线性、序列与路径动态规划",
-      "level": 4,
+      "level": 1,
       "knowledge": "DP 状态与转移、LIS/LCS、最大子段、网格路径、记忆化搜索",
       "rateLabel": "81%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 4,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 81,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:4007",
@@ -2228,10 +2968,14 @@
       "title": "计算字符串距离",
       "url": "http://bailian.openjudge.cn/practice/4007/",
       "topic": "线性、序列与路径动态规划",
-      "level": 3,
+      "level": 1,
       "knowledge": "DP 状态与转移、LIS/LCS、最大子段、网格路径、记忆化搜索",
       "rateLabel": "71%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 71,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:4117",
@@ -2240,10 +2984,14 @@
       "title": "简单的整数划分问题",
       "url": "http://bailian.openjudge.cn/practice/4117/",
       "topic": "线性、序列与路径动态规划",
-      "level": 3,
+      "level": 1,
       "knowledge": "DP 状态与转移、LIS/LCS、最大子段、网格路径、记忆化搜索",
       "rateLabel": "88%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 88,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:4119",
@@ -2252,10 +3000,14 @@
       "title": "复杂的整数划分问题",
       "url": "http://bailian.openjudge.cn/practice/4119/",
       "topic": "线性、序列与路径动态规划",
-      "level": 3,
+      "level": 1,
       "knowledge": "DP 状态与转移、LIS/LCS、最大子段、网格路径、记忆化搜索",
       "rateLabel": "88%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 88,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:4152",
@@ -2264,10 +3016,14 @@
       "title": "最佳加法表达式",
       "url": "http://bailian.openjudge.cn/practice/4152/",
       "topic": "线性、序列与路径动态规划",
-      "level": 4,
+      "level": 2,
       "knowledge": "DP 状态与转移、LIS/LCS、最大子段、网格路径、记忆化搜索",
       "rateLabel": "53%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 4,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 53,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1014",
@@ -2276,10 +3032,14 @@
       "title": "Dividing",
       "url": "http://bailian.openjudge.cn/practice/1014/",
       "topic": "背包及其常见变形",
-      "level": 4,
+      "level": 1,
       "knowledge": "0/1 背包、完全背包、多重背包、二维费用、方案计数",
       "rateLabel": "78%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 4,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 78,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1276",
@@ -2288,10 +3048,14 @@
       "title": "Cash Machine",
       "url": "http://bailian.openjudge.cn/practice/1276/",
       "topic": "背包及其常见变形",
-      "level": 4,
+      "level": 1,
       "knowledge": "0/1 背包、完全背包、多重背包、二维费用、方案计数",
       "rateLabel": "83%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 4,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 83,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1742",
@@ -2300,10 +3064,14 @@
       "title": "Coins",
       "url": "http://bailian.openjudge.cn/practice/1742/",
       "topic": "背包及其常见变形",
-      "level": 4,
+      "level": 1,
       "knowledge": "0/1 背包、完全背包、多重背包、二维费用、方案计数",
       "rateLabel": "79%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 4,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 79,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1787",
@@ -2312,10 +3080,14 @@
       "title": "Charlie's Change",
       "url": "http://bailian.openjudge.cn/practice/1787/",
       "topic": "背包及其常见变形",
-      "level": 4,
+      "level": 1,
       "knowledge": "0/1 背包、完全背包、多重背包、二维费用、方案计数",
       "rateLabel": "83%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 4,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 83,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2063",
@@ -2324,10 +3096,14 @@
       "title": "Investment",
       "url": "http://bailian.openjudge.cn/practice/2063/",
       "topic": "背包及其常见变形",
-      "level": 3,
+      "level": 1,
       "knowledge": "0/1 背包、完全背包、多重背包、二维费用、方案计数",
       "rateLabel": "89%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 89,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2184",
@@ -2336,10 +3112,14 @@
       "title": "Cow Exhibition",
       "url": "http://bailian.openjudge.cn/practice/2184/",
       "topic": "背包及其常见变形",
-      "level": 4,
+      "level": 1,
       "knowledge": "0/1 背包、完全背包、多重背包、二维费用、方案计数",
       "rateLabel": "89%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 4,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 89,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2229",
@@ -2348,10 +3128,14 @@
       "title": "Sumsets",
       "url": "http://bailian.openjudge.cn/practice/2229/",
       "topic": "背包及其常见变形",
-      "level": 3,
+      "level": 1,
       "knowledge": "0/1 背包、完全背包、多重背包、二维费用、方案计数",
       "rateLabel": "82%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 82,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2392",
@@ -2360,10 +3144,14 @@
       "title": "Space Elevator",
       "url": "http://bailian.openjudge.cn/practice/2392/",
       "topic": "背包及其常见变形",
-      "level": 4,
+      "level": 1,
       "knowledge": "0/1 背包、完全背包、多重背包、二维费用、方案计数",
       "rateLabel": "86%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 4,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 86,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2576",
@@ -2372,10 +3160,14 @@
       "title": "Tug of War",
       "url": "http://bailian.openjudge.cn/practice/2576/",
       "topic": "背包及其常见变形",
-      "level": 4,
+      "level": 1,
       "knowledge": "0/1 背包、完全背包、多重背包、二维费用、方案计数",
       "rateLabel": "85%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 4,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 85,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2609",
@@ -2384,10 +3176,14 @@
       "title": "Ferry Loading",
       "url": "http://bailian.openjudge.cn/practice/2609/",
       "topic": "背包及其常见变形",
-      "level": 4,
+      "level": 1,
       "knowledge": "0/1 背包、完全背包、多重背包、二维费用、方案计数",
       "rateLabel": "80%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 4,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 80,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2726",
@@ -2396,10 +3192,14 @@
       "title": "采药",
       "url": "http://bailian.openjudge.cn/practice/2726/",
       "topic": "背包及其常见变形",
-      "level": 3,
+      "level": 1,
       "knowledge": "0/1 背包、完全背包、多重背包、二维费用、方案计数",
       "rateLabel": "84%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 84,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2759",
@@ -2408,10 +3208,14 @@
       "title": "神奇的口袋(2)",
       "url": "http://bailian.openjudge.cn/practice/2759/",
       "topic": "背包及其常见变形",
-      "level": 3,
+      "level": 1,
       "knowledge": "0/1 背包、完全背包、多重背包、二维费用、方案计数",
       "rateLabel": "80%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 80,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2994",
@@ -2420,10 +3224,14 @@
       "title": "拼装模型",
       "url": "http://bailian.openjudge.cn/practice/2994/",
       "topic": "栈、队列、堆与基础树结构",
-      "level": 3,
+      "level": 1,
       "knowledge": "最小堆、Huffman 合并贪心",
       "rateLabel": "73%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 73,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:3714",
@@ -2432,10 +3240,14 @@
       "title": "点菜问题",
       "url": "http://bailian.openjudge.cn/practice/3714/",
       "topic": "背包及其常见变形",
-      "level": 3,
+      "level": 1,
       "knowledge": "0/1 背包、完全背包、多重背包、二维费用、方案计数",
       "rateLabel": "88%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 88,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:4004",
@@ -2444,10 +3256,14 @@
       "title": "数字组合",
       "url": "http://bailian.openjudge.cn/practice/4004/",
       "topic": "背包及其常见变形",
-      "level": 3,
+      "level": 1,
       "knowledge": "0/1 背包、完全背包、多重背包、二维费用、方案计数",
       "rateLabel": "82%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 82,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:4008",
@@ -2456,10 +3272,14 @@
       "title": "糖果",
       "url": "http://bailian.openjudge.cn/practice/4008/",
       "topic": "背包及其常见变形",
-      "level": 4,
+      "level": 1,
       "knowledge": "0/1 背包、完全背包、多重背包、二维费用、方案计数",
       "rateLabel": "82%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 4,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 82,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:4040",
@@ -2468,10 +3288,14 @@
       "title": "买书问题",
       "url": "http://bailian.openjudge.cn/practice/4040/",
       "topic": "背包及其常见变形",
-      "level": 3,
+      "level": 1,
       "knowledge": "0/1 背包、完全背包、多重背包、二维费用、方案计数",
       "rateLabel": "71%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 71,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:4102",
@@ -2480,10 +3304,14 @@
       "title": "宠物小精灵之收服",
       "url": "http://bailian.openjudge.cn/practice/4102/",
       "topic": "背包及其常见变形",
-      "level": 4,
+      "level": 1,
       "knowledge": "0/1 背包、完全背包、多重背包、二维费用、方案计数",
       "rateLabel": "86%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 4,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 86,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:4120",
@@ -2492,10 +3320,14 @@
       "title": "硬币",
       "url": "http://bailian.openjudge.cn/practice/4120/",
       "topic": "背包及其常见变形",
-      "level": 3,
+      "level": 1,
       "knowledge": "0/1 背包、完全背包、多重背包、二维费用、方案计数",
       "rateLabel": "83%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 83,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:4150",
@@ -2504,10 +3336,14 @@
       "title": "上机",
       "url": "http://bailian.openjudge.cn/practice/4150/",
       "topic": "背包及其常见变形",
-      "level": 4,
+      "level": 1,
       "knowledge": "0/1 背包、完全背包、多重背包、二维费用、方案计数",
       "rateLabel": "74%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 4,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 74,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1001",
@@ -2516,10 +3352,14 @@
       "title": "Exponentiation",
       "url": "http://bailian.openjudge.cn/practice/1001/",
       "topic": "基础数学、高精度与位运算",
-      "level": 3,
+      "level": 2,
       "knowledge": "进制、高精度、质数筛、组合数、快速幂、模运算",
       "rateLabel": "65%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 65,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1152",
@@ -2528,10 +3368,14 @@
       "title": "An Easy Problem!",
       "url": "http://bailian.openjudge.cn/practice/1152/",
       "topic": "基础数学、高精度与位运算",
-      "level": 3,
+      "level": 2,
       "knowledge": "进制、高精度、质数筛、组合数、快速幂、模运算",
       "rateLabel": "66%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 66,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1306",
@@ -2540,10 +3384,14 @@
       "title": "Combinations",
       "url": "http://bailian.openjudge.cn/practice/1306/",
       "topic": "基础数学、高精度与位运算",
-      "level": 3,
+      "level": 1,
       "knowledge": "进制、高精度、质数筛、组合数、快速幂、模运算",
       "rateLabel": "86%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 86,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1316",
@@ -2552,10 +3400,14 @@
       "title": "Self Numbers",
       "url": "http://bailian.openjudge.cn/practice/1316/",
       "topic": "基础数学、高精度与位运算",
-      "level": 3,
+      "level": 1,
       "knowledge": "进制、高精度、质数筛、组合数、快速幂、模运算",
       "rateLabel": "89%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 89,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1454",
@@ -2564,10 +3416,14 @@
       "title": "Factorial Frequencies",
       "url": "http://bailian.openjudge.cn/practice/1454/",
       "topic": "基础数学、高精度与位运算",
-      "level": 3,
+      "level": 1,
       "knowledge": "进制、高精度、质数筛、组合数、快速幂、模运算",
       "rateLabel": "89%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 89,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:1844",
@@ -2576,10 +3432,14 @@
       "title": "Sum",
       "url": "http://bailian.openjudge.cn/practice/1844/",
       "topic": "基础数学、高精度与位运算",
-      "level": 3,
+      "level": 1,
       "knowledge": "进制、高精度、质数筛、组合数、快速幂、模运算",
       "rateLabel": "87%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 87,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2109",
@@ -2588,10 +3448,14 @@
       "title": "Power of Cryptography",
       "url": "http://bailian.openjudge.cn/practice/2109/",
       "topic": "基础数学、高精度与位运算",
-      "level": 3,
+      "level": 1,
       "knowledge": "进制、高精度、质数筛、组合数、快速幂、模运算",
       "rateLabel": "89%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 89,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2249",
@@ -2600,10 +3464,14 @@
       "title": "Binomial Showdown",
       "url": "http://bailian.openjudge.cn/practice/2249/",
       "topic": "基础数学、高精度与位运算",
-      "level": 3,
+      "level": 1,
       "knowledge": "进制、高精度、质数筛、组合数、快速幂、模运算",
       "rateLabel": "74%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 74,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2262",
@@ -2612,10 +3480,14 @@
       "title": "Goldbach's Conjecture",
       "url": "http://bailian.openjudge.cn/practice/2262/",
       "topic": "基础数学、高精度与位运算",
-      "level": 3,
+      "level": 1,
       "knowledge": "进制、高精度、质数筛、组合数、快速幂、模运算",
       "rateLabel": "81%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 81,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2305",
@@ -2624,10 +3496,14 @@
       "title": "Basic remains",
       "url": "http://bailian.openjudge.cn/practice/2305/",
       "topic": "基础数学、高精度与位运算",
-      "level": 3,
+      "level": 1,
       "knowledge": "进制、高精度、质数筛、组合数、快速幂、模运算",
       "rateLabel": "80%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 80,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2407",
@@ -2636,10 +3512,14 @@
       "title": "Relatives",
       "url": "http://bailian.openjudge.cn/practice/2407/",
       "topic": "基础数学、高精度与位运算",
-      "level": 3,
+      "level": 1,
       "knowledge": "进制、高精度、质数筛、组合数、快速幂、模运算",
       "rateLabel": "83%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 83,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2413",
@@ -2648,10 +3528,14 @@
       "title": "How many Fibs?",
       "url": "http://bailian.openjudge.cn/practice/2413/",
       "topic": "基础数学、高精度与位运算",
-      "level": 3,
+      "level": 1,
       "knowledge": "进制、高精度、质数筛、组合数、快速幂、模运算",
       "rateLabel": "84%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 84,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2499",
@@ -2660,10 +3544,14 @@
       "title": "Binary Tree",
       "url": "http://bailian.openjudge.cn/practice/2499/",
       "topic": "基础数学、高精度与位运算",
-      "level": 3,
+      "level": 1,
       "knowledge": "进制、高精度、质数筛、组合数、快速幂、模运算",
       "rateLabel": "86%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 86,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2551",
@@ -2672,10 +3560,14 @@
       "title": "Ones",
       "url": "http://bailian.openjudge.cn/practice/2551/",
       "topic": "基础数学、高精度与位运算",
-      "level": 3,
+      "level": 1,
       "knowledge": "进制、高精度、质数筛、组合数、快速幂、模运算",
       "rateLabel": "88%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 88,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2590",
@@ -2684,10 +3576,14 @@
       "title": "Steps",
       "url": "http://bailian.openjudge.cn/practice/2590/",
       "topic": "基础数学、高精度与位运算",
-      "level": 3,
+      "level": 1,
       "knowledge": "进制、高精度、质数筛、组合数、快速幂、模运算",
       "rateLabel": "84%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 84,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2602",
@@ -2696,10 +3592,14 @@
       "title": "Superlong sums",
       "url": "http://bailian.openjudge.cn/practice/2602/",
       "topic": "基础数学、高精度与位运算",
-      "level": 3,
+      "level": 2,
       "knowledge": "进制、高精度、质数筛、组合数、快速幂、模运算",
       "rateLabel": "69%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 69,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2603",
@@ -2708,10 +3608,14 @@
       "title": "Brave balloonists",
       "url": "http://bailian.openjudge.cn/practice/2603/",
       "topic": "基础数学、高精度与位运算",
-      "level": 3,
+      "level": 1,
       "knowledge": "进制、高精度、质数筛、组合数、快速幂、模运算",
       "rateLabel": "85%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 85,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2635",
@@ -2720,10 +3624,14 @@
       "title": "The Embarrassed Cryptographer",
       "url": "http://bailian.openjudge.cn/practice/2635/",
       "topic": "基础数学、高精度与位运算",
-      "level": 3,
+      "level": 2,
       "knowledge": "进制、高精度、质数筛、组合数、快速幂、模运算",
       "rateLabel": "67%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 67,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2697",
@@ -2732,10 +3640,14 @@
       "title": "迭代法解方程",
       "url": "http://bailian.openjudge.cn/practice/2697/",
       "topic": "双指针、前缀和、分治与二分",
-      "level": 3,
+      "level": 1,
       "knowledge": "单调函数、浮点二分",
       "rateLabel": "86%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 86,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2731",
@@ -2744,10 +3656,14 @@
       "title": "求10000以内n的阶乘",
       "url": "http://bailian.openjudge.cn/practice/2731/",
       "topic": "基础数学、高精度与位运算",
-      "level": 3,
+      "level": 1,
       "knowledge": "进制、高精度、质数筛、组合数、快速幂、模运算",
       "rateLabel": "72%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 72,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2737",
@@ -2756,10 +3672,14 @@
       "title": "大整数除法",
       "url": "http://bailian.openjudge.cn/practice/2737/",
       "topic": "基础数学、高精度与位运算",
-      "level": 3,
+      "level": 1,
       "knowledge": "进制、高精度、质数筛、组合数、快速幂、模运算",
       "rateLabel": "84%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 84,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:2981",
@@ -2768,10 +3688,14 @@
       "title": "大整数加法",
       "url": "http://bailian.openjudge.cn/practice/2981/",
       "topic": "基础数学、高精度与位运算",
-      "level": 3,
+      "level": 1,
       "knowledge": "进制、高精度、质数筛、组合数、快速幂、模运算",
       "rateLabel": "87%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 87,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:3177",
@@ -2780,10 +3704,14 @@
       "title": "判决素数个数",
       "url": "http://bailian.openjudge.cn/practice/3177/",
       "topic": "基础数学、高精度与位运算",
-      "level": 3,
+      "level": 1,
       "knowledge": "进制、高精度、质数筛、组合数、快速幂、模运算",
       "rateLabel": "89%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 89,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:3247",
@@ -2792,10 +3720,14 @@
       "title": "回文素数",
       "url": "http://bailian.openjudge.cn/practice/3247/",
       "topic": "基础数学、高精度与位运算",
-      "level": 3,
+      "level": 2,
       "knowledge": "进制、高精度、质数筛、组合数、快速幂、模运算",
       "rateLabel": "60%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 60,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:3249",
@@ -2804,10 +3736,14 @@
       "title": "进制转换",
       "url": "http://bailian.openjudge.cn/practice/3249/",
       "topic": "基础数学、高精度与位运算",
-      "level": 3,
+      "level": 1,
       "knowledge": "进制、高精度、质数筛、组合数、快速幂、模运算",
       "rateLabel": "71%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 71,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:3710",
@@ -2816,10 +3752,14 @@
       "title": "有多少位不同",
       "url": "http://bailian.openjudge.cn/practice/3710/",
       "topic": "基础数学、高精度与位运算",
-      "level": 3,
+      "level": 1,
       "knowledge": "进制、高精度、质数筛、组合数、快速幂、模运算",
       "rateLabel": "88%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 88,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:4010",
@@ -2828,10 +3768,14 @@
       "title": "2011",
       "url": "http://bailian.openjudge.cn/practice/4010/",
       "topic": "基础数学、高精度与位运算",
-      "level": 3,
+      "level": 1,
       "knowledge": "进制、高精度、质数筛、组合数、快速幂、模运算",
       "rateLabel": "79%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 79,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "bailian:4036",
@@ -2840,10 +3784,14 @@
       "title": "计算系数",
       "url": "http://bailian.openjudge.cn/practice/4036/",
       "topic": "基础数学、高精度与位运算",
-      "level": 3,
+      "level": 1,
       "knowledge": "进制、高精度、质数筛、组合数、快速幂、模运算",
       "rateLabel": "78%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 78,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0201/15",
@@ -2855,7 +3803,11 @@
       "level": 3,
       "knowledge": "枚举、剪枝、位运算",
       "rateLabel": "34.91%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 34.91,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0201/1812",
@@ -2867,7 +3819,11 @@
       "level": 3,
       "knowledge": "枚举、剪枝、位运算",
       "rateLabel": "43.96%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 43.96,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0201/1813",
@@ -2876,10 +3832,14 @@
       "title": "熄灯问题",
       "url": "http://noi.openjudge.cn/ch0201/1813/",
       "topic": "枚举",
-      "level": 4,
+      "level": 2,
       "knowledge": "枚举、剪枝、位运算",
       "rateLabel": "54.40%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 4,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 54.4,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0201/1816",
@@ -2888,10 +3848,14 @@
       "title": "拨钟问题",
       "url": "http://noi.openjudge.cn/ch0201/1816/",
       "topic": "枚举",
-      "level": 4,
+      "level": 2,
       "knowledge": "枚举、剪枝、位运算",
       "rateLabel": "56.58%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 4,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 56.58,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0201/2722",
@@ -2903,7 +3867,11 @@
       "level": 3,
       "knowledge": "枚举、剪枝、位运算",
       "rateLabel": "37.26%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 37.26,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0201/6184",
@@ -2912,10 +3880,14 @@
       "title": "找和为K的两个元素",
       "url": "http://noi.openjudge.cn/ch0201/6184/",
       "topic": "枚举",
-      "level": 3,
+      "level": 2,
       "knowledge": "枚举、剪枝、位运算",
       "rateLabel": "58.34%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 58.34,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0201/7213",
@@ -2927,7 +3899,11 @@
       "level": 3,
       "knowledge": "枚举、剪枝、位运算",
       "rateLabel": "46.69%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 46.69,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0201/8755",
@@ -2936,10 +3912,14 @@
       "title": "砝码称重",
       "url": "http://noi.openjudge.cn/ch0201/8755/",
       "topic": "枚举",
-      "level": 3,
+      "level": 2,
       "knowledge": "多重背包、可达重量统计",
       "rateLabel": "53.58%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 53.58,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0202/1696",
@@ -2948,10 +3928,14 @@
       "title": "波兰表达式",
       "url": "http://noi.openjudge.cn/ch0202/1696/",
       "topic": "递归",
-      "level": 3,
+      "level": 2,
       "knowledge": "递归、回溯、递归边界",
       "rateLabel": "59.29%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 59.29,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0202/1750",
@@ -2960,10 +3944,14 @@
       "title": "全排列",
       "url": "http://noi.openjudge.cn/ch0202/1750/",
       "topic": "递归",
-      "level": 3,
+      "level": 2,
       "knowledge": "递归、回溯、递归边界",
       "rateLabel": "62.82%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 3,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 62.82,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0202/1751",
@@ -2972,10 +3960,14 @@
       "title": "分解因数",
       "url": "http://noi.openjudge.cn/ch0202/1751/",
       "topic": "递归",
-      "level": 3,
+      "level": 2,
       "knowledge": "递归、回溯、递归边界",
       "rateLabel": "54.46%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 3,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 54.46,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0202/1777",
@@ -2987,7 +3979,11 @@
       "level": 3,
       "knowledge": "递归、回溯、递归边界",
       "rateLabel": "35.70%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 35.7,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0202/2705",
@@ -2999,7 +3995,11 @@
       "level": 3,
       "knowledge": "递归、回溯、递归边界",
       "rateLabel": "49.61%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 49.61,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0202/6261",
@@ -3008,10 +4008,14 @@
       "title": "汉诺塔问题",
       "url": "http://noi.openjudge.cn/ch0202/6261/",
       "topic": "递归",
-      "level": 3,
+      "level": 2,
       "knowledge": "递归、回溯、递归边界",
       "rateLabel": "50.92%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 50.92,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0202/666",
@@ -3020,10 +4024,14 @@
       "title": "放苹果",
       "url": "http://noi.openjudge.cn/ch0202/666/",
       "topic": "递归",
-      "level": 3,
+      "level": 2,
       "knowledge": "递归、回溯、递归边界",
       "rateLabel": "55.32%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 3,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 55.32,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0202/8758",
@@ -3032,10 +4040,14 @@
       "title": "2的幂次方表示",
       "url": "http://noi.openjudge.cn/ch0202/8758/",
       "topic": "递归",
-      "level": 3,
+      "level": 2,
       "knowledge": "递归、回溯、递归边界",
       "rateLabel": "66.07%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 66.07,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0203/3525",
@@ -3047,7 +4059,11 @@
       "level": 2,
       "knowledge": "递推、DP、状态保存",
       "rateLabel": "56.20%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 56.2,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0203/6262",
@@ -3059,7 +4075,11 @@
       "level": 2,
       "knowledge": "递推、DP、状态保存",
       "rateLabel": "50.60%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 50.6,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0204/2991",
@@ -3071,7 +4091,11 @@
       "level": 3,
       "knowledge": "归并分治、排序、二分",
       "rateLabel": "44.77%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 44.77,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0204/7617",
@@ -3083,7 +4107,11 @@
       "level": 3,
       "knowledge": "归并分治、排序、二分",
       "rateLabel": "47.21%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 47.21,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0204/7620",
@@ -3095,7 +4123,11 @@
       "level": 3,
       "knowledge": "归并分治、排序、二分",
       "rateLabel": "37.50%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 3,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 37.5,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0204/7622",
@@ -3107,7 +4139,11 @@
       "level": 3,
       "knowledge": "归并分治、排序、二分",
       "rateLabel": "42.22%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 3,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 42.22,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0204/7891",
@@ -3119,7 +4155,11 @@
       "level": 3,
       "knowledge": "归并分治、排序、二分",
       "rateLabel": "44.39%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 44.39,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0205/1253",
@@ -3131,7 +4171,11 @@
       "level": 3,
       "knowledge": "DFS/BFS、访问状态、路径恢复",
       "rateLabel": "36.28%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 36.28,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0205/1388",
@@ -3140,10 +4184,14 @@
       "title": "Lake Counting",
       "url": "http://noi.openjudge.cn/ch0205/1388/",
       "topic": "搜索",
-      "level": 3,
+      "level": 2,
       "knowledge": "DFS/BFS、访问状态、路径恢复",
       "rateLabel": "53.20%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 53.2,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0205/156",
@@ -3155,7 +4203,11 @@
       "level": 3,
       "knowledge": "DFS/BFS、访问状态、路径恢复",
       "rateLabel": "40.84%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 40.84,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0205/1700",
@@ -3167,7 +4219,11 @@
       "level": 3,
       "knowledge": "DFS/BFS、访问状态、路径恢复",
       "rateLabel": "38.21%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 3,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 38.21,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0205/1789",
@@ -3176,10 +4232,14 @@
       "title": "算24",
       "url": "http://noi.openjudge.cn/ch0205/1789/",
       "topic": "搜索",
-      "level": 4,
+      "level": 3,
       "knowledge": "DFS/BFS、访问状态、路径恢复",
       "rateLabel": "39.41%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 4,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 39.41,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0205/1817",
@@ -3188,10 +4248,14 @@
       "title": "城堡问题",
       "url": "http://noi.openjudge.cn/ch0205/1817/",
       "topic": "搜索",
-      "level": 3,
+      "level": 2,
       "knowledge": "DFS/BFS、访问状态、路径恢复",
       "rateLabel": "64.82%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 64.82,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0205/1818",
@@ -3203,7 +4267,11 @@
       "level": 3,
       "knowledge": "DFS/BFS、访问状态、路径恢复",
       "rateLabel": "40.33%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 3,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 40.33,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0205/2152",
@@ -3212,10 +4280,14 @@
       "title": "Pots",
       "url": "http://noi.openjudge.cn/ch0205/2152/",
       "topic": "搜索",
-      "level": 3,
+      "level": 2,
       "knowledge": "DFS/BFS、访问状态、路径恢复",
       "rateLabel": "51.02%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 51.02,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0205/2971",
@@ -3227,7 +4299,11 @@
       "level": 3,
       "knowledge": "DFS/BFS、访问状态、路径恢复",
       "rateLabel": "31.75%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 3,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 31.75,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0205/323",
@@ -3239,7 +4315,11 @@
       "level": 3,
       "knowledge": "DFS/BFS、访问状态、路径恢复",
       "rateLabel": "48.57%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 48.57,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0205/4980",
@@ -3248,10 +4328,14 @@
       "title": "拯救行动",
       "url": "http://noi.openjudge.cn/ch0205/4980/",
       "topic": "搜索",
-      "level": 4,
+      "level": 3,
       "knowledge": "DFS/BFS、访问状态、路径恢复",
       "rateLabel": "30.03%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 4,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 30.03,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0205/6044",
@@ -3260,10 +4344,14 @@
       "title": "鸣人和佐助",
       "url": "http://noi.openjudge.cn/ch0205/6044/",
       "topic": "搜索",
-      "level": 4,
+      "level": 3,
       "knowledge": "DFS/BFS、访问状态、路径恢复",
       "rateLabel": "35.94%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 4,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 35.94,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0205/7084",
@@ -3272,10 +4360,14 @@
       "title": "迷宫问题",
       "url": "http://noi.openjudge.cn/ch0205/7084/",
       "topic": "搜索",
-      "level": 3,
+      "level": 2,
       "knowledge": "DFS/BFS、访问状态、路径恢复",
       "rateLabel": "54.30%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 3,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 54.3,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0205/8465",
@@ -3287,7 +4379,11 @@
       "level": 3,
       "knowledge": "DFS/BFS、访问状态、路径恢复",
       "rateLabel": "47.93%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 47.93,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0206/1759",
@@ -3299,7 +4395,11 @@
       "level": 3,
       "knowledge": "动态规划、状态设计、转移与空间优化",
       "rateLabel": "45.32%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 3,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 45.32,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0206/1768",
@@ -3308,10 +4408,14 @@
       "title": "最大子矩阵",
       "url": "http://noi.openjudge.cn/ch0206/1768/",
       "topic": "动态规划",
-      "level": 3,
+      "level": 2,
       "knowledge": "动态规划、状态设计、转移与空间优化",
       "rateLabel": "58.02%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 3,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 58.02,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0206/1775",
@@ -3320,10 +4424,14 @@
       "title": "采药",
       "url": "http://noi.openjudge.cn/ch0206/1775/",
       "topic": "动态规划",
-      "level": 3,
+      "level": 2,
       "knowledge": "动态规划、状态设计、转移与空间优化",
       "rateLabel": "51.60%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 3,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 51.6,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0206/1808",
@@ -3335,7 +4443,11 @@
       "level": 3,
       "knowledge": "动态规划、状态设计、转移与空间优化",
       "rateLabel": "48.35%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 3,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 48.35,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0206/2728",
@@ -3344,10 +4456,14 @@
       "title": "摘花生",
       "url": "http://noi.openjudge.cn/ch0206/2728/",
       "topic": "动态规划",
-      "level": 3,
+      "level": 2,
       "knowledge": "动态规划、状态设计、转移与空间优化",
       "rateLabel": "63.01%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 63.01,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0206/2985",
@@ -3356,10 +4472,14 @@
       "title": "数字组合",
       "url": "http://noi.openjudge.cn/ch0206/2985/",
       "topic": "动态规划",
-      "level": 3,
+      "level": 2,
       "knowledge": "动态规划、状态设计、转移与空间优化",
       "rateLabel": "62.04%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 3,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 62.04,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0206/2988",
@@ -3371,7 +4491,11 @@
       "level": 3,
       "knowledge": "动态规划、状态设计、转移与空间优化",
       "rateLabel": "41.05%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 3,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 41.05,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0206/2989",
@@ -3383,7 +4507,11 @@
       "level": 3,
       "knowledge": "动态规划、状态设计、转移与空间优化",
       "rateLabel": "37.20%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 37.2,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0206/3531",
@@ -3395,7 +4523,11 @@
       "level": 3,
       "knowledge": "动态规划、状态设计、转移与空间优化",
       "rateLabel": "37.51%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 37.51,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0206/3532",
@@ -3404,10 +4536,14 @@
       "title": "最大上升子序列和",
       "url": "http://noi.openjudge.cn/ch0206/3532/",
       "topic": "动态规划",
-      "level": 3,
+      "level": 2,
       "knowledge": "动态规划、状态设计、转移与空间优化",
       "rateLabel": "54.86%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 54.86,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0206/4977",
@@ -3416,10 +4552,14 @@
       "title": "怪盗基德的滑翔翼",
       "url": "http://noi.openjudge.cn/ch0206/4977/",
       "topic": "动态规划",
-      "level": 3,
+      "level": 2,
       "knowledge": "动态规划、状态设计、转移与空间优化",
       "rateLabel": "52.04%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 52.04,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0206/4978",
@@ -3428,10 +4568,14 @@
       "title": "宠物小精灵之收服",
       "url": "http://noi.openjudge.cn/ch0206/4978/",
       "topic": "动态规划",
-      "level": 4,
+      "level": 3,
       "knowledge": "动态规划、状态设计、转移与空间优化",
       "rateLabel": "47.01%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 4,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 47.01,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0206/6045",
@@ -3443,7 +4587,11 @@
       "level": 3,
       "knowledge": "动态规划、状态设计、转移与空间优化",
       "rateLabel": "49.57%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 3,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 49.57,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0206/6049",
@@ -3452,10 +4600,14 @@
       "title": "买书",
       "url": "http://noi.openjudge.cn/ch0206/6049/",
       "topic": "动态规划",
-      "level": 3,
+      "level": 2,
       "knowledge": "动态规划、状态设计、转移与空间优化",
       "rateLabel": "59.68%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 59.68,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0206/6252",
@@ -3464,10 +4616,14 @@
       "title": "带通配符的字符串匹配",
       "url": "http://noi.openjudge.cn/ch0206/6252/",
       "topic": "动态规划",
-      "level": 3,
+      "level": 4,
       "knowledge": "动态规划、状态设计、转移与空间优化",
       "rateLabel": "29.24%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "较难",
+      "acceptanceRate": 29.24,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0206/7614",
@@ -3476,10 +4632,14 @@
       "title": "最低通行费",
       "url": "http://noi.openjudge.cn/ch0206/7614/",
       "topic": "动态规划",
-      "level": 3,
+      "level": 2,
       "knowledge": "动态规划、状态设计、转移与空间优化",
       "rateLabel": "69.72%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 3,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 69.72,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0206/7625",
@@ -3488,10 +4648,14 @@
       "title": "三角形最佳路径问题",
       "url": "http://noi.openjudge.cn/ch0206/7625/",
       "topic": "动态规划",
-      "level": 3,
+      "level": 1,
       "knowledge": "动态规划、状态设计、转移与空间优化",
       "rateLabel": "70.08%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 3,
+      "difficultyLabel": "基础",
+      "acceptanceRate": 70.08,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0206/7627",
@@ -3500,10 +4664,14 @@
       "title": "鸡蛋的硬度",
       "url": "http://noi.openjudge.cn/ch0206/7627/",
       "topic": "动态规划",
-      "level": 4,
+      "level": 2,
       "knowledge": "动态规划、状态设计、转移与空间优化",
       "rateLabel": "57.97%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 4,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 57.97,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0206/8462",
@@ -3512,10 +4680,14 @@
       "title": "大盗阿福",
       "url": "http://noi.openjudge.cn/ch0206/8462/",
       "topic": "动态规划",
-      "level": 3,
+      "level": 2,
       "knowledge": "动态规划、状态设计、转移与空间优化",
       "rateLabel": "53.03%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 3,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 53.03,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0206/8464",
@@ -3524,10 +4696,14 @@
       "title": "股票买卖",
       "url": "http://noi.openjudge.cn/ch0206/8464/",
       "topic": "动态规划",
-      "level": 4,
+      "level": 3,
       "knowledge": "动态规划、状态设计、转移与空间优化",
       "rateLabel": "45.18%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 4,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 45.18,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0206/8471",
@@ -3536,10 +4712,14 @@
       "title": "切割回文",
       "url": "http://noi.openjudge.cn/ch0206/8471/",
       "topic": "动态规划",
-      "level": 3,
+      "level": 2,
       "knowledge": "动态规划、状态设计、转移与空间优化",
       "rateLabel": "61.76%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 61.76,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0206/8780",
@@ -3548,10 +4728,14 @@
       "title": "拦截导弹",
       "url": "http://noi.openjudge.cn/ch0206/8780/",
       "topic": "动态规划",
-      "level": 3,
+      "level": 2,
       "knowledge": "动态规划、状态设计、转移与空间优化",
       "rateLabel": "51.24%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 51.24,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0206/8782",
@@ -3560,10 +4744,14 @@
       "title": "乘积最大",
       "url": "http://noi.openjudge.cn/ch0206/8782/",
       "topic": "动态规划",
-      "level": 4,
+      "level": 2,
       "knowledge": "动态规划、状态设计、转移与空间优化",
       "rateLabel": "65.23%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 4,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 65.23,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0206/8785",
@@ -3572,10 +4760,14 @@
       "title": "装箱问题",
       "url": "http://noi.openjudge.cn/ch0206/8785/",
       "topic": "动态规划",
-      "level": 3,
+      "level": 2,
       "knowledge": "动态规划、状态设计、转移与空间优化",
       "rateLabel": "50.15%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 3,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 50.15,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0206/8787",
@@ -3584,10 +4776,14 @@
       "title": "数的划分",
       "url": "http://noi.openjudge.cn/ch0206/8787/",
       "topic": "动态规划",
-      "level": 3,
+      "level": 2,
       "knowledge": "动态规划、状态设计、转移与空间优化",
       "rateLabel": "61.42%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 61.42,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0206/90",
@@ -3596,10 +4792,14 @@
       "title": "滑雪",
       "url": "http://noi.openjudge.cn/ch0206/90/",
       "topic": "动态规划",
-      "level": 4,
+      "level": 3,
       "knowledge": "动态规划、状态设计、转移与空间优化",
       "rateLabel": "48.69%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 4,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 48.69,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0206/9267",
@@ -3611,7 +4811,11 @@
       "level": 3,
       "knowledge": "动态规划、状态设计、转移与空间优化",
       "rateLabel": "49.10%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 49.1,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0207/1757",
@@ -3620,10 +4824,14 @@
       "title": "神奇的口袋",
       "url": "http://noi.openjudge.cn/ch0207/1757/",
       "topic": "算法效率与计数",
-      "level": 3,
+      "level": 2,
       "knowledge": "方案计数、背包、循环优化",
       "rateLabel": "64.14%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 64.14,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0207/4976",
@@ -3635,7 +4843,11 @@
       "level": 3,
       "knowledge": "方案计数、背包、循环优化",
       "rateLabel": "47.52%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 47.52,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0207/7215",
@@ -3647,7 +4859,11 @@
       "level": 3,
       "knowledge": "方案计数、背包、循环优化",
       "rateLabel": "40.12%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 40.12,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0207/7219",
@@ -3659,7 +4875,11 @@
       "level": 3,
       "knowledge": "方案计数、背包、循环优化",
       "rateLabel": "42.78%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 42.78,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0207/8756",
@@ -3668,10 +4888,14 @@
       "title": "砝码称重V2",
       "url": "http://noi.openjudge.cn/ch0207/8756/",
       "topic": "算法效率与计数",
-      "level": 4,
+      "level": 3,
       "knowledge": "多重背包、二进制拆分或计数优化",
       "rateLabel": "33.20%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 4,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 33.2,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0302/1748",
@@ -3680,10 +4904,14 @@
       "title": "约瑟夫问题",
       "url": "http://noi.openjudge.cn/ch0302/1748/",
       "topic": "链表",
-      "level": 2,
+      "level": 3,
       "knowledge": "链表模拟、约瑟夫问题",
       "rateLabel": "41.56%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 41.56,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0303/3340",
@@ -3692,10 +4920,14 @@
       "title": "RPN Calculator",
       "url": "http://noi.openjudge.cn/ch0303/3340/",
       "topic": "栈",
-      "level": 3,
+      "level": 4,
       "knowledge": "栈、表达式解析",
       "rateLabel": "23.02%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 3,
+      "difficultyLabel": "较难",
+      "acceptanceRate": 23.02,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0303/6263",
@@ -3707,7 +4939,11 @@
       "level": 3,
       "knowledge": "栈、表达式解析",
       "rateLabel": "39.54%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 39.54,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0304/2729",
@@ -3716,10 +4952,14 @@
       "title": "Blah数集",
       "url": "http://noi.openjudge.cn/ch0304/2729/",
       "topic": "队列",
-      "level": 2,
+      "level": 3,
       "knowledge": "队列、有序合并",
       "rateLabel": "47.16%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 47.16,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0305/1551",
@@ -3728,10 +4968,14 @@
       "title": "Sumsets",
       "url": "http://noi.openjudge.cn/ch0305/1551/",
       "topic": "哈希",
-      "level": 4,
+      "level": 3,
       "knowledge": "哈希、折半枚举",
       "rateLabel": "36.69%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 4,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 36.69,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0306/1758",
@@ -3740,10 +4984,14 @@
       "title": "二叉树",
       "url": "http://noi.openjudge.cn/ch0306/1758/",
       "topic": "二叉树",
-      "level": 3,
+      "level": 2,
       "knowledge": "二叉树、区间计数",
       "rateLabel": "61.02%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 61.02,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0307/2726",
@@ -3752,10 +5000,14 @@
       "title": "集合问题",
       "url": "http://noi.openjudge.cn/ch0307/2726/",
       "topic": "堆",
-      "level": 3,
+      "level": 2,
       "knowledge": "最小堆、调度模拟",
       "rateLabel": "53.47%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 53.47,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0308/310",
@@ -3767,7 +5019,11 @@
       "level": 3,
       "knowledge": "树的判定、并查集",
       "rateLabel": "32.67%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 32.67,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0309/1806",
@@ -3776,10 +5032,14 @@
       "title": "词典",
       "url": "http://noi.openjudge.cn/ch0309/1806/",
       "topic": "C++ STL",
-      "level": 3,
+      "level": 2,
       "knowledge": "map/set、priority_queue、STL",
       "rateLabel": "59.22%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 59.22,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0309/3343",
@@ -3791,7 +5051,11 @@
       "level": 3,
       "knowledge": "map/set、priority_queue、STL",
       "rateLabel": "39.72%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 3,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 39.72,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0309/3345",
@@ -3803,7 +5067,11 @@
       "level": 3,
       "knowledge": "map/set、priority_queue、STL",
       "rateLabel": "34.20%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 34.2,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0309/835",
@@ -3812,10 +5080,14 @@
       "title": "排列",
       "url": "http://noi.openjudge.cn/ch0309/835/",
       "topic": "C++ STL",
-      "level": 3,
+      "level": 2,
       "knowledge": "map/set、priority_queue、STL",
       "rateLabel": "64.91%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 64.91,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0401/1999",
@@ -3827,7 +5099,11 @@
       "level": 3,
       "knowledge": "排序、比较器、有序合并",
       "rateLabel": "32.12%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 32.12,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0401/4363",
@@ -3836,10 +5112,14 @@
       "title": "瑞士轮",
       "url": "http://noi.openjudge.cn/ch0401/4363/",
       "topic": "排序",
-      "level": 3,
+      "level": 4,
       "knowledge": "排序、比较器、有序合并",
       "rateLabel": "26.16%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "较难",
+      "acceptanceRate": 26.16,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0403/1526",
@@ -3851,7 +5131,11 @@
       "level": 3,
       "knowledge": "并查集、最小生成树",
       "rateLabel": "41.60%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 41.6,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0403/253",
@@ -3863,7 +5147,11 @@
       "level": 3,
       "knowledge": "并查集、最小生成树",
       "rateLabel": "49.98%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 49.98,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0404/943",
@@ -3872,10 +5160,14 @@
       "title": "The Sierpinski Fractal",
       "url": "http://noi.openjudge.cn/ch0404/943/",
       "topic": "递归图形",
-      "level": 3,
+      "level": 2,
       "knowledge": "递归、自相似图形",
       "rateLabel": "58.59%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 58.59,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0405/16",
@@ -3884,10 +5176,14 @@
       "title": "Dividing",
       "url": "http://noi.openjudge.cn/ch0405/16/",
       "topic": "背包与递推",
-      "level": 4,
+      "level": 3,
       "knowledge": "背包、递推、DP 状态",
       "rateLabel": "34.70%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 4,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 34.7,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0405/1249",
@@ -3896,10 +5192,14 @@
       "title": "Humble Numbers",
       "url": "http://noi.openjudge.cn/ch0405/1249/",
       "topic": "背包与递推",
-      "level": 4,
+      "level": 3,
       "knowledge": "背包、递推、DP 状态",
       "rateLabel": "44.37%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 4,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 44.37,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0405/191",
@@ -3908,10 +5208,14 @@
       "title": "钉子和小球",
       "url": "http://noi.openjudge.cn/ch0405/191/",
       "topic": "背包与递推",
-      "level": 4,
+      "level": 3,
       "knowledge": "背包、递推、DP 状态",
       "rateLabel": "36.44%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 4,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 36.44,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0405/2454",
@@ -3920,10 +5224,14 @@
       "title": "雷涛的小猫",
       "url": "http://noi.openjudge.cn/ch0405/2454/",
       "topic": "背包与递推",
-      "level": 4,
+      "level": 2,
       "knowledge": "背包、递推、DP 状态",
       "rateLabel": "52.78%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 4,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 52.78,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0406/20",
@@ -3932,10 +5240,14 @@
       "title": "Communication System",
       "url": "http://noi.openjudge.cn/ch0406/20/",
       "topic": "贪心",
-      "level": 3,
+      "level": 2,
       "knowledge": "贪心、排序、堆或构造",
       "rateLabel": "55.69%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 55.69,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0406/1797",
@@ -3944,10 +5256,14 @@
       "title": "金银岛",
       "url": "http://noi.openjudge.cn/ch0406/1797/",
       "topic": "贪心",
-      "level": 3,
+      "level": 2,
       "knowledge": "贪心、排序、堆或构造",
       "rateLabel": "53.61%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 3,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 53.61,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0406/2375",
@@ -3956,10 +5272,14 @@
       "title": "Sunscreen",
       "url": "http://noi.openjudge.cn/ch0406/2375/",
       "topic": "贪心",
-      "level": 4,
+      "level": 3,
       "knowledge": "贪心、排序、堆或构造",
       "rateLabel": "45.03%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 4,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 45.03,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0406/2704",
@@ -3968,10 +5288,14 @@
       "title": "寻找平面上的极大点",
       "url": "http://noi.openjudge.cn/ch0406/2704/",
       "topic": "贪心",
-      "level": 3,
+      "level": 2,
       "knowledge": "贪心、排序、堆或构造",
       "rateLabel": "51.07%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 51.07,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0406/3528",
@@ -3983,7 +5307,11 @@
       "level": 3,
       "knowledge": "贪心、排序、堆或构造",
       "rateLabel": "46.18%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 3,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 46.18,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0406/702",
@@ -3995,7 +5323,11 @@
       "level": 3,
       "knowledge": "贪心、排序、堆或构造",
       "rateLabel": "39.80%",
-      "priority": true
+      "priority": true,
+      "algorithmLevel": 3,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 39.8,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0406/718",
@@ -4004,10 +5336,14 @@
       "title": "Integer Intervals",
       "url": "http://noi.openjudge.cn/ch0406/718/",
       "topic": "贪心",
-      "level": 4,
+      "level": 2,
       "knowledge": "贪心、排序、堆或构造",
       "rateLabel": "54.28%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 4,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 54.28,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:ch0406/8469",
@@ -4019,7 +5355,11 @@
       "level": 3,
       "knowledge": "贪心、排序、堆或构造",
       "rateLabel": "33.82%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 33.82,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:math/7647",
@@ -4031,7 +5371,11 @@
       "level": 2,
       "knowledge": "数论基础、因数、整数构造",
       "rateLabel": "58.30%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 2,
+      "difficultyLabel": "常规",
+      "acceptanceRate": 58.3,
+      "levelSource": "acceptance_rate"
     },
     {
       "key": "noi:math/7652",
@@ -4043,7 +5387,37 @@
       "level": 3,
       "knowledge": "互不相同整数拆分、贪心构造",
       "rateLabel": "38.10%",
-      "priority": false
+      "priority": false,
+      "algorithmLevel": 3,
+      "difficultyLabel": "进阶",
+      "acceptanceRate": 38.1,
+      "levelSource": "acceptance_rate"
     }
-  ]
+  ],
+  "difficultyBasis": {
+    "kind": "acceptance_rate",
+    "bands": [
+      {
+        "level": 1,
+        "minimum": 70,
+        "label": "基础"
+      },
+      {
+        "level": 2,
+        "minimum": 50,
+        "label": "常规"
+      },
+      {
+        "level": 3,
+        "minimum": 30,
+        "label": "进阶"
+      },
+      {
+        "level": 4,
+        "minimum": 0,
+        "label": "较难"
+      }
+    ],
+    "note": "使用已保存的官方通过率快照。百练为通过人数/提交人数，NOI 为 AC 提交/总提交；两平台口径不同，不能直接比较。通过率仅作相对难度，不改变题目算法范围上限。"
+  }
 }

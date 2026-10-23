@@ -61,6 +61,31 @@ const hintJob={id:'d'.repeat(64),kind:'hint',sourceUrl:url,status:'complete',ana
 const solutionJob={id:'e'.repeat(64),kind:'discussion',purpose:'solution',sourceUrl:url,status:'complete',analysis:solution,question:'给出完整解答',codeHash:'1'.repeat(64),eventId:'solution-event'};
 const chatJob={id:'f'.repeat(64),kind:'discussion',purpose:'discussion',sourceUrl:url,status:'complete',analysis:'把你的 a-b 改成 a+b。',question:'为什么是 -1？',codeHash:'1'.repeat(64),eventId:'chat-event'};
 
+test('each VS Code hint-button entry refreshes immediately while preserving saved solution/dialogue; late old results cannot replace it',async()=>{
+  const f=await frameFixture(),{$,receive,sent}=f;
+  try{
+    $('question').value='未发送的追问';
+    receive({type:'resume_context',mode:'hint',refreshHint:true});
+    const history=sent.findLast(m=>m.type==='assist_history'),first=sent.at(-1);assert.equal(first.type,'hint');
+    receive({type:'assist_context',actionId:history.actionId,capture,missingSections:[]});
+    f.history(history.actionId,{total:2,hint:hintJob,solution:solutionJob,entries:[chatJob]});
+    assert.equal(sent.filter(m=>m.type==='hint').length,1);assert.equal($('hintAnswer').textContent,'');
+    assert.match($('solutionAnswer').textContent,/完整参考程序/);assert.match($('chatMessages').textContent,/为什么是 -1/);
+    assert.equal($('question').value,'未发送的追问');assert.equal($('chatPanel').open,false);
+    receive({type:'resume_context',mode:'hint',refreshHint:true});
+    const second=sent.at(-1),newCode=capture.code.replace('a-b','a+b');assert.equal(second.type,'hint');assert.notEqual(first.actionId,second.actionId);
+    receive({type:'action_preview',requestType:'hint',actionId:second.actionId,capture:{...capture,code:newCode,runtime:{text:'最新运行信息'}},missingSections:[]});
+    receive({type:'action_preview',requestType:'hint',actionId:first.actionId,capture:{...capture,title:'旧请求'},missingSections:[]});
+    receive({type:'saved',actionId:first.actionId,hint:hintJob,hintError:'旧请求失败'});
+    assert.equal($('hintAnswer').textContent,'正在根据完整题面和你的代码推导解题方向，生成后会在这里逐步显示。');assert(!$('hintState').textContent.includes('旧请求'));
+    const newest={...hintJob,id:'7'.repeat(64),analysis:'## 解题方向\n根据最新 a+b 代码生成的提示',codeHash:'2'.repeat(64)};
+    receive({type:'saved',actionId:second.actionId,hint:newest});assert.match($('hintAnswer').textContent,/最新 a\+b/);
+    receive({type:'hint_status',...hintJob,analysis:'旧内容不得盖住新内容'});assert.doesNotMatch($('hintAnswer').textContent,/旧内容/);
+    assert.equal(sent.filter(m=>m.type==='hint').length,2);
+    receive({type:'resume_context',mode:'discussion',refreshHint:false});assert.equal(sent.filter(m=>m.type==='hint').length,2);
+  }finally{f.close();}
+});
+
 test('reopening hints restores saved text and solution without generating again or resetting expanded content',async()=>{
   const f=await frameFixture(),{$,receive,sent}=f;
   try{

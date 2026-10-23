@@ -6,6 +6,7 @@ import { ROOT, TOPICS, inspectCode, compilerCheck } from './core.js';
 import { runModel } from './model-runner.js';
 import {debugContext} from './problem-history.js';
 import {openJudgeUrl} from './openjudge-url.js';
+import {modelProfile} from './model-settings.js';
 
 export const dataDir = () => path.resolve(process.env.PKU_DATA_DIR || path.join(ROOT,'data'));
 export const Problem = z.object(Object.fromEntries(['description','input','output','sampleInput','sampleOutput'].map(key=>[key,z.string().max(20000).default('')]))).strict();
@@ -133,14 +134,14 @@ export async function processReview(id,{model=runModel,compile=compilerCheck,pro
   try {
     record=await readReview(id);
     if(record.status==='complete')return {...record,cached:true};
-    record={...record,status:'running',workerPid:process.pid,startedAt:new Date().toISOString()};delete record.error;
+    record={...record,modelConfig:await modelProfile('report'),status:'running',workerPid:process.pid,startedAt:new Date().toISOString()};delete record.error;
     await writeRecord(file,record);
     const capture=await captureFromRecord(record);
     progress('已保存，正在后台检查 C++。');
     const diagnostics=await compile(capture.code,capture.standard), risks=inspectCode(capture.code);
     progress('正在生成分析报告，通常需要几十秒到数分钟。');
     const debugHistory=await debugContext(capture.url,id);
-    const report=Report.parse(await model({capture,diagnostics,risks,debugHistory,assistance:await assistanceContext(id)}));
+    const report=Report.parse(await model({capture,diagnostics,risks,debugHistory,modelConfig:record.modelConfig,assistance:await assistanceContext(id)}));
     record={...record,status:'complete',completedAt:new Date().toISOString(),compiler:diagnostics,analysis:report.markdown,topics:[...new Set(report.topics)],evidence:report.evidence,next_step:report.next_step};
     await writeRecord(file,record);
     return {...record,cached:false};

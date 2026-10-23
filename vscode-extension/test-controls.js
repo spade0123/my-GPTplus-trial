@@ -1,0 +1,8 @@
+(()=>{
+  const panel=document.getElementById('samplePanel');if(!panel)return;
+  const port=chrome.runtime.connect(),details=document.createElement('details');details.className='custom-test';
+  details.innerHTML='<summary>自定义测试与本机限制</summary><form><label>测试输入<textarea name="input" rows="4" maxlength="20000"></textarea></label><label><input name="compare" type="checkbox"> 对照预期输出（勾选后允许预期为空）</label><label>预期输出<textarea name="expected" rows="3" maxlength="20000"></textarea></label><div class="test-limits"><label>运行限时（毫秒）<input name="runTimeout" type="number" min="20" max="60000" value="2500" required></label><label>内存限制（MiB）<input name="memoryLimitMiB" type="number" min="16" max="2048" value="256" required></label></div><p class="muted">请按题目设置限制。本机测试与官方机器可能不同；未填写预期时只展示运行结果。</p><button type="submit">保存代码并运行自定义测试</button><p role="status"></p></form>';
+  panel.after(details);const form=details.querySelector('form'),button=form.querySelector('button'),state=form.querySelector('[role=status]');let actionId;
+  form.onsubmit=event=>{event.preventDefault();const fields=form.elements;actionId=crypto.randomUUID();button.disabled=true;state.textContent='正在保存当前代码并运行自定义输入…';const testSpec={input:fields.input.value,runTimeout:Number(fields.runTimeout.value),memoryLimitMiB:Number(fields.memoryLimitMiB.value)};if(fields.compare.checked)testSpec.expected=fields.expected.value;port.postMessage({type:'run_sample',actionId,requestedAt:new Date().toISOString(),testSpec});};
+  port.onMessage.addListener(m=>{if(m.actionId!==actionId)return;if(m.type==='sample_result'||m.type==='error'){button.disabled=false;state.textContent=m.error||'本次代码与自定义测试已保存，结果见上方。';}});
+})();

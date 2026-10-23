@@ -6,17 +6,18 @@ import {JSDOM} from 'jsdom';
 const {sampleHtml}=createRequire(import.meta.url)('../vscode-extension/sample-view.cjs');
 const sampleScript=await fs.readFile(new URL('../vscode-extension/sample-controls.js',import.meta.url),'utf8');
 const judgeScript=await fs.readFile(new URL('../vscode-extension/judge-controls.js',import.meta.url),'utf8');
+const executionScript=await fs.readFile(new URL('../vscode-extension/execution-view.js',import.meta.url),'utf8');
 async function fixture(){
   const dom=new JSDOM(sampleHtml({}, {nonce:'testnonce',cspSource:'https://owned.test',uri:file=>'https://owned.test/'+file}),{url:'https://owned.test',runScripts:'outside-only'}),w=dom.window,messages=[],timers=[];
   w.acquireVsCodeApi=()=>({postMessage:value=>messages.push(value)});
   for(const name of ['getItem','setItem','removeItem','clear'])w.Storage.prototype[name]=()=>{throw new Error('No browser storage');};
   w.setTimeout=fn=>{timers.push(fn);return timers.length;};w.clearTimeout=()=>{};
-  w.eval(sampleScript);w.eval(judgeScript);await new Promise(resolve=>setImmediate(resolve));
+  w.eval(sampleScript);w.eval(executionScript);w.eval(judgeScript);await new Promise(resolve=>setImmediate(resolve));
   return {dom,w,messages,timers,$:id=>w.document.getElementById(id),emit:value=>w.dispatchEvent(new w.MessageEvent('message',{data:value}))};
 }
 test('standalone sample view uses local nonce scripts and escapes all initial evidence',()=>{
   const html=sampleHtml({title:'<img src=x onerror=alert(1)>',result:{status:'compile_error',compiler:'<script>bad()</script>',input:'<1>',expected:'3',actual:'',durationMs:1}},{nonce:'safe',cspSource:'https://owned.test',uri:file=>'https://owned.test/'+file});
-  const dom=new JSDOM(html);try{assert.equal(dom.window.document.querySelectorAll('img').length,0);assert.equal(dom.window.document.querySelectorAll('script').length,2);assert([...dom.window.document.querySelectorAll('script')].every(s=>s.nonce==='safe'&&s.src.startsWith('https://owned.test/')));assert(dom.window.document.querySelector('meta[http-equiv]').content.includes("connect-src 'none'"));assert.equal(dom.window.document.querySelector('#closeCoach').textContent,'收起');assert.equal(dom.window.document.querySelector('#submitOJ').textContent,'提交到 OJ');}finally{dom.window.close();}
+  const dom=new JSDOM(html);try{assert.equal(dom.window.document.querySelectorAll('img').length,0);assert.equal(dom.window.document.querySelectorAll('script').length,6);assert([...dom.window.document.querySelectorAll('script')].every(s=>s.nonce==='safe'&&s.src.startsWith('https://owned.test/')));assert(dom.window.document.querySelector('meta[http-equiv]').content.includes("connect-src 'none'"));assert.equal(dom.window.document.querySelector('#closeCoach').textContent,'收起');assert.equal(dom.window.document.querySelector('#submitOJ').textContent,'提交到 OJ');}finally{dom.window.close();}
 });
 test('opening standalone sample controls only reports ready; collapse does not execute code or send a submission',async()=>{
   const f=await fixture();try{assert.deepEqual(f.messages.map(m=>m.type),['sample_ready']);f.$('closeCoach').click();assert.deepEqual(f.messages.map(m=>m.type),['sample_ready','sample_collapse']);}finally{f.w.close();}
@@ -46,5 +47,16 @@ test('official submission basics appear in the result panel, survive refresh, an
     assert.deepEqual([...f.$('ojResults').querySelectorAll('dd')].map(e=>e.textContent),['123','1001','<img src=x>','272kB','991ms','G++','2026-10-21 08:10:00']);assert.equal(f.$('ojResults').querySelectorAll('img').length,0);
     f.$('refreshOJ').click();f.emit({type:'oj_result',requestType:'oj_refresh',id:'a'.repeat(64),submission:{...submission,details:{problemId:'1001'}}});
     assert.equal(f.$('ojResults').querySelectorAll('.oj-details').length,1);assert.equal(f.$('ojResults').querySelectorAll('dd')[3].textContent,'未提供');assert.equal(f.messages.filter(m=>m.type==='oj_submit').length,1);
+  }finally{f.w.close();}
+});
+
+test('local CE/TLE/MLE/RE/OLE use distinct badges and keep diagnostics separate from expected and actual output',async()=>{
+  const f=await fixture();try{
+    for(const [status,badge]of [['compile_error','Compile Error'],['timeout','Time Out'],['memory_limit','Memory Limit Exceeded'],['runtime_error','Runtime Error'],['output_limit','Output Limit Exceeded']]){
+      f.emit({type:'sample_view',saved:true,result:{status,stage:status==='compile_error'?'compile':'run',ranProgram:status!=='compile_error',compiler:status==='compile_error'?'compiler diagnostic':'',stderr:status==='compile_error'?'':'runtime diagnostic',input:'1 2',expected:'3',actual:'2',durationMs:20,peakMemoryBytes:1024,limits:{timeMs:2500,memoryMiB:256,outputKiB:64}}});
+      assert.equal(f.$('sampleResults').querySelector('.judge-badge').textContent,badge);
+      const blocks=[...f.$('sampleResults').querySelectorAll('.execution-grid pre code')].map(e=>e.textContent);assert.deepEqual(blocks,['1 2','3',status==='compile_error'?'（程序未运行）':'2']);
+      assert(!blocks.some(x=>x.includes('diagnostic')));assert.equal(f.$('sampleSaved').hidden,false);
+    }
   }finally{f.w.close();}
 });

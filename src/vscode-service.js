@@ -8,12 +8,17 @@ import {queueHint,queueDiscussion,readHint,hintSummary,assistHistory} from './hi
 import {browserRequest} from './browser-mailbox.js';
 import {openJudgeUrl,sameProblem} from './openjudge-url.js';
 import {readProblemDisplay} from './problem-display.js';
-import {runSample,latestSample,saveSampleRequest,finishSample} from './sample-runner.js';
+import {runSample,latestSample,latestLocalRun,saveSampleRequest,finishSample} from './sample-runner.js';
 import {readSubmission,createSubmission,updateSubmission} from './oj-submissions.js';
 import {readProblemLibrary,libraryProblem} from './problem-library.js';
+import {readProblemStatistics} from './problem-statistics.js';
+import {reportDirectory} from './report-location.js';
+import {readModelSettings,readModelCatalog,saveModelSettings} from './model-settings.js';
+import {listVersions,readVersion} from './version-history.js';
 const sha=value=>createHash('sha256').update(value).digest('hex');
 const normalize=code=>code.replace(/\r\n/g,'\n').trim();
 const Source=z.object({uri:z.string().max(3000).refine(s=>/^(?:file|untitled):/.test(s)),name:z.string().max(500),code:z.string().min(5).max(100000),version:z.number().int().nonnegative(),selectedCode:z.string().max(8000).default(''),diagnostics:z.string().max(12000).default('')}).strict();
+const TestSpec=z.object({input:z.string().max(20000),expected:z.string().max(20000).optional(),runTimeout:z.number().int().min(20).max(60000).default(2500),memoryLimitMiB:z.number().int().min(16).max(2048).default(256)}).strict();
 const uuid=value=>{const h=sha(value).slice(0,32);return `${h.slice(0,8)}-${h.slice(8,12)}-${h.slice(12,16)}-${h.slice(16,20)}-${h.slice(20)}`;};
 const validUri=uri=>Source.shape.uri.parse(uri);
 const contextPath=uri=>path.join(dataDir(),'vscode-context',sha(validUri(uri))+'.json');
@@ -40,7 +45,7 @@ async function patchContext(uri,patch,problemUrl){
     topics[key]=context;await writeRecord(file,{uri,activeProblem:patch.binding||!raw.activeProblem?key:raw.activeProblem,topics});return {uri,...context};
   }finally{await release();}
 }
-export function createVscodeService({browser=browserRequest,launchReport=async()=>{},launchHint=async()=>{},currentProblem=readProblemDisplay,sampleRunner=runSample}={}){
+export function createVscodeService({browser=browserRequest,launchReport=async()=>{},launchHint=async()=>{},currentProblem=readProblemDisplay,sampleRunner=runSample,statisticsReader=readProblemStatistics,modelCatalog=readModelCatalog}={}){
   async function resolveContext(uri,expectedProblemUrl){
     const display=await currentProblem();
     if(display.connected&&display.url){
@@ -74,8 +79,8 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
       if(matching&&['AC','WA','CE','RE','TLE','MLE','PE','OLE'].includes(verdict.status))judgeEvidence={status:verdict.status,source:'matching-submission',codeHash,runtimeAssociation:'matching-judgment'};
     }
     const u=openJudgeUrl(binding.problemUrl,{kind:'problem'}),url='http://'+u.key;
-    const sample=await latestSample(url,source.code);
-    if(sample?.result){const r=sample.result;runtime.input=r.input;runtime.output=r.actual.slice(0,20000);runtime.error=[runtime.error,r.compiler,r.stderr].filter(Boolean).join('\n').slice(0,20000);runtime.text+='\n本机样例测试：'+r.status+'；只表示本机样例结果，不代表网站 AC。';}
+    const sample=await latestLocalRun(url,source.code);
+    if(sample?.result){const r=sample.result,custom=r.testKind==='custom';runtime.input=r.input;runtime.output=r.actual.slice(0,20000);runtime.error=[runtime.error,r.compiler,r.stderr].filter(Boolean).join('\n').slice(0,20000);runtime.text+='\n'+(custom?'本机自定义测试':'本机样例测试')+'：'+r.status+'；不代表网站 AC。';if(custom)runtime.hints=[runtime.hints,r.expectedProvided===false?'自定义测试未提供预期输出。':'用户自定义的预期输出（不是题目样例）：\n'+r.expected.slice(0,8000)+(r.expected.length>8000?'\n（已截断）':'')].filter(Boolean).join('\n').slice(0,20000);}
     const result=Capture.parse({url,title:page.title,problem:page.problem,code:source.code,standard:context.standard||'c++17',runtime});
     return {capture:result,browserUrl:binding.problemUrl,missingSections:page.missingSections||[],judgment:judgeEvidence,submission,matching,warning};
   }
@@ -104,8 +109,23 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
   }
   return {async handle(message){
     const type=message.type;
-    if(type==='status')return {ready:true,dataDirectory:dataDir(),version:'2.2.0',platform:'openjudge-vscode'};
+    if(type==='model_settings_get'){
+      const settings=await readModelSettings();try{return {type:'model_settings',settings,catalog:await modelCatalog({refresh:message.refresh===true})};}catch(error){return {type:'model_settings',settings,error:error.message};}
+    }
+    if(type==='model_settings_save')return {type:'model_settings_saved',settings:await saveModelSettings(message.settings,{catalog:await modelCatalog({refresh:true})})};
+    if(type==='versions_list')return {type:'versions_list',...await listVersions(message.problemUrl)};
+    if(type==='version_read')return {type:'version_read',...await readVersion(message.problemUrl,message.eventId,message.currentCode)};
+    if(type==='status')return {ready:true,dataDirectory:dataDir(),reportDirectory:await reportDirectory(),version:'2.4.1',platform:'openjudge-vscode'};
     if(type==='problem_display')return currentProblem();
+    if(type==='problem_completion'){
+      const parsed=openJudgeUrl(message.url,{kind:'problem'});if(!parsed)throw new Error('题目地址无效。');
+      const problem=await getProblem(parsed.url),events=problem.attempts||[],accepted=events.filter(a=>a.kind==='ac'&&a.verdict?.source==='judge-dom'&&a.verdict.status==='AC'&&events.some(s=>s.kind==='submission'&&s.submissionId===a.submissionId&&s.codeHash===a.codeHash&&s.verdict?.source==='judge-dom'&&s.verdict.status==='AC')).at(-1);
+      return {type:'problem_completion',problemUrl:message.url,accepted:Boolean(accepted),verified:Boolean(accepted),latestSavedVersionAccepted:Boolean(accepted&&events.at(-1)?.codeHash===accepted.codeHash),acceptedAt:accepted?.savedAt,submissionUrl:accepted?.verdict?.sourceUrl};
+    }
+    if(type==='problem_statistics'){
+      const problem=openJudgeUrl(message.url,{kind:'problem'});if(!problem)throw new Error('仅支持百练 / NOI 的具体题目。');
+      return {type:'problem_statistics',...await statisticsReader(problem.url)};
+    }
     if(type==='library_list')return {type:'problem_library',...await readProblemLibrary()};
     if(type==='library_open'){
       const item=await libraryProblem(message.key),display=await currentProblem();
@@ -143,6 +163,7 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
     if(type==='hint_status'){if(!/^[a-f0-9]{64}$/.test(message.id||''))throw new Error('任务编号无效。');return {type:'hint_status',...hintSummary(await readHint(message.id))};}
     if(!['quick_save','hint_open','hint','discuss','assist_history','run_sample','oj_submit'].includes(type))throw new Error('不支持的 VS Code 操作。');
     const source=Source.parse(message.source);
+    const testSpec=type==='run_sample'&&message.testSpec!==undefined?TestSpec.parse(message.testSpec):undefined;
     if(type==='discuss'&&(typeof message.question!=='string'||!message.question.trim()||message.question.length>2000))throw new Error('请输入 1—2000 字的问题。');
     if(message.purpose!==undefined&&(type!=='discuss'||!['solution','discussion'].includes(message.purpose)))throw new Error('无效的问答用途。');
     const selected=await capture(source,{allowCached:['quick_save','hint_open','assist_history'].includes(type),problemUrl:message.problemUrl});
@@ -161,24 +182,26 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
       let workerError;try{await launchReport();}catch(e){workerError=e.message;}return {type:'oj_result',...job,capture:undefined,workerError};
     }
     if(type==='run_sample'){
-      if(!selected.capture.problem.sampleOutput)throw new Error('题面没有提供可对照的样例输出，本次未运行。');
-      const request=await saveSampleRequest(selected.capture,message.actionId);let complete=request;
-      if(request.status!=='complete')complete=await finishSample(request,await sampleRunner(request.capture));
-      const r=complete.result,labels={passed:'样例输出一致',whitespace:'仅空白不同，需核对格式',wrong_answer:'与样例输出不同',compile_error:'编译失败',runtime_error:'运行错误',timeout:'超过时间限制',output_limit:'输出超过限制'};
-      const runCapture={...request.capture,runtime:{input:r.input,output:r.actual.slice(0,20000),error:[r.compiler,r.stderr].filter(Boolean).join('\n').slice(0,20000),hints:'本机运行题目样例；不代表网站 AC。',status:labels[r.status]||r.status,text:'本机样例测试：'+r.status+'；源码 '+complete.codeHash+'；耗时 '+r.durationMs+' ms'}};
-      const saved=await saveAttempt(runCapture,{eventId:message.actionId,origin:'sample_run',note:'本机样例测试：'+r.status});
-      let workerError;try{await launchReport();}catch(e){workerError=e.message;}return {type:'sample_result',id:complete.id,title:request.capture.title,codeHash:complete.codeHash,result:r,...reviewSummary(saved),workerError};
+      if(!testSpec&&!selected.capture.problem.sampleOutput)throw new Error('题面没有提供可对照的样例输出，本次未运行。可使用自定义测试。');
+      const request=await saveSampleRequest(selected.capture,message.actionId,testSpec);let complete=request;
+      await saveAttempt(selected.capture,{eventId:message.actionId,origin:testSpec?'custom_run_request':'sample_run_request',note:'测试前保存完整代码；'+(testSpec?'自定义输入':'题目样例')});
+      if(request.status!=='complete')complete=await finishSample(request,await sampleRunner(request.capture,testSpec?{...testSpec,expected:testSpec.expected??null,testKind:'custom'}:undefined));
+      const r=complete.result,labels={passed:'样例输出一致',whitespace:'仅空白不同，需核对格式',wrong_answer:'WA · 答案错误',compile_error:'CE · 编译错误',runtime_error:'RE · 运行错误',timeout:'TLE · 超过本机时间限制',memory_limit:'MLE · 达到本机内存限制',output_limit:'OLE · 输出超限',compile_timeout:'编译超时，程序未运行',compile_output_limit:'编译输出超限，程序未运行',runner_error:'本机测试环境错误'};
+      const label=testSpec?'本机自定义测试':'本机样例测试';
+      const runCapture={...request.capture,runtime:{input:r.input,output:r.actual.slice(0,20000),error:[r.compiler,r.stderr].filter(Boolean).join('\n').slice(0,20000),hints:label+'；不代表网站 AC。',status:labels[r.status]||r.status,text:label+'：'+r.status+'；源码 '+complete.codeHash+'；耗时 '+r.durationMs+' ms'+(r.peakMemoryBytes?'；峰值提交内存 '+Math.ceil(r.peakMemoryBytes/1024)+' KiB':'')+(r.limits?'；本机限制 '+JSON.stringify(r.limits):'')}};
+      const saved=await saveAttempt(runCapture,{eventId:uuid(message.actionId+':result'),origin:testSpec?'custom_run':'sample_run',note:label+'：'+r.status});
+      let workerError;try{await launchReport();}catch(e){workerError=e.message;}return {type:'sample_result',id:complete.id,title:request.capture.title,codeHash:complete.codeHash,result:r,...reviewSummary(saved),workerError,snapshot:{problemUrl:selected.capture.url,title:selected.capture.title,sourceName:source.name,documentVersion:source.version,savedAt:request.createdAt,codeHash:complete.codeHash}};
     }
     const saved=await saveAttempt(selected.capture,{eventId:message.actionId,origin:type==='discuss'?'discussion':type==='hint'?'hint_request':type==='hint_open'?'hint_open':'quick_save',note:`${type==='hint_open'?'打开提示时自动保存；':''}VS Code：${source.name}，文档版本 ${source.version}`});
     let hint,hintError,workerError,hintWorkerError;
     try{
       await importVerdict(selected);
-      if(type==='hint')hint=hintSummary(await queueHint(saved.id,{judgeEvidence:selected.judgment,eventId:saved.eventId,attemptNumber:saved.attemptNumber,requestedAt:message.requestedAt}));
+      if(type==='hint')hint=hintSummary(await queueHint(saved.id,{judgeEvidence:selected.judgment,eventId:saved.eventId,attemptNumber:saved.attemptNumber,requestedAt:message.requestedAt,force:message.force===true}));
       if(type==='discuss')hint=hintSummary(await queueDiscussion(saved.id,{question:message.question,purpose:message.purpose,selectedCode:source.selectedCode,eventId:saved.eventId,attemptNumber:saved.attemptNumber,requestedAt:message.requestedAt}));
     }catch(e){hintError=e.message;}
     const launches=await Promise.allSettled([launchReport(),hint?.status==='queued'?launchHint(hint.kind||'hint'):Promise.resolve()]);
     if(launches[0].status==='rejected')workerError=launches[0].reason.message;
     if(launches[1].status==='rejected')hintWorkerError=launches[1].reason.message;
-    return {type:'saved',...reviewSummary(saved),eventId:saved.eventId,cached:Boolean(saved.cached),hint,hintError,workerError,hintWorkerError,context:selected,warning:selected.warning};
+    return {type:'saved',...reviewSummary(saved),eventId:saved.eventId,cached:Boolean(saved.cached),hint,hintError,workerError,hintWorkerError,context:selected,warning:selected.warning,snapshot:{problemUrl:selected.capture.url,title:selected.capture.title,sourceName:source.name,documentVersion:source.version,savedAt:new Date().toISOString(),codeHash:saved.codeHash}};
   }};
 }
