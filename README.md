@@ -56,7 +56,7 @@ Chrome 打开题目的 `.../probset/<题集ID>/<题目ID>/ide.do` 页面，点�
 
 3. Chrome 打开 `chrome://extensions`，开启开发者模式，加载项目的 **`extension/`** 目录。自己登录编程网格并打开具体题目 IDE，点击连接图标。
 
-4. VS Code 执行“扩展：从 VSIX 安装”，选择 [pku-grid-cpp-coach-0.2.17.vsix](dist/pku-grid-cpp-coach-0.2.17.vsix)，然后运行 **Developer: Reload Window**。
+4. VS Code 执行“扩展：从 VSIX 安装”，选择 [pku-grid-cpp-coach-0.2.18.vsix](dist/pku-grid-cpp-coach-0.2.18.vsix)，然后运行 **Developer: Reload Window**。
 
 5. 打开 C++ 文件，点击“网格·评测”。需要关联或更换题目时，使用评测页底部的“题目连接与本机记录”。
 
@@ -86,7 +86,7 @@ VS Code 读取点击时编辑器里的完整缓冲区，包括尚未写入文件
 
 - **更新 VS Code 扩展后**：安装新 VSIX，运行 Developer: Reload Window。
 - **更新 Chrome 连接代码后**：在扩展管理页重新加载连接扩展；需要时在题目页再次点击图标连接。
-- **只有 VS Code 界面或本机服务更新时**：按该次更新说明操作，无需每次都重载 Chrome。当前 VS Code/本机程序为 0.2.17，Chrome 连接清单为 0.2.12。
+- **只有 VS Code 界面或本机服务更新时**：按该次更新说明操作，无需每次都重载 Chrome。当前 VS Code/本机程序为 0.2.18，Chrome 连接清单为 0.2.12。
 - **显示上次的手工测试**：顶部会标明“上次记录”；默认测试方式仍是网格判题。点击测试按钮才会发送新的测试。
 - **题目标签已关闭或切换**：打开正确题目的 IDE，重新从目标 C++ 文件打开评测页，必要时更换关联。
 - **请求超时或未确认**：先核对网站记录，再决定下一步。界面会显示最后阶段和可获得的具体错误；不要把未确认当作成功。
@@ -115,7 +115,7 @@ VS Code 读取点击时编辑器里的完整缓冲区，包括尚未写入文件
 ```powershell
 npm run build:vscode
 cd vscode-extension
-npx --yes @vscode/vsce package --no-dependencies --skip-license --out ../dist/pku-grid-cpp-coach-0.2.17.vsix
+npx --yes @vscode/vsce package --no-dependencies --skip-license --out ../dist/pku-grid-cpp-coach-0.2.18.vsix
 ```
 
 这轮维护使用以下针对网格的检查，14 项通过：
@@ -353,3 +353,11 @@ VS Code/本机程序为 0.2.15，Chrome 仍为 0.2.12；安装 VSIX 后执行 De
 安装 0.2.17 后执行 **Developer: Reload Window**；Chrome 无需重载。尚未实际登录查询或进行界面联调。
 
 接口依据：[OpenAI Codex App Server 官方文档](https://learn.chatgpt.com/docs/app-server#6-rate-limits-chatgpt)。
+
+## 切题自动跟随与页面布局（0.2.18）
+
+在 Chrome 已连接的编程网格 IDE 中切题后，等待新题原文读取完成，VS Code 会自动打开该题已关联的 C++ 源码，并更新“题目原文”页。没有对应文件时，复用英文命名和自定义模板创建；已有文件与未保存编辑不覆盖。没有打开项目文件夹时使用未命名 C++ 文档；多个项目文件夹或多个关联候选可能需要选择。
+
+VS Code 内的题单/上一题/下一题继续执行网页导航和源码切换。网页发来的切题通知则只触发源码跟随，不再次导航浏览器，不自动测试或提交。重复刷新同一题不重复抢源码焦点；快速连续切题会在绑定和打开前检查当前网页题目，失败提示显示在题单下方，可从题单重新选择目标题目。
+
+原题网址和“在浏览器查看原题”移到题干、题单的最下方，顶部只显示题名和简短连接状态。安装 0.2.18 后执行 **Developer: Reload Window**；Chrome 无需重载。尚未实际进行网页切题联调。

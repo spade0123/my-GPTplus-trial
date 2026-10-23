@@ -187,3 +187,7 @@ package.json 的 contributes.keybindings 声明默认两段式按键，用户自
 优先解析 rateLimitsByLimitId，缺省时回退 rateLimits。primary/secondary 按各自 windowDurationMins 标记，只识别 300 分钟为 5h；原样保留各额度池归属。百分比和重置秒时间戳缺失时标未知；不累计各池、不从 tokens 推算额度、不将重置到期视为清零。无登录凭证写入、无永久额度历史；数据仅在内存中保留，刷新失败标示旧读数。
 
 UI 启动和每 5 分钟读取，点击详情可刷新。隐藏底栏只改变入口可见性，仍可通过命令打开详情。详情仅允许刷新这一条命令链接，无可执行脚本、远端资源或模型内容。
+
+## 网页切题后的源码跟随（0.2.18）
+
+problem_display ready 通知经 ProblemView.accept 更新题干与计时器后，120ms 合并调度源码跟随。ProblemNavigation.followDisplay 复用 documentFor 找回关联/已创建/已打开源码或新建模板；context_bind requireActive 校验实际浏览器题目，再打开源码编辑组。与主动 activate 共用 switching 锁，避免导航与跟随并发；followedKey 抑制同题重复聚焦，异步步骤检查最新题号和标签，过期操作不打开旧题。通知跟随不调用 activate_problem，不自动上传或评测。

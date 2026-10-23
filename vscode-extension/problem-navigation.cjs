@@ -84,11 +84,36 @@ class ProblemNavigation{
       await client.request({type:'context_bind',uri:document.uri.toString(),binding:{problemUrl:result.url,tabId:result.tabId},requireActive:true});
       const visible=identity(this.display().url);if(visible&&visible.key!==target.key&&visible.key!==from.key)throw new Error('浏览器已切换到另一题，请重新选择。');
       await this.context.workspaceState.update(MAP_KEY,{...this.context.workspaceState.get(MAP_KEY,{}),[target.key]:document.uri.toString()});
-      await vscode.window.showTextDocument(document,{preview:false,preserveFocus:false});
+      await vscode.window.showTextDocument(document,{viewColumn:this.currentEditor()?.viewColumn||vscode.ViewColumn.One,preview:false,preserveFocus:false});
+      this.followedKey=target.key;
       await this.clearBlock();
       return result;
     }catch(error){throw new Error(error.message+(this.blocked?' 请刷新题单并重试选择题目，或使用“关联当前 C++ 文件与 Chrome 题目”完成关联。':''));}
     finally{this.switching=false;}
+  }
+  async followDisplay(value,problem={}){
+    const target=identity(value.url);
+    if(!target||this.switching||this.followedKey===target.key)return;
+    this.switching=true;
+    const stillCurrent=()=>{const current=this.display();return current.connected&&current.status==='ready'&&identity(current.url)?.key===target.key&&current.tabId===value.tabId;};
+    try{
+      const client=await this.backend();if(!stillCurrent())return;
+      const editor=this.currentEditor();
+      if(editor?.document.languageId==='cpp'&&!editor.document.isClosed){
+        const uri=editor.document.uri.toString(),record=await client.request({type:'context_lookup',uri});
+        if(record.binding?.problemUrl)await this.associate(uri,record.binding.problemUrl);
+      }
+      const document=await this.documentFor(client,value.url,problem);
+      if(!document||!stillCurrent())return;
+      // Browser has already navigated: only bind/open its source, never navigate it again.
+      await client.request({type:'context_bind',uri:document.uri.toString(),binding:{problemUrl:value.url,tabId:value.tabId},requireActive:true});
+      if(!stillCurrent())return;
+      await this.associate(document.uri.toString(),value.url);
+      if(!stillCurrent())return;
+      await vscode.window.showTextDocument(document,{viewColumn:editor?.viewColumn||vscode.ViewColumn.One,preview:false,preserveFocus:false});
+      this.followedKey=target.key;await this.clearBlock();
+      return {opened:true};
+    }finally{this.switching=false;}
   }
 }
 module.exports={ProblemNavigation,identity};

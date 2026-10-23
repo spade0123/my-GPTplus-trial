@@ -6,7 +6,8 @@
     const value=event.data;if(value?.type!=='problem_display')return;
     title.textContent=value.page?.title||(['loading','error'].includes(value.status)?'题面读取中':'等待浏览器打开题目');
     open.hidden=!value.url;
-    state.textContent=value.connected?(value.status==='ready'?'随浏览器题目自动更新 · '+value.url:value.error||'正在读取新题目…'):(value.page?'浏览器连接已断开，当前显示上次题面；重新连接后自动更新。':'请在 Chrome 点击 编程网格 连接扩展；打开具体题目后自动显示。');
+    const source=document.getElementById('problemUrl');source.textContent=value.url||'';source.hidden=!value.url;
+    state.textContent=value.connected?(value.status==='ready'?'随浏览器题目自动更新':value.error||'正在读取新题目…'):(value.page?'浏览器连接已断开，当前显示上次题面；重新连接后自动更新。':'请在 Chrome 点击 编程网格 连接扩展；打开具体题目后自动显示。');
     state.classList.toggle('error',value.status==='error');sections.replaceChildren();
     if(!value.page||value.status!=='ready')return;
     for(const [key,label]of Object.entries(labels)){
