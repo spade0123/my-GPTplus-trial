@@ -179,3 +179,11 @@ output-feedback.js 只在 VS Code Webview 内处理已有 runtime.text，不调�
 package.json 的 contributes.keybindings 声明默认两段式按键，用户自定义交给 VS Code 原生键盘设置。testCode/submitCode 先打开或找到对应源码的评测 Webview，等待 judge_ready 后发 judge_action，界面调用同一测试/提交按钮。页面未准备好时保留一个待执行动作，忙碌检查继续有效。上一题/下一题与网页侧栏点击复用 ProblemView.switchProblem，不复制关联、创建源码和浏览器切题流程。
 
 模板由 source-template.cjs 做纯文本占位符替换；template-settings.cjs 负责从 VS Code 设置文本行或本机 UTF-8 文件读取。优先使用 templateFile。创建文件时读取已保存的模板并按实际文件名展开，已有文件恢复路径直接返回，不套用模板。编辑命令将个人模板放在扩展 globalStorage 并配置用户路径；预览只打开未保存文档。占位符来自当前题目/文件/插件版本，日期固定为北京时间；无脚本执行、无 AI 调用。
+
+## 账户额度读取（0.2.17）
+
+新增 account-usage.cjs 负责底栏与无脚本详情页，调用本机 account_usage 消息。src/account-usage.js 使用现有 Codex 路径解析和 stdio 连接，只完成初始化、配置读取与 account/rateLimits/read，不创建 thread 或 turn。每次读取完成后关闭独立连接，查询期间合并请求，15 秒内复用结果或错误。模型生成连接和评测流程不受额度查询结果影响。
+
+优先解析 rateLimitsByLimitId，缺省时回退 rateLimits。primary/secondary 按各自 windowDurationMins 标记，只识别 300 分钟为 5h；原样保留各额度池归属。百分比和重置秒时间戳缺失时标未知；不累计各池、不从 tokens 推算额度、不将重置到期视为清零。无登录凭证写入、无永久额度历史；数据仅在内存中保留，刷新失败标示旧读数。
+
+UI 启动和每 5 分钟读取，点击详情可刷新。隐藏底栏只改变入口可见性，仍可通过命令打开详情。详情仅允许刷新这一条命令链接，无可执行脚本、远端资源或模型内容。

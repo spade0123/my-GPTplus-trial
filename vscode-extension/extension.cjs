@@ -1,5 +1,6 @@
 const vscode=require('vscode'),fs=require('node:fs/promises'),path=require('node:path'),{randomUUID}=require('node:crypto'),{execFile}=require('node:child_process'),{promisify}=require('node:util');
 const {RpcClient}=require('./rpc-client.cjs');
+const {registerUsage}=require('./account-usage.cjs');
 const {openHistory:makeHistory}=require('./history-view.cjs');
 const {editTemplate,previewTemplate,isTemplateDocument}=require('./template-settings.cjs');
 const {ProblemView}=require('./problem-view.cjs');
@@ -268,6 +269,7 @@ function activate(context){
   context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(update));update(vscode.window.activeTextEditor);
   context.subscriptions.push({dispose(){rpc?.dispose();for(const state of [...panels.values(),...judgePanels.values()])state.panel.dispose();}});
   void backend().then(client=>client.request({type:'problem_display'})).then(value=>statementView.accept(value)).catch(e=>output.appendLine(e.message));
+  registerUsage(context,backend);
   return {backend,sourceFor,panels,judgePanels,statementView};
 }
 module.exports={activate};

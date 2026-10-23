@@ -3,7 +3,7 @@
   "displayName": "北大编程网格 · C++ 学习教练",
   "description": "Chrome 连接编程网格，VS Code 读取当前 C++ 并提供保存、提示、交流、网站测试与正式提交。",
   "publisher": "local-coach",
-  "version": "0.2.16",
+  "version": "0.2.17",
   "license": "UNLICENSED",
   "engines": {
     "vscode": "^1.96.0"
@@ -124,6 +124,14 @@
       {
         "command": "gridCoach.nextProblem",
         "title": "编程网格：下一题"
+      },
+      {
+        "command": "gridCoach.accountUsage",
+        "title": "编程网格：查看账户额度"
+      },
+      {
+        "command": "gridCoach.refreshUsage",
+        "title": "编程网格：刷新账户额度"
       }
     ],
     "configuration": [
@@ -425,6 +433,17 @@
             "maxLength": 3000,
             "markdownDescription": "可选：本机 UTF-8 模板文件的绝对路径，优先于文本行模板。执行“编程网格：编辑源码模板”可自动创建并配置一个可直接编辑的模板文件；修改后先保存。清空此项恢复使用文本行模板。",
             "scope": "application"
+          }
+        }
+      },
+      {
+        "title": "编程网格 · 账户额度",
+        "properties": {
+          "gridCoach.usage.showStatusBar": {
+            "type": "boolean",
+            "default": true,
+            "scope": "application",
+            "description": "在底栏显示当前 Codex 账户 5 小时额度已用百分比，点击查看各额度池与重置时间。"
           }
         }
       }

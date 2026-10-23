@@ -9,6 +9,7 @@ import {queueHint,queueDiscussion,readHint,hintSummary,assistHistory} from './hi
 import {browserRequest} from './browser-mailbox.js';
 import {readProblemProgress} from './problem-progress.js';
 import {writeModelSettings} from './model-settings.js';
+import {readAccountUsage} from './account-usage.js';
 import {gridUrl,sameProblem} from './grid-url.js';
 import {readProblemDisplay} from './problem-display.js';
 import {runSample,latestSample,saveSampleRequest,finishSample} from './sample-runner.js';
@@ -192,8 +193,9 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
   }
   return {async handle(message){
     const type=message.type;
+    if(type==='account_usage')return readAccountUsage();
     if(type==='configure_ai')return {settings:await writeModelSettings(message.settings)};
-    if(type==='status')return {ready:true,dataDirectory:dataDir(),version:'0.2.16',platform:'programminggrid-vscode'};
+    if(type==='status')return {ready:true,dataDirectory:dataDir(),version:'0.2.17',platform:'programminggrid-vscode'};
     if(type==='problem_display')return currentProblem();
     if(type==='problem_progress'){const target=gridUrl(message.problemUrl,{kind:'problem'});if(!target)throw new Error('题目地址无效。');return readProblemProgress({group:target.group});}
     if(type==='list_problems'){
