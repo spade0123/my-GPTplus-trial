@@ -191,3 +191,9 @@ UI 启动和每 5 分钟读取，点击详情可刷新。隐藏底栏只改变�
 ## 网页切题后的源码跟随（0.2.18）
 
 problem_display ready 通知经 ProblemView.accept 更新题干与计时器后，120ms 合并调度源码跟随。ProblemNavigation.followDisplay 复用 documentFor 找回关联/已创建/已打开源码或新建模板；context_bind requireActive 校验实际浏览器题目，再打开源码编辑组。与主动 activate 共用 switching 锁，避免导航与跟随并发；followedKey 抑制同题重复聚焦，异步步骤检查最新题号和标签，过期操作不打开旧题。通知跟随不调用 activate_problem，不自动上传或评测。
+
+## 题单可读目录与构建任务（0.2.19）
+
+Chrome list_problems 返回 assignmentName，本机限制长度后交给工作区缓存。ProblemNavigation.directoryFor 和 assignment-files.cjs 按题单 ID 查目录标记，再处理可读名字、同名序号与旧 ID 目录迁移。迁移前复制已关联上下文到新 URI，VS Code WorkspaceEdit 改名后更新 MAP/CREATED；旧上下文不删除。目录、标记及产物移动限定工作区的普通目录，不覆盖目标。
+
+build-task.cjs 用 MIT jsonc-parser 按位置修改 tasks.json，创建默认 process 任务，旧任务保留。任务调用安装的 Node 执行 local-compile.cjs，再以 shell:false 启动配置的 g++，明确 -o 为源码旁 build/可执行文件。源码切换只配置任务，不调用编译；网站评测链路完全独立。

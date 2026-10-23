@@ -195,7 +195,7 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
     const type=message.type;
     if(type==='account_usage')return readAccountUsage();
     if(type==='configure_ai')return {settings:await writeModelSettings(message.settings)};
-    if(type==='status')return {ready:true,dataDirectory:dataDir(),version:'0.2.18',platform:'programminggrid-vscode'};
+    if(type==='status')return {ready:true,dataDirectory:dataDir(),version:'0.2.19',platform:'programminggrid-vscode'};
     if(type==='problem_display')return currentProblem();
     if(type==='problem_progress'){const target=gridUrl(message.problemUrl,{kind:'problem'});if(!target)throw new Error('题目地址无效。');return readProblemProgress({group:target.group});}
     if(type==='list_problems'){
@@ -210,7 +210,7 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
       });
       navigationLists.set(parsed.group,new Set(problems.map(item=>gridUrl(item.url).key)));
       const closesAt=result.closesAt===undefined?null:z.number().int().min(946684800000).max(4102444800000).parse(result.closesAt);
-      return {type:'problem_list',problemUrl:url,problems,closesAt,source:result.source,message:result.message||''};
+      return {type:'problem_list',problemUrl:url,problems,assignmentName:typeof result.assignmentName==='string'?result.assignmentName.trim().slice(0,300):'',closesAt,source:result.source,message:result.message||''};
     }
     if(type==='activate_problem'){
       const from=gridUrl(message.problemUrl,{kind:'problem'}),target=gridUrl(message.targetUrl,{kind:'problem'}),display=await currentProblem();
@@ -221,6 +221,16 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
       return {type:'problem_activated',url:target.url,tabId:result.tabId,page:result.page};
     }
     if(type==='context_lookup')return getContext(validUri(message.uri));
+    if(type==='context_relocate'){
+      const entries=z.array(z.object({from:DocumentUri,to:DocumentUri}).strict()).max(1000).parse(message.entries);
+      for(const item of entries){
+        if(item.from===item.to)continue;
+        const previous=await readContext(item.from),existing=await readContext(item.to);
+        if((existing.topics||existing.binding)&&JSON.stringify({...existing,uri:''})!==JSON.stringify({...previous,uri:''}))throw new Error('目标路径已有题目关联，停止目录迁移以免覆盖。');
+        if(previous.topics||previous.binding)await writeRecord(contextPath(item.to),{...previous,uri:item.to});
+      }
+      return {relocated:true};
+    }
 
     if(type==='judge_history'){
       const context=await getContext(validUri(message.uri),message.problemUrl);

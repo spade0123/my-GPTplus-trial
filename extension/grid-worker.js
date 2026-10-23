@@ -1,7 +1,7 @@
 import {extractPage} from './extract.js';
 import {readCurrentJudgment} from './capture-actions.js';
 import {gridJudgeRequest} from './grid-submit.js';
-import {readGridProblemList} from './grid-navigation.js';
+import {readGridProblemList,readGridAssignmentName} from './grid-navigation.js';
 import {readGridClosingTime} from './grid-closing.js';
 
 const patterns=['https://programming.pku.edu.cn/*'];
@@ -43,6 +43,7 @@ async function handle(request){
     }
     const [reply]=await chrome.scripting.executeScript({target:{tabId:tab.id},world:'ISOLATED',func:readGridProblemList,args:[expected.url,closesAt]});
     const result=reply?.result;if(result?.error)throw new Error(result.error);
+    if(!result.assignmentName){const [name]=await chrome.scripting.executeScript({target:{tabId:tab.id},world:'MAIN',func:readGridAssignmentName,args:[expected.url]});result.assignmentName=name?.result||'';}
     if(!Array.isArray(result?.problems)||result.problems.length>500)throw new Error('未读到题目菜单，请重新加载 Chrome 连接扩展。');
     const after=await chrome.tabs.get(tab.id);if(info(after.url)?.key!==expected.key)throw new Error('读取列表时切换了题目，请重试。');
     const group=expected.key.split('/')[0],keys=new Set();

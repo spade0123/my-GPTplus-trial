@@ -1,6 +1,7 @@
 const vscode=require('vscode'),fs=require('node:fs/promises'),path=require('node:path'),{randomUUID}=require('node:crypto'),{execFile}=require('node:child_process'),{promisify}=require('node:util');
 const {RpcClient}=require('./rpc-client.cjs');
 const {registerUsage}=require('./account-usage.cjs');
+const {configureBuildTask}=require('./build-task.cjs');
 const {openHistory:makeHistory}=require('./history-view.cjs');
 const {editTemplate,previewTemplate,isTemplateDocument}=require('./template-settings.cjs');
 const {ProblemView}=require('./problem-view.cjs');
@@ -12,7 +13,8 @@ function activate(context){
   let rpc,opening,lastSource,historyPanel;const panels=new Map(),judgePanels=new Map(),buttons=[];
   const output=vscode.window.createOutputChannel('编程网格 学习教练');context.subscriptions.push(output);
   const statementView=new ProblemView(context);
-  statementView.navigation=new ProblemNavigation({context,backend,currentEditor:()=>isCpp(vscode.window.activeTextEditor?.document)?vscode.window.activeTextEditor:lastSource,display:()=>statementView.latest});
+  const setupBuild=async document=>{try{await configureBuildTask(context,backend,document);}catch(error){output.appendLine('编译目录配置未完成：'+error.message);void vscode.window.showWarningMessage('编译目录配置未完成：'+error.message);}};
+  statementView.navigation=new ProblemNavigation({context,backend,currentEditor:()=>isCpp(vscode.window.activeTextEditor?.document)?vscode.window.activeTextEditor:lastSource,display:()=>statementView.latest,configureBuild:setupBuild});
   const settings=()=>vscode.workspace.getConfiguration('gridCoach');
   const aiSettings=()=>({model:settings().get('ai.model','gpt-6-luna'),effort:settings().get('ai.effort','low')});
   const feedbackSettings=()=>({showComparison:settings().get('feedback.showComparison',true),visibleWhitespace:settings().get('feedback.visibleWhitespace',true)});
@@ -234,6 +236,7 @@ function activate(context){
   context.subscriptions.push(vscode.commands.registerCommand('gridCoach.bindProblem',safe(()=>bind(sourceFor(undefined,true)))),vscode.commands.registerCommand('gridCoach.showRecords',safe(showRecords)),vscode.commands.registerCommand('gridCoach.organizeProjectByDate',safe(organizeProjectByDate)));
   function openKeybindings(){return vscode.commands.executeCommand('workbench.action.openGlobalKeybindings','@ext:local-coach.pku-grid-cpp-coach');}
   context.subscriptions.push(
+    vscode.commands.registerCommand('gridCoach.configureBuildTask',safe(()=>{sourceFor();return configureBuildTask(context,backend,lastSource.document,{explicit:true});})),
     vscode.commands.registerCommand('gridCoach.testCode',safe(()=>openJudge('test'))),
     vscode.commands.registerCommand('gridCoach.submitCode',safe(()=>openJudge('submit'))),
     vscode.commands.registerCommand('gridCoach.openKeyboardShortcuts',safe(openKeybindings)),

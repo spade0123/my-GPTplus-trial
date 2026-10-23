@@ -56,7 +56,7 @@ Chrome 打开题目的 `.../probset/<题集ID>/<题目ID>/ide.do` 页面，点�
 
 3. Chrome 打开 `chrome://extensions`，开启开发者模式，加载项目的 **`extension/`** 目录。自己登录编程网格并打开具体题目 IDE，点击连接图标。
 
-4. VS Code 执行“扩展：从 VSIX 安装”，选择 [pku-grid-cpp-coach-0.2.18.vsix](dist/pku-grid-cpp-coach-0.2.18.vsix)，然后运行 **Developer: Reload Window**。
+4. VS Code 执行“扩展：从 VSIX 安装”，选择 [pku-grid-cpp-coach-0.2.19.vsix](dist/pku-grid-cpp-coach-0.2.19.vsix)，然后运行 **Developer: Reload Window**。
 
 5. 打开 C++ 文件，点击“网格·评测”。需要关联或更换题目时，使用评测页底部的“题目连接与本机记录”。
 
@@ -86,7 +86,7 @@ VS Code 读取点击时编辑器里的完整缓冲区，包括尚未写入文件
 
 - **更新 VS Code 扩展后**：安装新 VSIX，运行 Developer: Reload Window。
 - **更新 Chrome 连接代码后**：在扩展管理页重新加载连接扩展；需要时在题目页再次点击图标连接。
-- **只有 VS Code 界面或本机服务更新时**：按该次更新说明操作，无需每次都重载 Chrome。当前 VS Code/本机程序为 0.2.18，Chrome 连接清单为 0.2.12。
+- **只有 VS Code 界面或本机服务更新时**：按该次更新说明操作，无需每次都重载 Chrome。当前 VS Code/本机程序为 0.2.19，Chrome 连接清单为 0.2.19。
 - **显示上次的手工测试**：顶部会标明“上次记录”；默认测试方式仍是网格判题。点击测试按钮才会发送新的测试。
 - **题目标签已关闭或切换**：打开正确题目的 IDE，重新从目标 C++ 文件打开评测页，必要时更换关联。
 - **请求超时或未确认**：先核对网站记录，再决定下一步。界面会显示最后阶段和可获得的具体错误；不要把未确认当作成功。
@@ -115,7 +115,7 @@ VS Code 读取点击时编辑器里的完整缓冲区，包括尚未写入文件
 ```powershell
 npm run build:vscode
 cd vscode-extension
-npx --yes @vscode/vsce package --no-dependencies --skip-license --out ../dist/pku-grid-cpp-coach-0.2.18.vsix
+npx --yes @vscode/vsce package --no-dependencies --skip-license --out ../dist/pku-grid-cpp-coach-0.2.19.vsix
 ```
 
 这轮维护使用以下针对网格的检查，14 项通过：
@@ -361,3 +361,17 @@ VS Code/本机程序为 0.2.15，Chrome 仍为 0.2.12；安装 VSIX 后执行 De
 VS Code 内的题单/上一题/下一题继续执行网页导航和源码切换。网页发来的切题通知则只触发源码跟随，不再次导航浏览器，不自动测试或提交。重复刷新同一题不重复抢源码焦点；快速连续切题会在绑定和打开前检查当前网页题目，失败提示显示在题单下方，可从题单重新选择目标题目。
 
 原题网址和“在浏览器查看原题”移到题干、题单的最下方，顶部只显示题名和简短连接状态。安装 0.2.18 后执行 **Developer: Reload Window**；Chrome 无需重载。尚未实际进行网页切题联调。
+
+## 题单目录与本地编译产物（0.2.19）
+
+目录采用“编程网格/题单名字/源码.cpp”，本地可执行文件、目标文件放在该题单的 build 子目录。题单名来自网页中指向当前题单的链接或当前 assignment.name/title；内部 .grid-assignment.json 保留题单 ID，同名题单加中文序号，不合并。文件名内不合法字符替换为下划线；已有可读目录保持稳定。
+
+旧的 32 位 ID 目录在进入题目时改名，同步已保存的题目文件映射和本机路径上下文。使用 VS Code 文件重命名机制，保留未保存编辑；旧的历史上下文不会删除。目标目录存在时使用新序号，不覆盖；符号链接目录不自动整理。未读取到题单名字时不新建 ID 目录，需重载 Chrome 扩展并刷新题单。已有旧目录在名字缺失时仍可继续使用。
+
+题单根目录已有的 .exe/.o/.obj/.pdb/.ilk 移入 build，重名不覆盖；不搬移源码、样例输入输出或其他任意文件。build/.gitignore 排除编译产物，已有忽略文件不改写。
+
+首次打开对应源码时配置项目 .vscode/tasks.json，新增“编程网格：编译当前源码到 build”为默认构建任务，Ctrl+Shift+B 使用此任务。旧任务与注释保留，其他旧默认任务取消默认标记但不删除。使用本机连接安装的 Node 与 g++，输出源码旁的 build/源码名.exe（非 Windows 无 exe 后缀）。默认参数 -std=c++17 -g -O0，可在 gridCoach.build.arguments 调整后执行“编程网格：配置 Ctrl+Shift+B 编译到 build”。
+
+已有插件构建任务后不自动覆盖用户修改，任务文件有未保存编辑时暂停配置。任务只在用户按构建快捷键时编译，不自动运行程序；网格云端评测不受本地构建任务影响。旧 launch.json 或自定义运行命令如果写死可执行文件路径，需要对应指向 build 内文件。
+
+更新后先在 Chrome 扩展管理页重新加载连接扩展，再执行 VS Code **Developer: Reload Window**，切换一次题目即可应用目录和任务策略。可在任务菜单选择保留的其他构建任务。此次完成语法与打包安装，未实际编译或迁移用户项目。

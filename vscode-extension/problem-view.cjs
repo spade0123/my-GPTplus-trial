@@ -118,7 +118,8 @@ class ProblemView{
         await this.context.workspaceState.update('gridCoach.assignmentDeadlines.v1',saved);
       }
       if(sequence!==this.navigationSequence||url!==this.latest.url)return;
-      await this.postNavigation({problems:result.problems,closesAt:result.closesAt??null,busy:false,message:result.message||'按网站顺序排列；点击题目切换。'});
+      await this.navigation.rememberAssignment(url,result.assignmentName);
+      await this.postNavigation({problems:result.problems,assignmentName:result.assignmentName||'',closesAt:result.closesAt??null,busy:false,message:result.message||'按网站顺序排列；点击题目切换。'});
     }catch(error){if(sequence===this.navigationSequence)await this.postNavigation({busy:false,message:error.message});}
   }
   async show(){

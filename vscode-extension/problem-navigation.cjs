@@ -1,13 +1,14 @@
 const vscode=require('vscode');
 const {sourceStem}=require('./source-template.cjs');
 const {sourceTemplate}=require('./template-settings.cjs');
+const {assignmentDirectory}=require('./assignment-files.cjs');
 const CREATED_KEY='gridCoach.createdProblemFiles.v1';
 const MAP_KEY='gridCoach.problemFiles.v1',PENDING_KEY='gridCoach.navigationPending.v1';
 function identity(value){
   try{const u=new URL(value),m=u.pathname.match(/^\/(?:course\/)?probset\/([a-f0-9]{32})\/([a-f0-9]{32})\/ide\.do$/i);return u.origin==='https://programming.pku.edu.cn'&&!u.username&&!u.password&&!u.search&&!u.hash&&m?{key:m[1].toLowerCase()+'/'+m[2].toLowerCase(),group:m[1].toLowerCase(),id:m[2].toLowerCase()}:null;}catch{return null;}
 }
 class ProblemNavigation{
-  constructor({context,backend,currentEditor,display}){Object.assign(this,{context,backend,currentEditor,display});this.switching=false;this.blocked=context.workspaceState.get(PENDING_KEY,false);}
+  constructor({context,backend,currentEditor,display,configureBuild}){Object.assign(this,{context,backend,currentEditor,display,configureBuild});this.switching=false;this.blocked=context.workspaceState.get(PENDING_KEY,false);}
   assertSource(uri){
     const mapping=this.context.workspaceState.get(MAP_KEY,{}),current=identity(this.display().url);
     if(current&&Object.values(mapping).includes(uri)&&mapping[current.key]!==uri)throw new Error('当前源码关联的是另一题，请从题目列表切换，或明确重新关联文件。');
@@ -16,6 +17,24 @@ class ProblemNavigation{
   async clearBlock(){await this.context.workspaceState.update(PENDING_KEY,false);this.blocked=false;}
   async progress(url){return (await this.backend()).request({type:'problem_progress',problemUrl:url});}
   async list(url,forceDeadline=false){return (await this.backend()).request({type:'list_problems',problemUrl:url,forceDeadline});}
+  async rememberAssignment(url,title){const target=identity(url);if(target&&typeof title==='string'&&title.trim())await this.context.workspaceState.update('gridCoach.assignmentNames.v1',{...this.context.workspaceState.get('gridCoach.assignmentNames.v1',{}),[target.group]:title.trim().slice(0,300)});}
+  async directoryFor(client,folder,target){
+    let title=this.context.workspaceState.get('gridCoach.assignmentNames.v1',{})[target.group];
+    if(!title){
+      const current=this.display();if(identity(current.url)?.group===target.group){const list=await this.list(current.url);await this.rememberAssignment(current.url,list.assignmentName);title=list.assignmentName;}
+    }
+    let moved;
+    const remap=(uri,from,to)=>uri.startsWith(from.toString()+'/')?to.toString()+uri.slice(from.toString().length):uri;
+    return assignmentDirectory(folder,target.group,title,{
+      beforeRename:async(from,to)=>{
+        const maps=[MAP_KEY,CREATED_KEY].map(key=>[key,this.context.workspaceState.get(key,{})]);
+        const uris=[...new Set(maps.flatMap(([,map])=>Object.values(map)).filter(uri=>uri.startsWith(from.toString()+'/')))];
+        if(uris.length)await client.request({type:'context_relocate',entries:uris.map(uri=>({from:uri,to:remap(uri,from,to)}))});
+        moved=maps.map(([key,map])=>[key,Object.fromEntries(Object.entries(map).map(([id,uri])=>[id,remap(uri,from,to)]))]);
+      },
+      afterRename:async()=>{for(const [key,map]of moved||[])await this.context.workspaceState.update(key,map);}
+    });
+  }
   async rememberCurrent(client,url){
     const editor=this.currentEditor();if(editor?.document.languageId!=='cpp'||editor.document.isClosed)return;
     const uri=editor.document.uri.toString(),saved=await client.request({type:'context_lookup',uri});
@@ -23,7 +42,11 @@ class ProblemNavigation{
     await this.context.workspaceState.update(MAP_KEY,{...this.context.workspaceState.get(MAP_KEY,{}),[identity(url).key]:uri});
   }
   async documentFor(client,url,problem={}){
-    const target=identity(url),mapping=this.context.workspaceState.get(MAP_KEY,{}),saved=mapping[target.key];
+    const target=identity(url),folders=vscode.workspace.workspaceFolders||[],activeUri=this.currentEditor()?.document.uri;
+    let folder=folders.length===1?folders[0]:activeUri?vscode.workspace.getWorkspaceFolder(activeUri):undefined;
+    // Resolve/rename the managed directory before reading cached URIs.
+    let directory=folder?await this.directoryFor(client,folder,target):null;
+    const mapping=this.context.workspaceState.get(MAP_KEY,{}),saved=mapping[target.key];
     if(saved&&identity((await client.request({type:'context_lookup',uri:saved})).binding?.problemUrl)?.key===target.key){
       const open=vscode.workspace.textDocuments.find(document=>document.uri.toString()===saved);
       if(open&&!open.isClosed)return open;
@@ -43,13 +66,10 @@ class ProblemNavigation{
       const choice=await vscode.window.showQuickPick(matches.map(item=>({label:item.document.fileName,document:item.document})),{placeHolder:'此题关联了多个文件，选择要继续编写的源码'});
       return choice?.document;
     }
-    const folders=vscode.workspace.workspaceFolders||[];
     const render=fileName=>sourceTemplate(this.context,{problemTitle:problem.title,problemId:target.id,problemNumber:problem.number,fileName});
     if(!folders.length)return vscode.workspace.openTextDocument({language:'cpp',content:await render(sourceStem(problem.title,problem.number)+'.cpp')});
-    const activeUri=this.currentEditor()?.document.uri;
-    let folder=folders.length===1?folders[0]:activeUri?vscode.workspace.getWorkspaceFolder(activeUri):undefined;
     if(!folder){const chosen=await vscode.window.showQuickPick(folders.map(item=>({label:item.name,folder:item})),{placeHolder:'选择新题源码的项目文件夹'});if(!chosen)return;folder=chosen.folder;}
-    const directory=vscode.Uri.joinPath(folder.uri,'编程网格',target.group);
+    directory ||= await this.directoryFor(client,folder,target);
     await vscode.workspace.fs.createDirectory(directory);
     const exists=async uri=>{try{await vscode.workspace.fs.stat(uri);return true;}catch(error){if(['FileNotFound','ENOENT'].includes(error.code))return false;throw error;}};
     // Keep legacy ID-named files usable. New names are short and collision-safe.
@@ -86,6 +106,7 @@ class ProblemNavigation{
       await this.context.workspaceState.update(MAP_KEY,{...this.context.workspaceState.get(MAP_KEY,{}),[target.key]:document.uri.toString()});
       await vscode.window.showTextDocument(document,{viewColumn:this.currentEditor()?.viewColumn||vscode.ViewColumn.One,preview:false,preserveFocus:false});
       this.followedKey=target.key;
+      await this.configureBuild?.(document);
       await this.clearBlock();
       return result;
     }catch(error){throw new Error(error.message+(this.blocked?' 请刷新题单并重试选择题目，或使用“关联当前 C++ 文件与 Chrome 题目”完成关联。':''));}
@@ -112,6 +133,7 @@ class ProblemNavigation{
       if(!stillCurrent())return;
       await vscode.window.showTextDocument(document,{viewColumn:editor?.viewColumn||vscode.ViewColumn.One,preview:false,preserveFocus:false});
       this.followedKey=target.key;await this.clearBlock();
+      await this.configureBuild?.(document);
       return {opened:true};
     }finally{this.switching=false;}
   }

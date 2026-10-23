@@ -3,7 +3,7 @@
   "displayName": "北大编程网格 · C++ 学习教练",
   "description": "Chrome 连接编程网格，VS Code 读取当前 C++ 并提供保存、提示、交流、网站测试与正式提交。",
   "publisher": "local-coach",
-  "version": "0.2.18",
+  "version": "0.2.19",
   "license": "UNLICENSED",
   "engines": {
     "vscode": "^1.96.0"
@@ -132,6 +132,10 @@
       {
         "command": "gridCoach.refreshUsage",
         "title": "编程网格：刷新账户额度"
+      },
+      {
+        "command": "gridCoach.configureBuildTask",
+        "title": "编程网格：配置 Ctrl+Shift+B 编译到 build"
       }
     ],
     "configuration": [
@@ -444,6 +448,24 @@
             "default": true,
             "scope": "application",
             "description": "在底栏显示当前 Codex 账户 5 小时额度已用百分比，点击查看各额度池与重置时间。"
+          }
+        }
+      },
+      {
+        "title": "编程网格 · 本机构建",
+        "properties": {
+          "gridCoach.build.arguments": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [
+              "-std=c++17",
+              "-g",
+              "-O0"
+            ],
+            "scope": "application",
+            "description": "本机 g++ 编译参数；不含源码路径或 -o。修改后执行“配置 Ctrl+Shift+B 编译到 build”应用。"
           }
         }
       }
