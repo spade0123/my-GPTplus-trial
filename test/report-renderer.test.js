@@ -69,3 +69,36 @@ test('untrusted Markdown cannot add executable HTML, unsafe links, or remote ima
     assert.match(report.textContent,/远程图片/);
   } finally {dom.window.close();}
 });
+
+test('code highlighting preserves exact C++ source and copying writes only the clicked block',async()=>{
+  const code='#include <iostream>\nusing namespace std;\nint main(){\n\tint cnt=1\'000;\n\tconst char* s=R"tag(<img src=x onerror="bad()"> // text)tag";\n\tcout<<cnt+1;\n}\n// original source comment';
+  const {dom,report}=page('片段 `cnt+1`：\n\n```cpp\n'+code+'\n```\n\n```text\n1 2\n```');
+  const copied=[];Object.defineProperty(dom.window.navigator,'clipboard',{value:{writeText:async text=>copied.push(text)}});
+  try{
+    const block=report.querySelector('pre code');assert.equal(block.textContent,code);assert(block.querySelector('.syntax-keyword'));assert(block.querySelector('.syntax-type'));assert(block.querySelector('.syntax-string'));assert.equal(block.querySelector('.syntax-number').textContent,"1'000");
+    assert.equal(report.querySelector('img,script'),null);assert.equal(report.querySelector('p code').textContent,'cnt+1');assert.equal(copied.length,0);
+    const buttons=[...report.querySelectorAll('.code-copy')];await buttons[0].onclick();assert.deepEqual(copied,[code]);assert.equal(buttons[0].textContent,'已复制');
+    await buttons[1].onclick();assert.deepEqual(copied,[code,'1 2']);
+    dom.window.navigator.clipboard.writeText=async()=>{throw new Error('denied');};await buttons[0].onclick();assert.equal(buttons[0].textContent,'复制失败');
+  }finally{dom.window.close();}
+});
+
+test('problem sections in the hint window are collapsed without hiding the leading program',()=>{
+  const {dom,report}=page('');
+  try{
+    const panel=dom.window.document.createElement('section');panel.id='hintPanel';report.replaceWith(panel);panel.append(report);
+    dom.window.PkuReportRenderer.render(report,'## 完整参考程序\n```cpp\nint main(){return 0;}\n```\n\n## 解题思路\n推导。\n\n## 原题目\n### 题目描述\n原文。\n\n### 例子输入\n```text\n1 2\n```');
+    const folded=report.querySelector('details.problem-section');assert(folded);assert.equal(folded.open,false);assert.match(folded.textContent,/原文/);assert.equal(report.querySelector('h2').textContent,'完整参考程序');assert(!folded.contains(report.querySelector('pre')));
+  }finally{dom.window.close();}
+});
+
+test('chat nested in the hint panel retains ordinary dialogue rendering instead of folding it as a reference problem',()=>{
+  const {dom,report}=page('');
+  try{
+    const hint=dom.window.document.createElement('section');hint.id='hintPanel';
+    const chat=dom.window.document.createElement('details');chat.id='chatPanel';chat.open=true;
+    report.replaceWith(hint);hint.append(chat);chat.append(report);
+    dom.window.PkuReportRenderer.render(report,'## 原题目\n这里是回答问题所需的题意说明。\n\n```cpp\ncout<<cnt+1;\n```');
+    assert.equal(report.querySelector('details.problem-section'),null);assert.equal(report.querySelector('pre code').textContent,'cout<<cnt+1;');assert(report.querySelector('.code-copy'));
+  }finally{dom.window.close();}
+});

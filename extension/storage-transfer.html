@@ -1,0 +1,8 @@
+<!doctype html>
+<html lang="zh-CN"><meta charset="utf-8"><title>迁出旧版插件数据</title>
+<style>body{max-width:720px;margin:40px auto;padding:22px;font:16px/1.8 system-ui;color:#18324b;background:#f7fafc}h1{font-size:25px;margin:0 0 16px}button{padding:10px 18px;border:0;border-radius:7px;background:#155f86;color:white;font:inherit;cursor:pointer}button:disabled{opacity:.6}#status{white-space:pre-wrap;overflow-wrap:anywhere;padding:14px;border:1px solid #d4e1ea;border-radius:8px;background:white}small{display:block;color:#52677c;margin:14px 0}</style>
+<h1>迁出旧版插件数据</h1><p>把旧插件的草稿、缓存备份及提交关联迁到本机文件。写入并核对成功后，才移除 Chrome 中的对应旧记录。</p>
+<p>不访问编程网格，不注入网页、不改编辑器、不处理网站自己的存储。</p>
+<button id="transfer">迁到本机并核对</button><p id="status" role="status">等待开始。迁移期间请保持此独立标签页打开。</p>
+<small>仅迁出此浏览器、此扩展身份下仍能读取的旧记录。原先已清除、卸载后丢失或浏览器重载时消失的临时关联无法凭空迁回；成功保存过的本机源码记录另行保留。提示和交流在 Codex 中结合你明确提供的源码进行。此入口不采集网页，不生成报告，也不调用模型。迁移失败或中断时，未确认的旧记录保留。</small>
+<script type="module" src="storage-transfer-ui.js"></script></html>

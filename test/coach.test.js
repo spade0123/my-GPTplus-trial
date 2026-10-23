@@ -67,7 +67,7 @@ test('real MCP stdio handshake, tool validation, analysis, prompt and review per
   try {
     await client.connect(new StdioClientTransport({command:process.execPath,args:[path.join(ROOT,'src/server.js')],env:{...process.env,PKU_DATA_DIR:temp},stderr:'pipe'}));
     const tools=await client.listTools();
-    assert.equal(tools.tools.length,9);
+    assert.equal(tools.tools.length,11);
     assert.equal(tools.tools.some(t=>/sync|upload|github/.test(t.name)),false);
     const invalid=await client.callTool({name:'analyze_cpp',arguments:{}});
     assert.equal(invalid.isError,true);
@@ -81,6 +81,21 @@ test('real MCP stdio handshake, tool validation, analysis, prompt and review per
     assert.ok(data.findings.some(x=>x.topic==='initialization'));
     const prompt=await client.getPrompt({name:'review_homework',arguments:{focus:'边界'}});
     assert.match(prompt.messages[0].content.text,/边界/);
+    const currentCode='#include <iostream>\nusing namespace std;\nint main(){int x;cin>>x;cout<<x+1;}';
+    const hintPrompt=await client.getPrompt({name:'hint_homework',arguments:{code:currentCode,statement:'读取一个整数，输出原来的整数。'}});
+    assert.match(hintPrompt.messages[0].content.text,/实际行号/);assert.ok(hintPrompt.messages[0].content.text.includes(JSON.stringify(currentCode)));
+    const chat=JSON.parse((await client.callTool({name:'code_help',arguments:{mode:'discussion',code:currentCode,question:'我这里的 x+1 应该怎样修改？'}})).content[0].text);
+    assert.equal(chat.capture.code,currentCode);assert.match(chat.guide,/本轮当前代码/);
+    const id=chat.requestId;
+    const savedReply=await client.callTool({name:'save_code_help_reply',arguments:{id,answer:'你现在的 cout << x+1 比题目要求多加了 1，先在这份代码中去掉 +1，再用输入 2 检查是否输出 2。'}});
+    assert.equal(savedReply.isError,undefined);
+    const history=JSON.parse((await client.callTool({name:'review_history',arguments:{includeSource:true}})).content[0].text);
+    assert.equal(history.codeHelp.total,2);const savedChat=history.codeHelp.records.find(r=>r.id===id);
+    assert.equal(savedChat.code,currentCode);assert.equal(savedChat.status,'complete');assert.match(savedChat.answer,/去掉/);
+    const hiddenSource=JSON.parse((await client.callTool({name:'review_history',arguments:{}})).content[0].text);
+    assert.ok(hiddenSource.codeHelp.records.every(r=>r.code===undefined));
+    await assert.rejects(client.getPrompt({name:'hint_homework',arguments:{}}),/本轮完整/);
+    await assert.rejects(client.getPrompt({name:'discuss_homework',arguments:{code:currentCode,file:'example.cpp',question:'怎么改？'}}),/只选一项/);
     const empty=JSON.parse((await client.callTool({name:'learning_plan',arguments:{}})).content[0].text);
     assert.equal(empty.reviews,0);
     await client.callTool({name:'save_review',arguments:{title:'测试',topics:['bounds','bounds'],evidence:'第 3 行需要检查范围',next_step:'手算 n=1'}});

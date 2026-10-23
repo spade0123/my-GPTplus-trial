@@ -17,3 +17,7 @@
 *.log
 *.tmp
 *.lock
+
+/native/report-location.json
+/test-tmp/
+/work/

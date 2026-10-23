@@ -1,6 +1,6 @@
 {
   "name": "pku-cpp-coach-mcp",
-  "version": "1.4.0",
+  "version": "1.9.0",
   "private": true,
   "type": "module",
   "description": "个人计算概论 C++ 作业诊断与学习助手",

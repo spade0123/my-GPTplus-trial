@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>C++ 学习教练</title>
+<link rel="stylesheet" href="vendor/katex/katex.min.css"><link rel="stylesheet" href="sidepanel.css"></head>
+<body><header class="coach-toolbar"><span class="eyebrow">C++ 学习教练</span><div class="hint-actions"><button id="refreshHint" type="button">更新提示</button><button id="giveSolution" type="button">给出解答</button><details id="coachMore"><summary>更多</summary><div class="more-menu"><button id="openModels" type="button">模型与推理强度</button><button id="openVersions" type="button">本题历史版本</button><button id="openSnapshot" type="button">核对本次代码</button><button id="forceHint" type="button">用当前模型重新生成提示</button></div></details></div><p id="jobMeta" class="chatMeta" aria-live="polite"></p></header>
+<nav hidden aria-label="内部控件"><button id="quickSave" class="primary">快捷保存</button><button id="hint">提示</button><button id="discussion">交流</button></nav>
+<p id="saveStatus" class="status" role="status" aria-live="polite">打开题目后，点击按钮即可使用。</p><p id="context" class="context"></p>
+<section id="toolsPanel" hidden><button id="closeTools" type="button">收起设置 / 历史</button><p id="toolsStatus" class="status" aria-live="polite"></p><div id="modelsPanel" hidden><h2>模型与推理强度</h2><label>交互模型<select id="interactiveModel"></select></label><label>交互推理强度<select id="interactiveEffort"></select></label><label>后台分析模型<select id="reportModel"></select></label><label>后台推理强度<select id="reportEffort"></select></label><button id="refreshModels" type="button">刷新模型清单</button><button id="saveModels" type="button">保存设置</button><p class="muted">用于之后的新请求；已排队请求保留原配置。定期报告任务的模型由任务单独设置。</p></div><div id="versionsPanel" hidden><h2>本题历史版本</h2><label>选择保存版本<select id="versions"></select></label><p id="versionInfo" class="chatMeta"></p><button id="copyVersion" type="button" disabled>复制原始代码</button><button id="exportVersion" type="button" disabled>导出为新 cpp 文件</button><article id="versionCode" class="markdown"></article><h3>与点击查看时的当前代码比较</h3><article id="versionDiff" class="markdown"></article></div></section>
+<details id="snapshotPanel"><summary>本次代码与运行信息（点击核对）</summary><p id="snapshotMeta" class="chatMeta"></p><article id="snapshotCode" class="markdown"></article><article id="snapshotRuntime" class="markdown"></article><p class="muted">这是本次读取的快照。继续修改后，请点击更新提示或快捷保存；此处不随打字刷新。</p></details>
+<section id="hintPanel" hidden>
+  <h2>解题方向与下一步</h2><p id="hintState" class="status" aria-live="polite"></p>
+  <details id="chatPanel" class="embedded-chat">
+    <summary>交流（保留本题对话）</summary>
+    <div class="chat-content">
+      <p class="muted">每次展开或发送都会重新读取运行区；发送时保存当前完整代码与问题。</p>
+      <p id="chatState" class="status" aria-live="polite"></p>
+      <form id="chatForm"><label for="question">你的问题</label><textarea id="question" maxlength="2000" rows="4" placeholder="例如：我的这段循环为什么漏掉最后一个单词？" required></textarea><button id="send" class="primary">发送</button></form>
+      <div id="chatMessages"></div>
+    </div>
+  </details>
+  <details id="solutionPanel" hidden><summary>完整参考解答（点击可收起）</summary><p id="solutionState" class="status" aria-live="polite"></p><article id="solutionAnswer" class="markdown"></article></details>
+  <article id="hintAnswer" class="markdown"></article>
+  <details id="hintLocal"><summary>本地检查与样例（辅助信息）</summary><article id="hintLocalAnswer" class="markdown"></article></details>
+</section>
+<details><summary>使用范围</summary><p>本浮窗和三个按钮都属于插件自己的界面；不修改网站原节点、编辑器，不监听输入与提交，不运行或提交作业，不读写网站存储，也不自动清理缓存。收起不取消后台分析；重新打开保留本题上次内容。每次点击提示会保存并更新；相同题面、代码、运行信息和模型配置复用结果。</p><p>交流放在提示浮窗内，可独立展开或收起；右下角“交流”按钮直接展开它。对话区只显示你发送的问题和真实回复，提示与完整参考解答仍各自保留。已保存历史从本机文件恢复，点击提示会按当前代码更新；单独打开交流不自动生成新提示或解答。模型回复逐步显示，完成时间取决于模型服务，不承诺完整答复五秒内完成。</p><p>如果发现多个编辑器，请明确选择代码来源：</p><label for="source">代码来源</label><input id="source" placeholder="通常留空；例如 ace:0"><p><a href="storage-transfer.html" target="_blank" rel="noopener">迁出旧插件数据</a></p></details>
+<script src="vendor/marked/marked.umd.js"></script><script src="vendor/katex/katex.min.js"></script><script src="report-renderer.js"></script><script src="instant-hints.js"></script><script src="coach-tools.js"></script><script type="module" src="assist-window.js"></script></body></html>

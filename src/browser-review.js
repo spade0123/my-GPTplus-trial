@@ -1,4 +1,5 @@
 import fs from 'node:fs/promises';
+import {modelProfile} from './model-settings.js';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { z } from 'zod';
@@ -65,6 +66,28 @@ export async function readReview(id) {
   if(!/^[a-f0-9]{64}$/.test(id))throw new Error('无效的记录 ID。');
   return JSON.parse(await fs.readFile(path.join(dataDir(),`${id}.json`),'utf8'));
 }
+export async function recordAssistance(id,event){
+  if(!/^[a-f0-9]{64}$/.test(id))throw new Error('无效的辅助记录 ID。');
+  const dir=path.join(dataDir(),'assistance');await fs.mkdir(dir,{recursive:true});const target=path.join(dir,`${id}.json`);let release;
+  for(let i=0;i<100;i++){release=await acquireLock(target+'.lock');if(release)break;await new Promise(r=>setTimeout(r,10));}
+  if(!release)throw new Error('提问记录正在保存，请重试。');
+  try{
+    let data;try{data=JSON.parse(await fs.readFile(target,'utf8'));}catch(error){if(error.code!=='ENOENT')throw error;}
+    data ||= {snapshotId:id,events:[]};
+    if(!data.events.some(e=>e.eventId===event.eventId))data.events.push(event);
+    await writeRecord(target,data);
+  }finally{await release();}
+}
+export async function assistanceContext(id){
+  if(!/^[a-f0-9]{64}$/.test(id))return null;
+  try{
+    const index=JSON.parse(await fs.readFile(path.join(dataDir(),'assistance',`${id}.json`),'utf8'));
+    const events=await Promise.all(index.events.slice(-30).map(async event=>{
+      try{const job=JSON.parse(await fs.readFile(path.join(dataDir(),'hints',`${event.jobId}.json`),'utf8'));return {...event,status:job.status,instantAnalysis:job.instantAnalysis,partialAnalysis:job.status!=='complete'?job.partialAnalysis:undefined,firstTokenAt:job.firstTokenAt,analysis:job.status==='complete'?job.analysis:undefined};}catch{return {...event,status:'unavailable'};}
+    }));
+    return {snapshotId:id,events,total:index.events.length,truncated:index.events.length>30};
+  }catch(error){if(error.code==='ENOENT')return null;return {unavailable:true};}
+}
 export function reviewSummary(record) {
   return {id:record.id,title:record.title,sourceUrl:record.sourceUrl,createdAt:record.createdAt,status:record.status,error:record.error,...(record.status==='complete'?{analysis:record.analysis}: {})};
 }
@@ -92,6 +115,14 @@ export async function saveCapture(input) {
     return {...record,cached:false};
   }finally{await release();}
 }
+export async function captureFromRecord(record){
+  let runtime=Runtime.parse();
+  if(/^run-snapshots\/[a-f0-9]{64}\.json$/.test(record.runtimeFile||'')){
+    const saved=JSON.parse(await fs.readFile(path.join(dataDir(),record.runtimeFile),'utf8'));
+    runtime=Runtime.parse(Object.fromEntries(['input','output','hints','error','status','text'].filter(k=>saved[k]!==undefined).map(k=>[k,saved[k]])));
+  }
+  return Capture.parse(Object.fromEntries(['url','title','statement','problem','code','standard'].filter(k=>record[k]!==undefined).map(k=>[k,record[k]]).concat([['runtime',runtime]])));
+}
 export async function processReview(id,{model=runModel,compile=compilerCheck,progress=()=>{}}={}) {
   const initial=await readReview(id);
   if(initial.status==='complete')return {...initial,cached:true};
@@ -102,19 +133,14 @@ export async function processReview(id,{model=runModel,compile=compilerCheck,pro
   try {
     record=await readReview(id);
     if(record.status==='complete')return {...record,cached:true};
-    record={...record,status:'running',workerPid:process.pid,startedAt:new Date().toISOString()};delete record.error;
+    record={...record,modelConfig:await modelProfile('report'),status:'running',workerPid:process.pid,startedAt:new Date().toISOString()};delete record.error;
     await writeRecord(file,record);
-    let runtime=Runtime.parse();
-    if(/^run-snapshots\/[a-f0-9]{64}\.json$/.test(record.runtimeFile||'')) {
-      const saved=JSON.parse(await fs.readFile(path.join(dataDir(),record.runtimeFile),'utf8'));
-      runtime=Runtime.parse(Object.fromEntries(['input','output','hints','error','status','text'].filter(k=>saved[k]!==undefined).map(k=>[k,saved[k]])));
-    }
-    const capture=Capture.parse(Object.fromEntries(['url','title','statement','problem','code','standard'].filter(k=>record[k]!==undefined).map(k=>[k,record[k]]).concat([['runtime',runtime]])));
+    const capture=await captureFromRecord(record);
     progress('已保存，正在后台检查 C++。');
     const diagnostics=await compile(capture.code,capture.standard), risks=inspectCode(capture.code);
     progress('正在生成分析报告，通常需要几十秒到数分钟。');
     const debugHistory=await debugContext(capture.url,id);
-    const report=Report.parse(await model({capture,diagnostics,risks,debugHistory}));
+    const report=Report.parse(await model({capture,diagnostics,risks,debugHistory,modelConfig:record.modelConfig,assistance:await assistanceContext(id)}));
     record={...record,status:'complete',completedAt:new Date().toISOString(),compiler:diagnostics,analysis:report.markdown,topics:[...new Set(report.topics)],evidence:report.evidence,next_step:report.next_step};
     await writeRecord(file,record);
     return {...record,cached:false};
@@ -135,7 +161,7 @@ export async function reviewHistory({since,until,limit=30,includeSource=false}={
       if((since&&new Date(r.createdAt)<new Date(since))||(until&&new Date(r.createdAt)>=new Date(until)))continue;
       if(!includeSource) {delete r.code;delete r.statement;delete r.problem;delete r.compiler;}
       else if(/^run-snapshots\/[a-f0-9]{64}\.json$/.test(r.runtimeFile||'')) {try{r.runtime=JSON.parse(await fs.readFile(path.join(dir,r.runtimeFile),'utf8'));}catch{r.runtimeUnavailable=true;}}
-      records.push(r);
+      r.assistance=await assistanceContext(r.id);records.push(r);
     }catch{}
   }
   records.sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)));

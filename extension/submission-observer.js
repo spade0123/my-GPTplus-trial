@@ -47,6 +47,7 @@ export function installSubmissionObserver(preferredSource='') {
       if(['pending','other'].includes(current.status)){if(current.text!==pending.initial.text||current.status==='pending')pending.transitioned=true;return;}
       if(!pending.transitioned&&current.text===pending.initial.text&&current.identity===pending.initial.identity)return;
       state.pending=null;
+      state.lastJudgment={url:pending.url,code:pending.code,verdict:{status:current.status}};
       document.dispatchEvent(new CustomEvent('pku-coach-judged',{detail:{submissionId:pending.id,url:pending.url,code:pending.code,verdict:{source:'judge-dom',status:current.status,text:current.text,identity:current.identity,observedAt:new Date().toISOString()}}}));
     },50);
   }).observe(document.body||document.documentElement,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['data-verdict','data-submission-id']});

@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import {createHash,randomUUID} from 'node:crypto';
 import {createTwoFilesPatch} from 'diff';
-import {Capture,Runtime,dataDir,acquireLock,writeRecord,readReview,saveCapture} from './browser-review.js';
+import {Capture,Runtime,dataDir,acquireLock,writeRecord,readReview,saveCapture,assistanceContext} from './browser-review.js';
 import {attemptContentKey,resultFingerprint,groupIdenticalAttempts} from './attempt-groups.js';
 
 export const problemId=url=>createHash('sha256').update(new URL(url).origin+new URL(url).pathname).digest('hex');
@@ -31,7 +31,7 @@ export async function updateProblem(url,change,options={}) {
   if(!release)throw new Error('题目时间线正在写入，请重试。');
   try{const current=await getProblem(url,options);const result=await change(current);await writeRecord(file,current);return result;}finally{await release();}
 }
-export async function saveAttempt(input,{kind='draft',note='',eventId=randomUUID(),submissionId=null,verdict=null}={}) {
+export async function saveAttempt(input,{kind='draft',note='',eventId=randomUUID(),submissionId=null,verdict=null,origin}={}) {
   if(!['draft','submission','ac'].includes(kind)||!/^[-a-f0-9]{36}$/i.test(eventId)||typeof note!=='string'||note.length>2000)throw new Error('无效的保存阶段、事件ID或调试备注。');
   const startedAt=new Date().toISOString(),capture=Capture.parse(input),snapshot=await saveCapture(capture);
   const result=await updateProblem(capture.url,problem=>{
@@ -43,7 +43,7 @@ export async function saveAttempt(input,{kind='draft',note='',eventId=randomUUID
       const prior=problem.finalizations.find(f=>f.submissionId===submissionId);
       if(prior)return {attempt:problem.attempts.find(a=>a.id===prior.id),finalization:prior};
     }
-    const attempt={id:eventId,number:problem.attempts.length+1,snapshotId:snapshot.id,codeHash:snapshot.codeHash,savedAt:new Date().toISOString(),title:capture.title,kind,note,submissionId,verdict};
+    const attempt={id:eventId,number:problem.attempts.length+1,snapshotId:snapshot.id,codeHash:snapshot.codeHash,savedAt:new Date().toISOString(),title:capture.title,kind,note,submissionId,verdict,...(origin?{origin}:{})};
     if(kind==='ac') {
       const submitted=problem.attempts.find(a=>a.kind==='submission'&&a.submissionId===submissionId);
       attempt.resultRuntimeFile=submitted?.resultRuntimeFile;
@@ -96,7 +96,7 @@ export async function timeline(url,{throughNumber=Infinity,mergeDuplicates=true}
     const record=await readReview(event.snapshotId);let runtime={};
     if(/^run-snapshots\/[a-f0-9]{64}\.json$/.test(record.runtimeFile||''))try{runtime=JSON.parse(await fs.readFile(path.join(dataDir(),record.runtimeFile),'utf8'));}catch{}
     if(/^run-snapshots\/submission-[-a-f0-9]{36}\.json$/i.test(event.resultRuntimeFile||''))try{runtime=JSON.parse(await fs.readFile(path.join(dataDir(),event.resultRuntimeFile),'utf8'));}catch{}
-    attempts.push({...event,record,runtime});
+    attempts.push({...event,record,runtime,assistance:await assistanceContext(event.snapshotId)});
   }
   const groups=groupIdenticalAttempts(attempts);
   return {...problem,attempts:mergeDuplicates?groups:attempts,rawAttemptCount:attempts.length,mergedAttemptCount:groups.length};
@@ -109,9 +109,10 @@ export async function debugContext(url,snapshotId) {
   if(index<0)return null;
   const current=problem.attempts[index],previous=index>0?problem.attempts[index-1]:null;
   const context={attemptNumber:current.number,note:current.note,kind:current.kind,recentNotes:problem.attempts.slice(Math.max(0,index-5),index+1).map(a=>({number:a.number,kind:a.kind,note:a.note,savedAt:a.savedAt}))};
+  context.assistance=await assistanceContext(snapshotId);
   if(previous) {
     const a=await readReview(previous.snapshotId),b=await readReview(snapshotId);
-    context.previous={number:previous.number,code:a.code,codeHash:a.codeHash,evidence:a.evidence||null};
+    context.previous={number:previous.number,code:a.code,codeHash:a.codeHash,evidence:a.evidence||null,assistance:await assistanceContext(previous.snapshotId)};
     const diff=codeDiff(a.code,b.code);context.diff=diff.slice(0,40000);context.diffTruncated=diff.length>40000;
   }
   return context;
