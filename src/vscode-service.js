@@ -196,8 +196,16 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
     const type=message.type;
     if(type==='account_usage')return readAccountUsage();
     if(type==='configure_ai')return {settings:await writeModelSettings(message.settings)};
-    if(type==='status')return {ready:true,dataDirectory:dataDir(),version:'0.2.21',platform:'programminggrid-vscode'};
+    if(type==='status')return {ready:true,dataDirectory:dataDir(),version:'0.2.22',platform:'programminggrid-vscode'};
     if(type==='problem_display')return currentProblem();
+    if(type==='problem_image'){
+      const display=await currentProblem();
+      if(!display.connected||display.status!=='ready'||!sameProblem(message.problemUrl,display.url)||!display.page?.images?.some(image=>image.id===message.imageId))throw new Error('参考图已过期，请刷新当前题面。');
+      const result=await browser('problem_image',{problemUrl:display.url,tabId:display.tabId,imageId:message.imageId},9000);
+      const latest=await currentProblem();
+      if(latest.status!=='ready'||!sameProblem(latest.url,display.url)||latest.tabId!==display.tabId||!latest.page?.images?.some(image=>image.id===message.imageId))throw new Error('读取参考图期间题目已改变。');
+      return z.object({dataUrl:z.string().max(170000).regex(/^data:image\/(?:png|webp);base64,[A-Za-z0-9+/]+=*$/),width:z.number().int().min(1).max(1600),height:z.number().int().min(1).max(1600)}).parse(result);
+    }
     if(type==='problem_progress'){const target=gridUrl(message.problemUrl,{kind:'problem'});if(!target)throw new Error('题目地址无效。');return readProblemProgress({group:target.group});}
     if(type==='list_problems'){
       const display=await currentProblem(),url=message.problemUrl||display.url,parsed=gridUrl(url,{kind:'problem'});

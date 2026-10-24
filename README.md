@@ -56,7 +56,7 @@ Chrome 打开题目的 `.../probset/<题集ID>/<题目ID>/ide.do` 页面，点�
 
 3. Chrome 打开 `chrome://extensions`，开启开发者模式，加载项目的 **`extension/`** 目录。自己登录编程网格并打开具体题目 IDE，点击连接图标。
 
-4. VS Code 执行“扩展：从 VSIX 安装”，选择 [pku-grid-cpp-coach-0.2.21.vsix](dist/pku-grid-cpp-coach-0.2.21.vsix)，然后运行 **Developer: Reload Window**。
+4. VS Code 执行“扩展：从 VSIX 安装”，选择 [pku-grid-cpp-coach-0.2.22.vsix](dist/pku-grid-cpp-coach-0.2.22.vsix)，然后运行 **Developer: Reload Window**。
 
 5. 打开 C++ 文件，点击“网格·评测”。需要关联或更换题目时，使用评测页底部的“题目连接与本机记录”。
 
@@ -86,7 +86,7 @@ VS Code 读取点击时编辑器里的完整缓冲区，包括尚未写入文件
 
 - **更新 VS Code 扩展后**：安装新 VSIX，运行 Developer: Reload Window。
 - **更新 Chrome 连接代码后**：在扩展管理页重新加载连接扩展；需要时在题目页再次点击图标连接。
-- **只有 VS Code 界面或本机服务更新时**：按该次更新说明操作，无需每次都重载 Chrome。当前 VS Code/本机程序为 0.2.21，Chrome 连接清单为 0.2.19。
+- **只有 VS Code 界面或本机服务更新时**：按该次更新说明操作，无需每次都重载 Chrome。当前 VS Code/本机程序与 Chrome 连接清单均为 0.2.22。
 - **显示上次的手工测试**：顶部会标明“上次记录”；默认测试方式仍是网格判题。点击测试按钮才会发送新的测试。
 - **题目标签已关闭或切换**：打开正确题目的 IDE，重新从目标 C++ 文件打开评测页，必要时更换关联。
 - **请求超时或未确认**：先核对网站记录，再决定下一步。界面会显示最后阶段和可获得的具体错误；不要把未确认当作成功。
@@ -115,7 +115,7 @@ VS Code 读取点击时编辑器里的完整缓冲区，包括尚未写入文件
 ```powershell
 npm run build:vscode
 cd vscode-extension
-npx --yes @vscode/vsce package --no-dependencies --skip-license --out ../dist/pku-grid-cpp-coach-0.2.21.vsix
+npx --yes @vscode/vsce package --no-dependencies --skip-license --out ../dist/pku-grid-cpp-coach-0.2.22.vsix
 ```
 
 这轮维护使用以下针对网格的检查，14 项通过：
@@ -393,3 +393,12 @@ WSL 编译器默认 g++，可设置 gridCoach.build.wslCompiler 为 /usr/bin/g++
 源码模板可填写 /home/... 等 WSL 绝对路径或完整 vscode-remote:// URI。默认共享模板仍可保存在 Windows 插件存储中。Windows 本机连接目录与 WSL 课程项目目录分别选择。
 
 37 项专项与相关回归验证通过，包含真实 WSL 临时目录构建；未访问或编译课程源码，未自动操控编辑器 UI。详见 [WSL 检查记录](docs/wsl-audit.md)。安装 0.2.21 后执行 **Developer: Reload Window**；Chrome 保持 0.2.19，无需因本次更新重载。
+
+
+## 题面参考图（0.2.22）
+
+题目原文页保留网格题干中的参考图，按原位置插入文字段落之间，并按侧栏宽度缩放。Chrome 从当前已登录 IDE 中读取已加载的图片，再逐张发送给 VS Code；不依赖 VS Code 自己访问带登录状态的图片地址，也不依赖 WSL 文件路径。
+
+更新后先在 Chrome 扩展管理页重新加载“编程网格 · VS Code 连接”，再刷新 IDE 页，并在 VS Code 执行 **Developer: Reload Window**。确认连接图标显示 ON 后打开题目原文页。
+
+每题最多显示 24 张参考图；小图优先保留 PNG，大图按需转 WebP / 缩小至最长边不超过 1600 像素。当前支持题干中的 img 元素，动画转为静态画面；CSS 背景图、交互画布不属于此功能。网页尚未加载成功或禁止跨域读取的图片会显示原因，可在页面底部打开原题查看。图片仅用于题面显示，不随 AI 提问上传。

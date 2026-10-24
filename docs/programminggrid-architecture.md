@@ -207,3 +207,13 @@ build-task.cjs 用 MIT jsonc-parser 按位置修改 tasks.json，创建默认 pr
 source-links.cjs 统一按完整 URI 的文件系统身份及路径边界重定位，ProblemNavigation 将工作区题目映射、托管目录文件索引、后台上下文和活动面板同步。VS Code 文件改名事件与插件自己发起的移动均接入此流程；后台迁移预检所有目标并加锁，重入不覆盖目标侧新草稿。
 
 Capture 新增可选 sourceEnvironment（wsl/remote），只为远程快照加入环境指纹，本机历史 ID 不变。captureFromRecord 恢复该字段；后台提示和复盘通过 captureDiagnostics 跳过 Windows 编译器，VS Code 的远端诊断仍随 runtime 传递。样例历史/运行器对远程来源关闭，云端评测链路不变。验证边界见 [专项记录](wsl-audit.md)。
+
+
+## 题面图片显示链路（0.2.22）
+
+1. Chrome 的 extractPage 将题面提取为纯文字，另存 images 数组：section、文字 offset、alt，以及 DOM 图片序号和 src/srcset 指纹组成的 id。图片字节不塞入 problem_notice，AI 快照仍使用纯文字 problem。
+2. problem-display 验证元数据并推送题面。VS Code 先显示文字和图片占位，再按队列发送 problem_image 请求；接口检查请求图片确实属于当前题面。
+3. 请求通过本机服务、browser-mailbox 和原生连接抵达 Chrome。浏览器核对当前题号和图片指纹，在隔离脚本环境中把已登录页面的 img 绘制到临时 canvas，输出 PNG；大图降为 WebP 并缩小。每条图片数据最多 170000 字符，低于原生输入消息 300000 字节限制。
+4. VS Code 只接收 PNG/WebP data URL，以 DOM img 显示；CSP 仍只允许 data: 图片，不执行网页 HTML / SVG。每次页面变更递增本地显示代次，核对响应 requestId 和 revision 后显示，忽略过期响应；仅缓存当前视图最近 24 张图片。
+
+此链路位于 Windows 浏览器与 VS Code UI 之间，使用 Remote-WSL 课程项目时保持相同流程；不向课程目录写入图片，也不向 AI 上传图片。跨域 canvas 限制、未加载图片、超大图片以明确占位说明降级到原题查看。当前覆盖普通 img 参考图，不覆盖 CSS 背景或动态 canvas。

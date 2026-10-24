@@ -42,6 +42,17 @@ class ProblemView{
         return;
       }
       if(message.type==='ready')return webview.postMessage(this.latest);
+      if(message.type==='problem_image'){
+        const current=this.latest;
+        if(message.revision!==current.revision||message.problemUrl!==current.url||!current.page?.images?.some(image=>image.id===message.imageId))return;
+        let result;
+        try{
+          if(!this.navigation||!current.connected)throw new Error('浏览器尚未连接，请连接后刷新题面。');
+          result=await (await this.navigation.backend()).request({type:'problem_image',problemUrl:current.url,imageId:message.imageId});
+        }catch(error){result={error:error.message};}
+        if(this.latest.revision===current.revision&&this.latest.url===current.url)await webview.postMessage({type:'problem_image',requestId:message.requestId,revision:current.revision,...result});
+        return;
+      }
       if(message.type==='open_problem'&&this.latest.url)return vscode.env.openExternal(vscode.Uri.parse(this.latest.url));
       if(message.type==='copy_sample'&&typeof message.text==='string'&&message.text.length<=20000)await vscode.env.clipboard.writeText(message.text);
     }));
