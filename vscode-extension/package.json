@@ -3,7 +3,7 @@
   "displayName": "北大编程网格 · C++ 学习教练",
   "description": "Chrome 连接编程网格，VS Code 读取当前 C++ 并提供保存、提示、交流、网站测试与正式提交。",
   "publisher": "local-coach",
-  "version": "0.2.15",
+  "version": "0.2.22",
   "license": "UNLICENSED",
   "engines": {
     "vscode": "^1.96.0"
@@ -124,6 +124,18 @@
       {
         "command": "gridCoach.nextProblem",
         "title": "编程网格：下一题"
+      },
+      {
+        "command": "gridCoach.accountUsage",
+        "title": "编程网格：查看账户额度"
+      },
+      {
+        "command": "gridCoach.refreshUsage",
+        "title": "编程网格：刷新账户额度"
+      },
+      {
+        "command": "gridCoach.configureBuildTask",
+        "title": "编程网格：配置 Ctrl+Shift+B 编译到 build"
       }
     ],
     "configuration": [
@@ -423,8 +435,48 @@
             "type": "string",
             "default": "",
             "maxLength": 3000,
-            "markdownDescription": "可选：本机 UTF-8 模板文件的绝对路径，优先于文本行模板。执行“编程网格：编辑源码模板”可自动创建并配置一个可直接编辑的模板文件；修改后先保存。清空此项恢复使用文本行模板。",
+            "markdownDescription": "UTF-8 源码模板文件。支持 Windows 绝对路径、WSL 工作区中的 Linux 绝对路径，或完整 vscode-remote:// URI。默认编辑模板保存在 Windows 插件存储区；使用远程模板时通过 VS Code 文件接口读取。",
             "scope": "application"
+          }
+        }
+      },
+      {
+        "title": "编程网格 · 账户额度",
+        "properties": {
+          "gridCoach.usage.showStatusBar": {
+            "type": "boolean",
+            "default": true,
+            "scope": "application",
+            "description": "在底栏显示当前 Codex 账户 5 小时额度已用百分比，点击查看各额度池与重置时间。"
+          }
+        }
+      },
+      {
+        "title": "编程网格 · 本机构建",
+        "properties": {
+          "gridCoach.build.arguments": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [
+              "-std=c++17",
+              "-g",
+              "-O0"
+            ],
+            "scope": "application",
+            "description": "本机 g++ 编译参数；不含源码路径或 -o。修改后执行“配置 Ctrl+Shift+B 编译到 build”应用。"
+          }
+        }
+      },
+      {
+        "title": "编程网格 · WSL 构建",
+        "properties": {
+          "gridCoach.build.wslCompiler": {
+            "type": "string",
+            "default": "g++",
+            "scope": "application",
+            "description": "Remote-WSL 中使用的编译器命令或 Linux 绝对路径，例如 g++ 或 /usr/bin/g++。修改后执行配置构建命令应用。"
           }
         }
       }

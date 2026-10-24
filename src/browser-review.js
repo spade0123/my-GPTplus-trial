@@ -4,6 +4,7 @@ import { createHash } from 'node:crypto';
 import { z } from 'zod';
 import { ROOT, TOPICS, inspectCode, compilerCheck } from './core.js';
 import { runModel } from './model-runner.js';
+import {captureDiagnostics} from './source-environment.js';
 import {debugContext} from './problem-history.js';
 import {openJudgeUrl} from './openjudge-url.js';
 
@@ -17,7 +18,7 @@ export function formatProblem(problem) {
 export const Capture = z.object({
   url: z.string().url().max(1000).refine(s => { try { const u=new URL(s);return Boolean(openJudgeUrl(s,{kind:'problem'}))||u.origin==='https://programming.pku.edu.cn' && !u.username && !u.password && /^\/(?:course\/)?probset\/[a-f0-9]{32}\/[a-f0-9]{32}\/ide\.do$/.test(u.pathname) && !u.search && !u.hash; } catch {return false;} }, '只支持北大 IDE 或百练/NOI OpenJudge 的具体题目页面'),
   title: z.string().trim().min(1).max(300), statement: z.string().trim().max(100000).optional(), problem:Problem.optional(),runtime:Runtime,
-  code: z.string().trim().min(5).max(100000), standard:z.enum(['c++11','c++14','c++17','c++20']).default('c++17')
+  code: z.string().trim().min(5).max(100000), standard:z.enum(['c++11','c++14','c++17','c++20']).default('c++17'),sourceEnvironment:z.enum(['wsl','remote']).optional()
 }).strict().superRefine((data,ctx)=>{
   const text=data.problem?Object.values(data.problem).join('\n'):data.statement||'';
   if(text.trim().length<(openJudgeUrl(data.url,{kind:'problem'})?1:20))ctx.addIssue({code:'custom',message:'请提供题目各部分或旧版完整题面。'});
@@ -31,6 +32,7 @@ export function fingerprint(capture) {
   // Preserve existing identities when the new optional hints field is empty.
   if(!runtime.hints)delete runtime.hints;
   const parts=[capture.url,capture.problem?formatProblem(capture.problem):capture.statement,capture.code,capture.standard];
+  if(capture.sourceEnvironment)parts.push('source-environment:'+capture.sourceEnvironment);
   if(Object.values(runtime).some(Boolean))parts.push(runtime);
   return createHash('sha256').update(JSON.stringify(parts)).digest('hex');
 }
@@ -121,7 +123,7 @@ export async function captureFromRecord(record){
     const saved=JSON.parse(await fs.readFile(path.join(dataDir(),record.runtimeFile),'utf8'));
     runtime=Runtime.parse(Object.fromEntries(['input','output','hints','error','status','text'].filter(k=>saved[k]!==undefined).map(k=>[k,saved[k]])));
   }
-  return Capture.parse(Object.fromEntries(['url','title','statement','problem','code','standard'].filter(k=>record[k]!==undefined).map(k=>[k,record[k]]).concat([['runtime',runtime]])));
+  return Capture.parse(Object.fromEntries(['url','title','statement','problem','code','standard','sourceEnvironment'].filter(k=>record[k]!==undefined).map(k=>[k,record[k]]).concat([['runtime',runtime]])));
 }
 export async function processReview(id,{model=runModel,compile=compilerCheck,progress=()=>{}}={}) {
   const initial=await readReview(id);
@@ -137,7 +139,7 @@ export async function processReview(id,{model=runModel,compile=compilerCheck,pro
     await writeRecord(file,record);
     const capture=await captureFromRecord(record);
     progress('已保存，正在后台检查 C++。');
-    const diagnostics=await compile(capture.code,capture.standard), risks=inspectCode(capture.code);
+    const diagnostics=await captureDiagnostics(capture,compile), risks=inspectCode(capture.code);
     progress('正在生成分析报告，通常需要几十秒到数分钟。');
     const debugHistory=await debugContext(capture.url,id);
     const report=Report.parse(await model({capture,diagnostics,risks,debugHistory,assistance:await assistanceContext(id)}));

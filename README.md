@@ -2,7 +2,7 @@
 
 在 **VS Code 写 C++**，通过已登录的 **Chrome 连接编程网格**，直接测试、提交并查看网站返回原文；需要学习辅助时，再打开独立的 AI 提示或交流页面。
 
-当前适配的是 `https://programming.pku.edu.cn` 的具体题目 IDE，面向 Windows 桌面版 VS Code + Chrome。项目最初计划适配 `programminggrid.pku.edu.cn`，实际核对与使用的接口位于前者。
+当前适配的是 `https://programming.pku.edu.cn` 的具体题目 IDE，支持 Windows 原生项目，以及 Windows VS Code + Remote-WSL 课程项目；Chrome 与本机连接服务均运行在 Windows。项目最初计划适配 `programminggrid.pku.edu.cn`，实际核对与使用的接口位于前者。
 
 **仓库发布工具与文档；个人题目、作业源码、对话、评测记录和报告保存在各自电脑。AI 分析会使用各自配置的模型服务与额度。**
 
@@ -56,7 +56,7 @@ Chrome 打开题目的 `.../probset/<题集ID>/<题目ID>/ide.do` 页面，点�
 
 3. Chrome 打开 `chrome://extensions`，开启开发者模式，加载项目的 **`extension/`** 目录。自己登录编程网格并打开具体题目 IDE，点击连接图标。
 
-4. VS Code 执行“扩展：从 VSIX 安装”，选择 [pku-grid-cpp-coach-0.2.15.vsix](dist/pku-grid-cpp-coach-0.2.15.vsix)，然后运行 **Developer: Reload Window**。
+4. VS Code 执行“扩展：从 VSIX 安装”，选择 [pku-grid-cpp-coach-0.2.22.vsix](dist/pku-grid-cpp-coach-0.2.22.vsix)，然后运行 **Developer: Reload Window**。
 
 5. 打开 C++ 文件，点击“网格·评测”。需要关联或更换题目时，使用评测页底部的“题目连接与本机记录”。
 
@@ -86,7 +86,7 @@ VS Code 读取点击时编辑器里的完整缓冲区，包括尚未写入文件
 
 - **更新 VS Code 扩展后**：安装新 VSIX，运行 Developer: Reload Window。
 - **更新 Chrome 连接代码后**：在扩展管理页重新加载连接扩展；需要时在题目页再次点击图标连接。
-- **只有 VS Code 界面或本机服务更新时**：按该次更新说明操作，无需每次都重载 Chrome。当前 VS Code/本机程序为 0.2.15，Chrome 连接清单为 0.2.12。
+- **只有 VS Code 界面或本机服务更新时**：按该次更新说明操作，无需每次都重载 Chrome。当前 VS Code/本机程序与 Chrome 连接清单均为 0.2.22。
 - **显示上次的手工测试**：顶部会标明“上次记录”；默认测试方式仍是网格判题。点击测试按钮才会发送新的测试。
 - **题目标签已关闭或切换**：打开正确题目的 IDE，重新从目标 C++ 文件打开评测页，必要时更换关联。
 - **请求超时或未确认**：先核对网站记录，再决定下一步。界面会显示最后阶段和可获得的具体错误；不要把未确认当作成功。
@@ -115,7 +115,7 @@ VS Code 读取点击时编辑器里的完整缓冲区，包括尚未写入文件
 ```powershell
 npm run build:vscode
 cd vscode-extension
-npx --yes @vscode/vsce package --no-dependencies --skip-license --out ../dist/pku-grid-cpp-coach-0.2.15.vsix
+npx --yes @vscode/vsce package --no-dependencies --skip-license --out ../dist/pku-grid-cpp-coach-0.2.22.vsix
 ```
 
 这轮维护使用以下针对网格的检查，14 项通过：
@@ -331,3 +331,74 @@ int main(){
 “编程网格：预览源码模板”会打开一份未保存的预览，使用当前题目信息和 preview.cpp 作为示例文件名，不创建题目项目文件。占位符仅做文本替换，不执行代码或脚本；未知占位符保持原样。题名建议放在注释内。
 
 VS Code/本机程序为 0.2.15，Chrome 仍为 0.2.12；安装 VSIX 后执行 Developer: Reload Window。本次完成语法、差异格式检查和打包安装；未新增或运行测试，尚未在登录环境进行实际界面联调。
+
+## 网格回复格式修复（0.2.16）
+
+网格返回的 `strong`、`span class="highstd/highout/highin"` 和 `br` 格式标签现在会显示为加粗、差异颜色和换行；Std 为绿色、Out 为错误色，Input 使用背景突出显示。顶部原文和测试/提交详情使用同一显示逻辑。
+
+只识别上述固定格式，不执行回复中的 HTML；其他标签仍按文字显示。只解码一层常见 HTML 实体，编码过的程序输出不会再次作为标签解释。保存的返回原文不变，复制时取得去除格式标签后的可读文字；Std/Out 对照也使用这份可读文字。
+
+安装 0.2.16 后执行 **Developer: Reload Window**。Chrome 仍为 0.2.12，无需重载。尚未进行实际网页界面联调。
+
+## 账户额度（0.2.17）
+
+底栏显示 **额度·5h 已用 xx%**，点击打开独立详情页。也可执行“编程网格：查看账户额度”或“编程网格：刷新账户额度”。详情包含各额度池、窗口长度、已用/剩余比例、北京时间重置时间和查询时间。设置 gridCoach.usage.showStatusBar 可隐藏底栏入口。
+
+数据来自当前本机 Codex 登录账户的官方 account/rateLimits/read 接口，包含其他 Codex 窗口的共享消耗，不能归因为本插件单独用量。100% 表示用完一个额度窗口，不是运行时长。多个额度池不相加，也不把非 300 分钟窗口换算为 5h。不展示缺乏精确依据的历史累计消耗。
+
+流程：VS Code → 本机连接 → 独立 Codex 只读连接 → 账户额度接口 → 本机内存 → 底栏/详情页。此操作不发起 thread/start 或 turn/start，不发送题目/源码，不生成回答，不读取或展示登录令牌。查询复用既有本机登录；API Key 账户或旧版 Codex 可能不提供套餐额度。
+
+启动时与每 5 分钟读取，手动刷新在 15 秒内合并/缓存以避免重复查询。数据只留在当前窗口内存中，不写进项目或仓库；重置时间已到或查询失败时保留旧数据并提示待更新，不能把未知当成零消耗。
+
+安装 0.2.17 后执行 **Developer: Reload Window**；Chrome 无需重载。尚未实际登录查询或进行界面联调。
+
+接口依据：[OpenAI Codex App Server 官方文档](https://learn.chatgpt.com/docs/app-server#6-rate-limits-chatgpt)。
+
+## 切题自动跟随与页面布局（0.2.18）
+
+在 Chrome 已连接的编程网格 IDE 中切题后，等待新题原文读取完成，VS Code 会自动打开该题已关联的 C++ 源码，并更新“题目原文”页。没有对应文件时，复用英文命名和自定义模板创建；已有文件与未保存编辑不覆盖。没有打开项目文件夹时使用未命名 C++ 文档；多个项目文件夹或多个关联候选可能需要选择。
+
+VS Code 内的题单/上一题/下一题继续执行网页导航和源码切换。网页发来的切题通知则只触发源码跟随，不再次导航浏览器，不自动测试或提交。重复刷新同一题不重复抢源码焦点；快速连续切题会在绑定和打开前检查当前网页题目，失败提示显示在题单下方，可从题单重新选择目标题目。
+
+原题网址和“在浏览器查看原题”移到题干、题单的最下方，顶部只显示题名和简短连接状态。安装 0.2.18 后执行 **Developer: Reload Window**；Chrome 无需重载。尚未实际进行网页切题联调。
+
+## 题单目录与本地编译产物（0.2.19）
+
+目录采用“编程网格/题单名字/源码.cpp”，本地可执行文件、目标文件放在该题单的 build 子目录。题单名来自网页中指向当前题单的链接或当前 assignment.name/title；内部 .grid-assignment.json 保留题单 ID，同名题单加中文序号，不合并。文件名内不合法字符替换为下划线；已有可读目录保持稳定。
+
+旧的 32 位 ID 目录在进入题目时改名，同步已保存的题目文件映射和本机路径上下文。使用 VS Code 文件重命名机制，保留未保存编辑；旧的历史上下文不会删除。目标目录存在时使用新序号，不覆盖；符号链接目录不自动整理。未读取到题单名字时不新建 ID 目录，需重载 Chrome 扩展并刷新题单。已有旧目录在名字缺失时仍可继续使用。
+
+题单根目录已有的 .exe/.o/.obj/.pdb/.ilk 移入 build，重名不覆盖；不搬移源码、样例输入输出或其他任意文件。build/.gitignore 排除编译产物，已有忽略文件不改写。
+
+首次打开对应源码时配置项目 .vscode/tasks.json，新增“编程网格：编译当前源码到 build”为默认构建任务，Ctrl+Shift+B 使用此任务。旧任务与注释保留，其他旧默认任务取消默认标记但不删除。使用本机连接安装的 Node 与 g++，输出源码旁的 build/源码名.exe（非 Windows 无 exe 后缀）。默认参数 -std=c++17 -g -O0，可在 gridCoach.build.arguments 调整后执行“编程网格：配置 Ctrl+Shift+B 编译到 build”。
+
+已有插件构建任务后不自动覆盖用户修改，任务文件有未保存编辑时暂停配置。任务只在用户按构建快捷键时编译，不自动运行程序；网格云端评测不受本地构建任务影响。旧 launch.json 或自定义运行命令如果写死可执行文件路径，需要对应指向 build 内文件。
+
+更新后先在 Chrome 扩展管理页重新加载连接扩展，再执行 VS Code **Developer: Reload Window**，切换一次题目即可应用目录和任务策略。可在任务菜单选择保留的其他构建任务。此次完成语法与打包安装，未实际编译或迁移用户项目。
+
+## WSL 环境修复（0.2.20）
+
+课程项目实际位于 WSL，VS Code 通过 Remote-WSL 打开；完整约定见 [开发环境](docs/development-environment.md)。0.2.19 新增的仅本机目录判断是适配遗漏，已移除。源码整理、目录改名和关联迁移通过 VS Code 文件接口在 WSL 中执行。
+
+WSL 的 Ctrl+Shift+B 改为 /bin/sh + WSL g++，生成 build/源码名，无 exe 后缀；不依赖 Windows Node 路径，也不要求 WSL 安装 Node。首次切题自动更新插件生成的旧任务；也可执行“编程网格：配置 Ctrl+Shift+B 编译到 build”。Windows 本地工作区保留原构建方式。
+
+WSL 编译器默认 g++，可设置 gridCoach.build.wslCompiler 为 /usr/bin/g++ 等 Linux 路径，编译参数沿用 gridCoach.build.arguments。生成的 .vscode/grid-build.sh 由插件管理；非插件文件不覆盖。旧无后缀或 .out 的产物只在有对应源码且 ELF 文件头匹配时移动，文本样例输出不受影响。
+
+安装 0.2.20 后执行 **Developer: Reload Window** 并切换一次题目。Chrome 保持 0.2.19，无需因本次更新重载。尚未实际执行 WSL 构建或迁移用户课程文件。
+
+## WSL 专项修复与验证（0.2.21）
+
+补齐改名/按日期整理后的源码关联与评测面板同步、题单文件索引恢复、WSL 模板路径和历史导出位置。WSL/远程快照会标记来源环境，不再使用 Windows 编译器进行后台语法检查，也不混入旧的 Windows 样例结果；网格云端测试与提交保持原逻辑。
+
+源码模板可填写 /home/... 等 WSL 绝对路径或完整 vscode-remote:// URI。默认共享模板仍可保存在 Windows 插件存储中。Windows 本机连接目录与 WSL 课程项目目录分别选择。
+
+37 项专项与相关回归验证通过，包含真实 WSL 临时目录构建；未访问或编译课程源码，未自动操控编辑器 UI。详见 [WSL 检查记录](docs/wsl-audit.md)。安装 0.2.21 后执行 **Developer: Reload Window**；Chrome 保持 0.2.19，无需因本次更新重载。
+
+
+## 题面参考图（0.2.22）
+
+题目原文页保留网格题干中的参考图，按原位置插入文字段落之间，并按侧栏宽度缩放。Chrome 从当前已登录 IDE 中读取已加载的图片，再逐张发送给 VS Code；不依赖 VS Code 自己访问带登录状态的图片地址，也不依赖 WSL 文件路径。
+
+更新后先在 Chrome 扩展管理页重新加载“编程网格 · VS Code 连接”，再刷新 IDE 页，并在 VS Code 执行 **Developer: Reload Window**。确认连接图标显示 ON 后打开题目原文页。
+
+每题最多显示 24 张参考图；小图优先保留 PNG，大图按需转 WebP / 缩小至最长边不超过 1600 像素。当前支持题干中的 img 元素，动画转为静态画面；CSS 背景图、交互画布不属于此功能。网页尚未加载成功或禁止跨域读取的图片会显示原因，可在页面底部打开原题查看。图片仅用于题面显示，不随 AI 提问上传。

@@ -7,3 +7,6 @@
 .assignment-closing{margin:5px 0;font-size:12px;font-variant-numeric:tabular-nums;color:var(--vscode-descriptionForeground)}.assignment-closing.soon{color:var(--vscode-editorWarning-foreground,#d7a23d);font-weight:600}.assignment-closing.closed{color:var(--vscode-errorForeground,#e87863)}
 
 #problemList button{display:flex;align-items:center;gap:7px}.problem-label{flex:1;min-width:0}.problem-time{flex:none;font-family:var(--vscode-editor-font-family,monospace);font-variant-numeric:tabular-nums;font-size:10px;color:var(--vscode-descriptionForeground)}.progress-dot{width:8px;height:8px;flex:none;border-radius:50%;background:#8b949e;box-shadow:0 0 0 1px #80808033}.status-ac{background:#3fb950}.status-wa,.status-re{background:#f47067}.status-ce,.status-pe,.status-ole{background:#e3a134}.status-tle,.status-mle{background:#a78bfa}.status-pending{background:#eac54f}.status-manual{background:#58a6ff}
+
+.problem-source-url{overflow-wrap:anywhere;user-select:text;font-size:11px;color:var(--vscode-descriptionForeground)}
+.problem-figure{margin:12px 0;max-width:100%;overflow:auto}.problem-figure img{display:block;max-width:100%;height:auto;background:#fff;border-radius:3px}.problem-figure figcaption{font-size:11px;color:var(--vscode-descriptionForeground)}

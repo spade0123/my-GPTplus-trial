@@ -9,6 +9,8 @@ import {queueHint,queueDiscussion,readHint,hintSummary,assistHistory} from './hi
 import {browserRequest} from './browser-mailbox.js';
 import {readProblemProgress} from './problem-progress.js';
 import {writeModelSettings} from './model-settings.js';
+import {readAccountUsage} from './account-usage.js';
+import {sourceEnvironment} from './source-environment.js';
 import {gridUrl,sameProblem} from './grid-url.js';
 import {readProblemDisplay} from './problem-display.js';
 import {runSample,latestSample,saveSampleRequest,finishSample} from './sample-runner.js';
@@ -85,16 +87,16 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
       if(officialMatch&&['AC','WA','CE','RE','TLE','MLE','PE','OLE'].includes(verdict.status))judgeEvidence={status:verdict.status,source:'matching-submission',codeHash,runtimeAssociation:'matching-judgment'};
     }
     const u=gridUrl(binding.problemUrl,{kind:'problem'}),url='https://'+u.key+'ide.do';
-    const sample=await latestSample(url,source.code);
+    const sample=sourceEnvironment(source.uri)?null:await latestSample(url,source.code);
     if(sample?.result){const r=sample.result;runtime.input=r.input;runtime.output=r.actual.slice(0,20000);runtime.error=[runtime.error,r.compiler,r.stderr].filter(Boolean).join('\n').slice(0,20000);runtime.text=[siteInput&&`网页当前输入框（不能确认已用于网页运行）：\n${siteInput}`,runtime.text,'本机样例测试：'+r.status+'；runtime.input/output 为本机样例输入与实际输出，不代表网站 AC。'].filter(Boolean).join('\n\n').slice(0,20000);if(!officialMatch)runtime.status=`本机样例：${r.status}`.slice(0,1000);}
-    const result=Capture.parse({url,title:page.title,problem:page.problem,code:source.code,standard:context.standard||'c++17',runtime});
+    const result=Capture.parse({url,title:page.title,problem:page.problem,code:source.code,standard:context.standard||'c++17',runtime,sourceEnvironment:sourceEnvironment(source.uri)});
     return {capture:result,browserUrl:binding.problemUrl,missingSections:page.missingSections||[],judgment:judgeEvidence,submission,matching,warning};
   }
   async function executionCapture(source,problemUrl){
     const context=await resolveContext(source.uri,problemUrl),binding=context.binding,page=context.problem;
     if(!binding||!page?.problemMatches||!sameProblem(page.problemUrl,binding.problemUrl)||!page.problem)throw new Error('题目连接或题面尚未准备好，请在 Chrome 打开当前题目的 IDE。');
     const u=gridUrl(binding.problemUrl,{kind:'problem'});
-    const capture=Capture.parse({url:'https://'+u.key+'ide.do',title:page.title,problem:page.problem,code:source.code,standard:context.standard||'c++17',runtime:{}});
+    const capture=Capture.parse({url:'https://'+u.key+'ide.do',title:page.title,problem:page.problem,code:source.code,standard:context.standard||'c++17',runtime:{},sourceEnvironment:sourceEnvironment(source.uri)});
     return {capture,browserUrl:binding.problemUrl};
   }
   function background(id,task){
@@ -192,9 +194,18 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
   }
   return {async handle(message){
     const type=message.type;
+    if(type==='account_usage')return readAccountUsage();
     if(type==='configure_ai')return {settings:await writeModelSettings(message.settings)};
-    if(type==='status')return {ready:true,dataDirectory:dataDir(),version:'0.2.15',platform:'programminggrid-vscode'};
+    if(type==='status')return {ready:true,dataDirectory:dataDir(),version:'0.2.22',platform:'programminggrid-vscode'};
     if(type==='problem_display')return currentProblem();
+    if(type==='problem_image'){
+      const display=await currentProblem();
+      if(!display.connected||display.status!=='ready'||!sameProblem(message.problemUrl,display.url)||!display.page?.images?.some(image=>image.id===message.imageId))throw new Error('参考图已过期，请刷新当前题面。');
+      const result=await browser('problem_image',{problemUrl:display.url,tabId:display.tabId,imageId:message.imageId},9000);
+      const latest=await currentProblem();
+      if(latest.status!=='ready'||!sameProblem(latest.url,display.url)||latest.tabId!==display.tabId||!latest.page?.images?.some(image=>image.id===message.imageId))throw new Error('读取参考图期间题目已改变。');
+      return z.object({dataUrl:z.string().max(170000).regex(/^data:image\/(?:png|webp);base64,[A-Za-z0-9+/]+=*$/),width:z.number().int().min(1).max(1600),height:z.number().int().min(1).max(1600)}).parse(result);
+    }
     if(type==='problem_progress'){const target=gridUrl(message.problemUrl,{kind:'problem'});if(!target)throw new Error('题目地址无效。');return readProblemProgress({group:target.group});}
     if(type==='list_problems'){
       const display=await currentProblem(),url=message.problemUrl||display.url,parsed=gridUrl(url,{kind:'problem'});
@@ -208,7 +219,7 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
       });
       navigationLists.set(parsed.group,new Set(problems.map(item=>gridUrl(item.url).key)));
       const closesAt=result.closesAt===undefined?null:z.number().int().min(946684800000).max(4102444800000).parse(result.closesAt);
-      return {type:'problem_list',problemUrl:url,problems,closesAt,source:result.source,message:result.message||''};
+      return {type:'problem_list',problemUrl:url,problems,assignmentName:typeof result.assignmentName==='string'?result.assignmentName.trim().slice(0,300):'',closesAt,source:result.source,message:result.message||''};
     }
     if(type==='activate_problem'){
       const from=gridUrl(message.problemUrl,{kind:'problem'}),target=gridUrl(message.targetUrl,{kind:'problem'}),display=await currentProblem();
@@ -219,6 +230,34 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
       return {type:'problem_activated',url:target.url,tabId:result.tabId,page:result.page};
     }
     if(type==='context_lookup')return getContext(validUri(message.uri));
+    if(type==='context_relocate'){
+      const entries=z.array(z.object({from:DocumentUri,to:DocumentUri}).strict()).max(1000).parse(message.entries);
+      const copies=[],releases=[];
+      const topicsOf=record=>{
+        if(record.topics)return record.topics;
+        if(!record.binding)return {};
+        const {uri:_uri,...topic}=record;return {[topicKey(record.binding.problemUrl)]:topic};
+      };
+      try{
+      const targets=[...new Set(entries.filter(item=>item.from!==item.to).map(item=>item.to))].sort();
+      if(targets.length)await fs.mkdir(path.dirname(contextPath(targets[0])),{recursive:true});
+      for(const target of targets){let release;for(let i=0;i<100&&!release;i++){release=await acquireLock(contextPath(target)+'.lock');if(!release)await new Promise(r=>setTimeout(r,10));}if(!release)throw new Error('目标源码关联正在保存，请稍后重试。');releases.push(release);}
+      for(const item of entries){
+        if(item.from===item.to)continue;
+        const previous=await readContext(item.from),existing=await readContext(item.to);
+        const oldTopics=topicsOf(previous),newTopics=topicsOf(existing);
+        if(Object.keys(newTopics).some(key=>!oldTopics[key]||newTopics[key].binding&&oldTopics[key].binding&&!sameProblem(newTopics[key].binding.problemUrl,oldTopics[key].binding.problemUrl)))throw new Error('目标路径已有其他题目关联，停止目录迁移以免覆盖。');
+        if(previous.topics||previous.binding){
+          const topics=Object.fromEntries(Object.entries(oldTopics).map(([key,value])=>[key,{...value,...newTopics[key]}]));
+          copies.push({to:item.to,record:{uri:item.to,activeProblem:existing.activeProblem||previous.activeProblem||Object.keys(topics)[0],topics}});
+        }
+      }
+      // Validate the whole batch before writing any destination associations.
+      if(copies.length)await fs.mkdir(path.dirname(contextPath(copies[0].to)),{recursive:true});
+      for(const item of copies)await writeRecord(contextPath(item.to),item.record);
+      return {relocated:true};
+      }finally{for(const release of releases.reverse())await release();}
+    }
 
     if(type==='judge_history'){
       const context=await getContext(validUri(message.uri),message.problemUrl);
@@ -229,6 +268,7 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
     }
     if(type==='sample_history'){
       const source=Source.parse(message.source),context=await resolveContext(source.uri,message.problemUrl);
+      if(sourceEnvironment(source.uri))return {type:'sample_result'};
       const u=context.binding?.problemUrl;if(!u)return {type:'sample_result'};
       const prior=await latestSample('https://'+gridUrl(u,{kind:'problem'}).key+'ide.do',source.code);return {type:'sample_result',result:prior?.result,codeHash:prior?.codeHash};
     }
@@ -327,6 +367,7 @@ export function createVscodeService({browser=browserRequest,launchReport=async()
       return {type:'oj_result',...job,capture:undefined};
     }
     if(type==='run_sample'){
+      if(selected.capture.sourceEnvironment)throw new Error('该源码来自 WSL/远程工作区，不会交给 Windows 本机样例运行器。请使用 Ctrl+Shift+B 编译或网格网站测试。');
       if(!selected.capture.problem.sampleOutput)throw new Error('题面没有提供可对照的样例输出，本次未运行。');
       const request=await saveSampleRequest(selected.capture,message.actionId);let complete=request;
       if(request.status!=='complete')complete=await finishSample(request,await sampleRunner(request.capture));

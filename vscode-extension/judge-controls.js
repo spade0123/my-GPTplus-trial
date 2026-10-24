@@ -7,13 +7,13 @@
   const platformName={Passed:'Accepted',Accepted:'Accepted',WrongAnswer:'Wrong Answer',CompileError:'Compile Error',RuntimeError:'Runtime Error',TimeOut:'Time Out',OutOfMemory:'Out Of Memory',OutputExceeded:'Output Limit Exceeded',EmptyOutput:'Empty Output'};
   function block(parent,label,text){
     const box=document.createElement('div'),h=document.createElement('h4'),pre=document.createElement('pre'),code=document.createElement('code');
-    box.className='execution-block';h.textContent=label;code.textContent=String(text||'（空）');pre.append(code);box.append(h,pre);parent.append(box);
+    box.className='execution-block';h.textContent=label;GridOutputFeedback.renderOriginal(code,String(text||'（空）'));pre.append(code);box.append(h,pre);parent.append(box);
   }
   let appearance={},lastPriority,feedbackPreferences={visibleWhitespace:true,showComparison:true};
   function feedback(raw){GridOutputFeedback.render($('priorityFeedback'),raw,feedbackPreferences);}
   $('feedbackShowComparison').onchange=()=>{feedbackPreferences.showComparison=$('feedbackShowComparison').checked;if(lastPriority)feedback(lastPriority.value.submission?.runtime?.text||'');};
   $('feedbackWhitespace').onchange=()=>{feedbackPreferences.visibleWhitespace=$('feedbackWhitespace').checked;if(lastPriority)feedback(lastPriority.value.submission?.runtime?.text||'');};
-  $('copyGridRaw').onclick=async()=>{try{await navigator.clipboard.writeText(lastPriority?.value.submission?.runtime?.text||'');$('copyRawState').textContent='已复制原文';}catch{$('copyRawState').textContent='复制失败，请选择原文复制';}};
+  $('copyGridRaw').onclick=async()=>{try{await navigator.clipboard.writeText(GridOutputFeedback.plainText(lastPriority?.value.submission?.runtime?.text||''));$('copyRawState').textContent='已复制原文';}catch{$('copyRawState').textContent='复制失败，请选择原文复制';}};
   function priority(kind,value){
     if(activeKind!==kind)return;
     lastPriority={kind,value};
@@ -27,7 +27,7 @@
     badge.style.color=typeof custom.color==='string'&&/^#(?:[0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(custom.color)?custom.color:'';
     const label=(value.restored?'上次记录 · ':'')+(kind==='test'?(testInputMode==='manual'?'手工输入测试 · ':'测试代码 · '):'正式提交 · ')+(submission?.runtime?.text?'输出与提示原文':value.error||value.status==='uncertain'?'连接提示':value.message&&value.status==='rejected'?'网站未接受请求':'等待网站原文');
     $('priorityLabel').textContent=label+(Number.isFinite(value.responseMs)?` · 首次回复 ${value.responseMs} ms`:'');
-    const changed=$('priorityRaw').textContent!==raw;$('priorityRaw').textContent=raw;
+    const changed=$('priorityRaw').textContent!==GridOutputFeedback.plainText(raw);GridOutputFeedback.renderOriginal($('priorityRaw'),raw);
     $('copyGridRaw').disabled=!submission?.runtime?.text;if(changed)$('copyRawState').textContent='';
     feedback(submission?.runtime?.text||'');
   }

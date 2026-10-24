@@ -1,4 +1,14 @@
 // Serialized by scripting.executeScript: keep all helpers inside this function.
+export function readGridAssignmentName(expectedUrl){
+  try{
+    const u=new URL(expectedUrl);
+    if(location.origin!==u.origin||location.pathname!==u.pathname||u.origin!=='https://programming.pku.edu.cn')return '';
+    if(typeof problemlist==='undefined'||!problemlist?.assignment)return '';
+    const assignment=problemlist.assignment;
+    const name=typeof assignment.name==='string'?assignment.name:typeof assignment.title==='string'?assignment.title:'';
+    return name.replace(/\s+/g,' ').trim().slice(0,300);
+  }catch{return '';}
+}
 // Reads ordinary links from the logged-in DOM or the current assignment's HTML.
 export async function readGridProblemList(expectedUrl,knownClosesAt=null){
   try{
@@ -8,6 +18,16 @@ export async function readGridProblemList(expectedUrl,knownClosesAt=null){
     const group=current[1].toLowerCase(),currentId=current[2].toLowerCase();
     const canonical=id=>`${expected.origin}/probset/${group}/${id}/ide.do`;
     const clean=text=>String(text||'').replace(/\s+/g,' ').trim().slice(0,300);
+    function assignmentTitle(root,base){
+      for(const anchor of root.querySelectorAll('a[href]'))try{
+        if(anchor.closest('pre,code,.ace_editor'))continue;
+        const u=new URL(anchor.getAttribute('href'),base);
+        if(u.origin===expected.origin&&!u.search&&!u.hash&&new RegExp('^/(?:course/)?probset/'+group+'/?$','i').test(u.pathname)){
+          const name=clean(anchor.textContent);if(name&&!/^(?:作业|题集|返回|刷新)$/.test(name))return name;
+        }
+      }catch{}
+      return '';
+    }
     const normalize=(href,base)=>{
       try{
         const u=new URL(href,base),m=u.pathname.match(pattern);
@@ -115,12 +135,13 @@ export async function readGridProblemList(expectedUrl,knownClosesAt=null){
       if(!result.some(item=>item.id===currentId))result.unshift({url:canonical(currentId),title:title||'当前题目',number:0,id:currentId});
       return result.slice(0,500).map((item,index)=>({url:item.url,title:item.title,number:item.number||index+1}));
     }
-    let problems=read(document,expected.href),source='ide-menu',closesAt=preciseTime(knownClosesAt)||readClosesAt(document),course=courseUrl(document,expected.href);
+    let problems=read(document,expected.href),source='ide-menu',closesAt=preciseTime(knownClosesAt)||readClosesAt(document),course=courseUrl(document,expected.href),assignmentName=assignmentTitle(document,expected.href);
     if(problems.length<2||(closesAt===null&&!course)){
       const assignmentUrl=`${expected.origin}/probset/${group}/`;
       try{
         const parsed=await readHtml(assignmentUrl);
         if(parsed){
+          assignmentName ||= assignmentTitle(parsed,assignmentUrl);
           closesAt=readClosesAt(parsed)||closesAt;course ||= courseUrl(parsed,assignmentUrl);
           const discovered=read(parsed,assignmentUrl);if(discovered.length>problems.length){problems=discovered;source='assignment-page';}
         }
@@ -133,6 +154,6 @@ export async function readGridProblemList(expectedUrl,knownClosesAt=null){
     }catch{/* Read-only fallback; no periodic synchronization or login requests. */}
     if(!problems.length)problems=[{url:canonical(currentId),title:title||'当前题目',number:1}];
     if(location.pathname!==expected.pathname)throw new Error('读取列表时切换了题目，请重试。');
-    return {problems,source,...(closesAt===null?{}:{closesAt}),message:problems.length<2?'只识别到当前题。请在网页展开一次作业菜单，然后点击刷新；仍无列表时需要核对菜单元素。':''};
+    return {problems,source,assignmentName,...(closesAt===null?{}:{closesAt}),message:problems.length<2?'只识别到当前题。请在网页展开一次作业菜单，然后点击刷新；仍无列表时需要核对菜单元素。':''};
   }catch(error){return {error:String(error.message||error).slice(0,1000)};}
 }

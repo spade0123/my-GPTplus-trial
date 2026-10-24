@@ -92,7 +92,7 @@ GitHub 里的代码描述“工具如何工作”，本机数据记录“使用�
 
 针对网格的 14 项检查覆盖请求参数、原文保留、完整判定名称、编号、异常回传、停止查询、恢复旧记录、状态栏与本机连接。模拟检查不使用个人账号、不调用真实模型、不向网站提交作业。
 
-使用者在真实网站核对过请求表单与回传；网站布局、登录状态和服务负载仍可能影响结果。适配目标是 Windows 桌面 VS Code 与 Chrome，当前读代码操作以 C++ 文档为入口，不保证其他语言、站点别名和远程环境的完整行为。
+使用者在真实网站核对过请求表单与回传；网站布局、登录状态和服务负载仍可能影响结果。实际目标环境是 Windows Chrome/本机连接与 VS Code Remote-WSL，课程源码在 WSL 中。文件操作走 VS Code 远程文件接口，构建使用 WSL 编译器；其他语言、站点别名和其他远程环境仍需单独适配。
 
 
 ## 模型和样式配置如何传递（0.2.9）
@@ -179,3 +179,41 @@ output-feedback.js 只在 VS Code Webview 内处理已有 runtime.text，不调�
 package.json 的 contributes.keybindings 声明默认两段式按键，用户自定义交给 VS Code 原生键盘设置。testCode/submitCode 先打开或找到对应源码的评测 Webview，等待 judge_ready 后发 judge_action，界面调用同一测试/提交按钮。页面未准备好时保留一个待执行动作，忙碌检查继续有效。上一题/下一题与网页侧栏点击复用 ProblemView.switchProblem，不复制关联、创建源码和浏览器切题流程。
 
 模板由 source-template.cjs 做纯文本占位符替换；template-settings.cjs 负责从 VS Code 设置文本行或本机 UTF-8 文件读取。优先使用 templateFile。创建文件时读取已保存的模板并按实际文件名展开，已有文件恢复路径直接返回，不套用模板。编辑命令将个人模板放在扩展 globalStorage 并配置用户路径；预览只打开未保存文档。占位符来自当前题目/文件/插件版本，日期固定为北京时间；无脚本执行、无 AI 调用。
+
+## 账户额度读取（0.2.17）
+
+新增 account-usage.cjs 负责底栏与无脚本详情页，调用本机 account_usage 消息。src/account-usage.js 使用现有 Codex 路径解析和 stdio 连接，只完成初始化、配置读取与 account/rateLimits/read，不创建 thread 或 turn。每次读取完成后关闭独立连接，查询期间合并请求，15 秒内复用结果或错误。模型生成连接和评测流程不受额度查询结果影响。
+
+优先解析 rateLimitsByLimitId，缺省时回退 rateLimits。primary/secondary 按各自 windowDurationMins 标记，只识别 300 分钟为 5h；原样保留各额度池归属。百分比和重置秒时间戳缺失时标未知；不累计各池、不从 tokens 推算额度、不将重置到期视为清零。无登录凭证写入、无永久额度历史；数据仅在内存中保留，刷新失败标示旧读数。
+
+UI 启动和每 5 分钟读取，点击详情可刷新。隐藏底栏只改变入口可见性，仍可通过命令打开详情。详情仅允许刷新这一条命令链接，无可执行脚本、远端资源或模型内容。
+
+## 网页切题后的源码跟随（0.2.18）
+
+problem_display ready 通知经 ProblemView.accept 更新题干与计时器后，120ms 合并调度源码跟随。ProblemNavigation.followDisplay 复用 documentFor 找回关联/已创建/已打开源码或新建模板；context_bind requireActive 校验实际浏览器题目，再打开源码编辑组。与主动 activate 共用 switching 锁，避免导航与跟随并发；followedKey 抑制同题重复聚焦，异步步骤检查最新题号和标签，过期操作不打开旧题。通知跟随不调用 activate_problem，不自动上传或评测。
+
+## 题单可读目录与构建任务（0.2.19）
+
+Chrome list_problems 返回 assignmentName，本机限制长度后交给工作区缓存。ProblemNavigation.directoryFor 和 assignment-files.cjs 按题单 ID 查目录标记，再处理可读名字、同名序号与旧 ID 目录迁移。迁移前复制已关联上下文到新 URI，VS Code WorkspaceEdit 改名后更新 MAP/CREATED；旧上下文不删除。目录、标记及产物移动限定工作区的普通目录，不覆盖目标。
+
+build-task.cjs 用 MIT jsonc-parser 按位置修改 tasks.json，创建默认 process 任务，旧任务保留。任务调用安装的 Node 执行 local-compile.cjs，再以 shell:false 启动配置的 g++，明确 -o 为源码旁 build/可执行文件。源码切换只配置任务，不调用编译；网站评测链路完全独立。
+
+## 环境约定修正（0.2.20）
+
+实际使用环境与组件边界见 [开发环境](development-environment.md)。assignment-files 的路径判断比较 URI scheme/authority；Windows file 路径用本机规则，远程 URI 用 path.posix。WSL 构建脚本通过 workspace.fs 写入远程项目，由远程任务执行 /bin/sh；Windows UI 扩展仅负责配置，不在 Windows 启动 WSL 源码或把远程路径转为本机路径。
+
+## WSL 路径与环境审计（0.2.21）
+
+source-links.cjs 统一按完整 URI 的文件系统身份及路径边界重定位，ProblemNavigation 将工作区题目映射、托管目录文件索引、后台上下文和活动面板同步。VS Code 文件改名事件与插件自己发起的移动均接入此流程；后台迁移预检所有目标并加锁，重入不覆盖目标侧新草稿。
+
+Capture 新增可选 sourceEnvironment（wsl/remote），只为远程快照加入环境指纹，本机历史 ID 不变。captureFromRecord 恢复该字段；后台提示和复盘通过 captureDiagnostics 跳过 Windows 编译器，VS Code 的远端诊断仍随 runtime 传递。样例历史/运行器对远程来源关闭，云端评测链路不变。验证边界见 [专项记录](wsl-audit.md)。
+
+
+## 题面图片显示链路（0.2.22）
+
+1. Chrome 的 extractPage 将题面提取为纯文字，另存 images 数组：section、文字 offset、alt，以及 DOM 图片序号和 src/srcset 指纹组成的 id。图片字节不塞入 problem_notice，AI 快照仍使用纯文字 problem。
+2. problem-display 验证元数据并推送题面。VS Code 先显示文字和图片占位，再按队列发送 problem_image 请求；接口检查请求图片确实属于当前题面。
+3. 请求通过本机服务、browser-mailbox 和原生连接抵达 Chrome。浏览器核对当前题号和图片指纹，在隔离脚本环境中把已登录页面的 img 绘制到临时 canvas，输出 PNG；大图降为 WebP 并缩小。每条图片数据最多 170000 字符，低于原生输入消息 300000 字节限制。
+4. VS Code 只接收 PNG/WebP data URL，以 DOM img 显示；CSP 仍只允许 data: 图片，不执行网页 HTML / SVG。每次页面变更递增本地显示代次，核对响应 requestId 和 revision 后显示，忽略过期响应；仅缓存当前视图最近 24 张图片。
+
+此链路位于 Windows 浏览器与 VS Code UI 之间，使用 Remote-WSL 课程项目时保持相同流程；不向课程目录写入图片，也不向 AI 上传图片。跨域 canvas 限制、未加载图片、超大图片以明确占位说明降级到原题查看。当前覆盖普通 img 参考图，不覆盖 CSS 背景或动态 canvas。

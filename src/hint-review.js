@@ -3,6 +3,7 @@ import path from 'node:path';
 import {createHash,randomUUID} from 'node:crypto';
 import {z} from 'zod';
 import {ROOT,compilerCheck} from './core.js';
+import {captureDiagnostics} from './source-environment.js';
 import {dataDir,acquireLock,writeRecord,readReview,captureFromRecord,processAlive,recordAssistance,formatProblem} from './browser-review.js';
 import {conversationContext,validateConversationLink,quickConversation} from './conversation-history.js';
 import {gridUrl} from './grid-url.js';
@@ -140,7 +141,7 @@ export async function processHint(id,{model=runHintModel,discussionModel=runDisc
     const source=await readReview(current.snapshotId),capture=await captureFromRecord(source);
     // General discussion needs the current source, not a compiler startup and
     // a recursive review/debug evidence tree before every short question.
-    const diagnostics=current.kind==='discussion'?{status:'not_requested',ranProgram:false}:await compile(capture.code,capture.standard,{timeoutMs:1500});
+    const diagnostics=current.kind==='discussion'?{status:'not_requested',ranProgram:false}:await captureDiagnostics(capture,compile,{timeoutMs:1500});
     await update(id,prior=>prior.status==='skipped'?prior:{...prior,compiler:diagnostics,...(current.kind==='discussion'?{}:{instantAnalysis:globalThis.PkuInstantHints.generate(capture,prior.judgment,diagnostics).markdown})});
     const ready=await readHint(id);if(ready.status==='skipped')return ready;
     const evidence={task:current.kind==='discussion'?'code_discussion':'debug_hint',capture,diagnostics,...(current.kind==='discussion'?{}:{answerContext:await hintAnswerContext(capture)}),judgment:ready.judgment,runtimeAssociation:ready.judgment.runtimeAssociation};

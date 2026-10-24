@@ -5,7 +5,18 @@ function configuredFile(){
   const value=vscode.workspace.getConfiguration('gridCoach').get('source.templateFile','');
   if(typeof value!=='string')throw new Error('源码模板文件路径应为文本。');
   const file=value.trim();
-  if(file&&!path.isAbsolute(file))throw new Error('源码模板文件须为绝对路径。请在插件设置中指定本机 .cpp 或文本文件。');
+  if(/^vscode-remote:/i.test(file)){
+    const uri=vscode.Uri.parse(file);if(!uri.authority||!uri.path.startsWith('/')||uri.query||uri.fragment)throw new Error('请填写完整的远程源码模板文件 URI。');return uri;
+  }
+  if(file.startsWith('/')){
+    const folders=(vscode.workspace.workspaceFolders||[]).filter(folder=>folder.uri.scheme==='vscode-remote');
+    const active=vscode.window.activeTextEditor?.document.uri;
+    const folder=(active&&vscode.workspace.getWorkspaceFolder(active))|| (folders.length===1?folders[0]:undefined);
+    if(folder?.uri.scheme==='vscode-remote')return folder.uri.with({path:path.posix.normalize(file),query:'',fragment:''});
+    if(folders.length)throw new Error('多个远程项目无法确定模板位置，请使用完整 vscode-remote:// URI。');
+    if(process.platform==='win32'&&!file.startsWith('//'))throw new Error('这是 Linux 模板路径，请在 WSL 工作区使用，或填写完整远程 URI；Windows 模板请填写带盘符的路径。');
+  }
+  if(file&&!path.isAbsolute(file))throw new Error('源码模板须为本机绝对路径、WSL 绝对路径或完整远程 URI。');
   return file?vscode.Uri.file(file):null;
 }
 async function rawTemplate(){
@@ -34,4 +45,4 @@ async function previewTemplate(context,values){
   const document=await vscode.workspace.openTextDocument({language:'cpp',content});templateDocuments.add(document);await vscode.window.showTextDocument(document,{preview:false});
 }
 function isTemplateDocument(document){if(!document)return false;if(templateDocuments.has(document))return true;try{return document.uri.toString()===configuredFile()?.toString();}catch{return false;}}
-module.exports={sourceTemplate,editTemplate,previewTemplate,isTemplateDocument};
+module.exports={sourceTemplate,editTemplate,previewTemplate,isTemplateDocument,configuredFile};

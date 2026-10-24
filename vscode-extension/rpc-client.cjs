@@ -17,7 +17,7 @@ class RpcClient{
     if(this.closed)return Promise.reject(new Error('本机连接不可用，请重新打开教练。'));
     const id=++this.next;
     return new Promise((resolve,reject)=>{
-      const timeout={list_problems:18000,activate_problem:22000,oj_submit:45000,oj_refresh:30000,oj_prepare:20000,grid_test:45000,grid_test_refresh:30000,run_sample:25000}[message.type]||22000;
+      const timeout={account_usage:35000,list_problems:18000,activate_problem:22000,oj_submit:45000,oj_refresh:30000,oj_prepare:20000,grid_test:45000,grid_test_refresh:30000,run_sample:25000}[message.type]||22000;
       const timer=setTimeout(()=>{this.pending.delete(id);reject(new Error('本机程序未及时确认，本次操作尚未确认成功。'));},timeout);
       this.pending.set(id,{resolve,reject,timer});this.child.stdin.write(JSON.stringify({...message,requestId:id})+'\n',e=>{if(e){clearTimeout(timer);this.pending.delete(id);reject(e);}});
     });

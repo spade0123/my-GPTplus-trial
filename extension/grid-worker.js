@@ -1,8 +1,9 @@
 import {extractPage} from './extract.js';
 import {readCurrentJudgment} from './capture-actions.js';
 import {gridJudgeRequest} from './grid-submit.js';
-import {readGridProblemList} from './grid-navigation.js';
+import {readGridProblemList,readGridAssignmentName} from './grid-navigation.js';
 import {readGridClosingTime} from './grid-closing.js';
+import {readGridProblemImage} from './grid-images.js';
 
 const patterns=['https://programming.pku.edu.cn/*'];
 let port,ready=false,sequence=0,timer;
@@ -20,13 +21,13 @@ async function page(tab,code){
   const [r]=await chrome.scripting.executeScript({target:{tabId:tab.id},world:'MAIN',func:extractPage});
   const after=await chrome.tabs.get(tab.id);
   if(!info(after.url)||info(after.url).key!==expected.key)throw Object.assign(new Error('读取期间切换了题目。'),{code:'PROBLEM_CHANGED'});
-  const value=r?.result;if(!value?.problem||!Object.values(value.problem).some(Boolean))throw new Error('没有读到题面，请确认已经登录并打开 IDE。');
+  const value=r?.result;if(!value?.problem||(!Object.values(value.problem).some(Boolean)&&!value.images?.length))throw new Error('没有读到题面，请确认已经登录并打开 IDE。');
   let submission=null;
   if(typeof code==='string'){
     const [j]=await chrome.scripting.executeScript({target:{tabId:tab.id},world:'MAIN',func:readCurrentJudgment,args:[code]});
     if(j?.result?.status&&j.result.status!=='unknown')submission={problemMatches:true,problemUrl:expected.url,submittedCode:code,sourceTruncated:false,submissionId:null,verdict:{status:j.result.status,text:'网页当前可见评测与源码相符'},runtime:{error:''}};
   }
-  return {problem:{problemMatches:true,problemUrl:expected.url,title:value.title,problem:value.problem,missingSections:value.missingSections},runtime:value.runtime,submission};
+  return {problem:{problemMatches:true,problemUrl:expected.url,title:value.title,problem:value.problem,images:value.images||[],missingSections:value.missingSections},runtime:value.runtime,submission};
 }
 async function handle(request){
   if(request.expiresAt&&request.expiresAt<=Date.now())throw new Error('请求已超时，本次没有继续发送到网站。');
@@ -35,6 +36,11 @@ async function handle(request){
   const p=request.params||{},expected=info(p.problemUrl),tab=tabs.find(t=>t.id===(p.tabId||p.receipt?.tabId)&&info(t.url)?.key===expected?.key)||tabs.find(t=>info(t.url)?.key===expected?.key);
   if(!expected||!tab||info(tab.url)?.key!==expected.key)throw Object.assign(new Error('题目 IDE 标签已关闭或切换，请重新关联。'),{code:'PROBLEM_CHANGED'});
   progress(request.id,'已找到题目标签');
+  if(request.action==='problem_image'){
+    const [reply]=await chrome.scripting.executeScript({target:{tabId:tab.id},world:'ISOLATED',func:readGridProblemImage,args:[expected.url,p.imageId]});
+    const after=await chrome.tabs.get(tab.id);if(info(after.url)?.key!==expected.key)throw new Error('读取参考图时切换了题目。');
+    if(!reply?.result||reply.result.error)throw new Error(reply?.result?.error||'图片读取失败。');return reply.result;
+  }
   if(request.action==='list_problems'){
     let closesAt=p.forceDeadline?null:assignmentDeadlines.get(expected.key.split('/')[0])??null;
     if(closesAt===null){
@@ -43,6 +49,7 @@ async function handle(request){
     }
     const [reply]=await chrome.scripting.executeScript({target:{tabId:tab.id},world:'ISOLATED',func:readGridProblemList,args:[expected.url,closesAt]});
     const result=reply?.result;if(result?.error)throw new Error(result.error);
+    if(!result.assignmentName){const [name]=await chrome.scripting.executeScript({target:{tabId:tab.id},world:'MAIN',func:readGridAssignmentName,args:[expected.url]});result.assignmentName=name?.result||'';}
     if(!Array.isArray(result?.problems)||result.problems.length>500)throw new Error('未读到题目菜单，请重新加载 Chrome 连接扩展。');
     const after=await chrome.tabs.get(tab.id);if(info(after.url)?.key!==expected.key)throw new Error('读取列表时切换了题目，请重试。');
     const group=expected.key.split('/')[0],keys=new Set();

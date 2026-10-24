@@ -1,6 +1,6 @@
 {
   "name": "programminggrid-vscode-coach-mcp",
-  "version": "0.2.15",
+  "version": "0.2.22",
   "private": true,
   "type": "module",
   "description": "编程网格题目 IDE + VS Code C++ 学习教练",
@@ -16,6 +16,7 @@
     "@modelcontextprotocol/sdk": "1.32.1",
     "cheerio": "1.1.2",
     "diff": "^9.0.0",
+    "jsonc-parser": "^3.3.1",
     "zod": "^3.25.76"
   },
   "devDependencies": {
