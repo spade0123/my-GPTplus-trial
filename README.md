@@ -2,7 +2,7 @@
 
 在 **VS Code 写 C++**，通过已登录的 **Chrome 连接编程网格**，直接测试、提交并查看网站返回原文；需要学习辅助时，再打开独立的 AI 提示或交流页面。
 
-当前适配的是 `https://programming.pku.edu.cn` 的具体题目 IDE，面向 Windows 桌面版 VS Code + Chrome。项目最初计划适配 `programminggrid.pku.edu.cn`，实际核对与使用的接口位于前者。
+当前适配的是 `https://programming.pku.edu.cn` 的具体题目 IDE，支持 Windows 原生项目，以及 Windows VS Code + Remote-WSL 课程项目；Chrome 与本机连接服务均运行在 Windows。项目最初计划适配 `programminggrid.pku.edu.cn`，实际核对与使用的接口位于前者。
 
 **仓库发布工具与文档；个人题目、作业源码、对话、评测记录和报告保存在各自电脑。AI 分析会使用各自配置的模型服务与额度。**
 

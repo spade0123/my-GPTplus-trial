@@ -29,3 +29,20 @@ Windows 本地工作区仍使用安装时的 Windows Node/g++ 和 build/源码�
 0.2.21 按用户要求完成 37 项专项与相关回归验证，含真实 WSL 临时目录的自拟程序编译运行。没有运行用户课程代码或迁移其作业目录，也未自动操控编辑器 UI。详情见 [WSL 检查记录](wsl-audit.md)。未经用户要求不运行测试或编译课程代码。
 
 参考：[VS Code 远程扩展架构](https://code.visualstudio.com/api/advanced-topics/remote-extensions)、[Remote-WSL 文档](https://code.visualstudio.com/docs/remote/wsl)。
+
+
+## Windows 原生项目同样支持
+
+用户目前的课程项目位于 WSL；这不限制同学使用 Windows 本地项目。用普通 VS Code 窗口打开 C:/ 或 D:/ 下的项目即可，源码 URI 为 file:，不需要 Remote-WSL。
+
+| 功能 | Windows 原生项目 | Remote-WSL 项目 |
+| --- | --- | --- |
+| 切题、源码关联、题单目录 | Windows file: URI，经 VS Code 文件接口读写 | vscode-remote: URI，经 VS Code 远程文件接口读写 |
+| 自动创建的题目源码 | 编程网格/题单名字/英文题名.cpp | 同样的目录结构，存储在 WSL |
+| Ctrl+Shift+B | Windows Node 调用安装时指定的 Windows g++ | /bin/sh 调用 WSL g++ |
+| 编译产物 | 题单目录/build/源码名.exe | 题单目录/build/源码名 |
+| 题面参考图、网格云端测试与提交、AI 页面 | Windows Chrome → Windows 本机连接 → VS Code UI | 相同链路，源码正文通过 VS Code 远程接口提供 |
+
+Windows 需按 README 运行 install-grid.ps1，配置本机 Node、Codex 和 g++ 的真实路径。已有用户任务可以继续使用；若要应用产物集中策略，执行“编程网格：配置 Ctrl+Shift+B 编译到 build”。不需要单独的 Windows 版 VSIX，当前安装包同时包含两种构建分支。
+
+0.2.22 发布前确认以上路径与组件分支仍存在；参考图功能通过语法检查并已打包安装，实际网站图片显示及 Windows 原生 UI / 编译联调尚待使用确认。先前 0.2.21 的 WSL 专项验证不能替代 Windows 原生端到端验证。
